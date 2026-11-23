@@ -17,25 +17,28 @@ const itemColumns = (currency: string): Column<OrderItem>[] => [
 	},
 	{
 		label: "Quantity",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (row) => formatCount(row.quantity),
 	},
 	{
 		label: "Unit price",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor, currency),
 	},
 	{
 		label: "Total",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor * row.quantity, currency),
 	},
 ];
 
 const activityColumns = (zone: string): Column<OrderActivity>[] => [
-	{ label: "Date", cell: (row) => formatDate(row.createdAt, zone) },
-	{ label: "Previous status", cell: (row) => orderStatusLabels[row.previousStatus] },
-	{ label: "New status", cell: (row) => orderStatusLabels[row.status] },
+	{ label: "Date", compact: true, cell: (row) => formatDate(row.createdAt, zone) },
+	{ label: "Previous status", compact: true, cell: (row) => orderStatusLabels[row.previousStatus] },
+	{ label: "New status", compact: true, cell: (row) => orderStatusLabels[row.status] },
 	{ label: "Changed by", cell: (row) => row.staffName ?? "System" },
 ];
 

@@ -7,6 +7,7 @@ import { ProductTable } from "./product-table";
 type ProductListProps = ListPage<ProductListRow> & {
 	search: ProductSearch;
 	currency: string;
+	priceCeiling: number;
 	categories: CategoryOption[];
 	onSearch: (search: ProductSearch) => void;
 };
@@ -18,12 +19,14 @@ export const ProductList = ({
 	rows,
 	total,
 	currency,
+	priceCeiling,
 }: ProductListProps) => (
 	<div className="flex flex-col gap-4">
 		<ProductFilters
 			search={search}
 			categories={categories}
 			currency={currency}
+			priceCeiling={priceCeiling}
 			onSearch={onSearch}
 		/>
 		<ProductTable

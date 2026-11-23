@@ -1,7 +1,8 @@
 import { type ComponentProps, useEffect, useRef, useState } from "react";
 import type { ListSearch } from "./list.types";
 
-export const filterKey = ({ page: _page, ...filters }: ListSearch) => JSON.stringify(filters);
+export const filterKey = ({ page: _page, ...filters }: ListSearch) =>
+	JSON.stringify(filters, Object.keys(filters).sort());
 
 export const useListFormKey = (applied: string) => {
 	const [key, setKey] = useState(0);
@@ -22,6 +23,24 @@ export const useListFormKey = (applied: string) => {
 	return { key, sent };
 };
 
+const filterFormEvents = (schedule: (form: HTMLFormElement) => void, cancel: () => void) =>
+	({
+		onSubmit: (event) => {
+			event.preventDefault();
+			schedule(event.currentTarget);
+		},
+		onCompositionStart: cancel,
+		onCompositionEnd: (event) => schedule(event.currentTarget),
+		onChange: (event) => {
+			if (!(event.nativeEvent instanceof InputEvent && event.nativeEvent.isComposing)) {
+				schedule(event.currentTarget);
+			}
+		},
+	}) satisfies Pick<
+		ComponentProps<"form">,
+		"onSubmit" | "onCompositionStart" | "onCompositionEnd" | "onChange"
+	>;
+
 export const useFilterTimer = (apply: (form: FormData) => void) => {
 	const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 	const cancel = () => clearTimeout(timer.current);
@@ -33,18 +52,5 @@ export const useFilterTimer = (apply: (form: FormData) => void) => {
 			if (form.isConnected && form.checkValidity()) apply(new FormData(form));
 		}, 300);
 	};
-	const events = {
-		onSubmit: (event) => event.preventDefault(),
-		onCompositionStart: cancel,
-		onCompositionEnd: (event) => schedule(event.currentTarget),
-		onChange: (event) => {
-			if (!(event.nativeEvent instanceof InputEvent && event.nativeEvent.isComposing)) {
-				schedule(event.currentTarget);
-			}
-		},
-	} satisfies Pick<
-		ComponentProps<"form">,
-		"onSubmit" | "onCompositionStart" | "onCompositionEnd" | "onChange"
-	>;
-	return { cancel, events };
+	return { cancel, events: filterFormEvents(schedule, cancel) };
 };

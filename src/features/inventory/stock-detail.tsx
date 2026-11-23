@@ -65,15 +65,15 @@ export const AdjustStockForm = (props: AdjustmentFormProps) => {
 };
 
 const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
-	{ label: "Date", cell: (row) => formatDate(row.createdAt, zone) },
+	{ label: "Date", compact: true, cell: (row) => formatDate(row.createdAt, zone) },
 	{
 		label: "Change",
+		compact: true,
 		className: "tabular-nums",
 		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
 	},
 	{
 		label: "Reason",
-		className: "min-w-44 max-w-96 whitespace-normal",
 		cell: (row) => row.reason,
 	},
 	{ label: "Changed by", cell: (row) => row.staffName ?? "System" },

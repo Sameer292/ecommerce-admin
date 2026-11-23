@@ -28,15 +28,17 @@ const inventoryColumns: Column<ProductListRow>[] = [
 		label: "SKU",
 		cell: (row) => <span className="text-muted-foreground">{row.sku}</span>,
 	},
-	{ label: "Status", cell: (row) => <StockStatus {...row} /> },
+	{ label: "Status", compact: true, cell: (row) => <StockStatus {...row} /> },
 	{
 		label: "Threshold",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (row) => formatCount(row.lowStockThreshold),
 	},
 	{
 		label: "On hand",
-		className: "text-right tabular-nums font-medium",
+		compact: true,
+		className: "tabular-nums font-medium",
 		cell: (row) => formatCount(row.stock),
 	},
 ];

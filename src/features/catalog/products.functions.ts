@@ -5,14 +5,24 @@ import { requireStaff } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
 import { categoryOptions } from "./categories.server";
 import { productFormSchema, productSearchSchema } from "./catalog-validation";
-import { deleteProduct, findProduct, listProducts, saveProduct } from "./products.server";
+import {
+	deleteProduct,
+	findProduct,
+	highestProductPrice,
+	listProducts,
+	saveProduct,
+} from "./products.server";
 
 export const readProducts = createServerFn()
 	.validator(productSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [page, categories] = await Promise.all([listProducts(data), categoryOptions()]);
-		return { ...page, categories };
+		const [page, categories, priceCeiling] = await Promise.all([
+			listProducts(data),
+			categoryOptions(),
+			highestProductPrice(),
+		]);
+		return { ...page, categories, priceCeiling };
 	});
 
 export const readNewProduct = createServerFn().handler(async () => {

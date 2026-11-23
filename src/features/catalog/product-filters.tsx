@@ -1,16 +1,15 @@
 import { ListControls } from "@/components/admin/list-controls";
-import { FieldLegend, FieldSet } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { currencyDigits, moneyInput } from "@/lib/format";
 import { productStatuses, productStatusLabels } from "./catalog-options";
 import { readProductFilters } from "./catalog-validation";
 import type { CategoryOption, ProductSearch } from "./catalog.types";
+import { PriceRangeFilter } from "./price-range-filter";
 
 type ProductFilterProps = {
 	search: ProductSearch;
 	categories: CategoryOption[];
 	currency: string;
+	priceCeiling: number;
 	onSearch: (search: ProductSearch) => void;
 };
 
@@ -61,64 +60,25 @@ const CategoryFilter = ({
 	</NativeSelect>
 );
 
-const PriceBound = ({
-	name,
-	label,
-	value,
+export const ProductFilters = ({
+	search,
+	categories,
 	currency,
-}: {
-	name: string;
-	label: string;
-	value?: number;
-	currency: string;
-}) => {
-	const digits = currencyDigits(currency);
-	const fraction = digits ? `(?:\\.[0-9]{1,${digits}})?` : "";
+	priceCeiling,
+	onSearch,
+}: ProductFilterProps) => {
+	const ceiling = Math.max(priceCeiling, search.minPriceMinor ?? 0, search.maxPriceMinor ?? 0);
 	return (
-		<Input
-			name={name}
-			inputMode="decimal"
-			pattern={`[0-9]{1,12}${fraction}`}
-			maxLength={16}
-			aria-label={`${label} (${currency})`}
-			placeholder={label}
-			defaultValue={value === undefined ? "" : moneyInput(value, currency)}
-			className="h-9 min-w-0 flex-1 invalid:border-destructive"
-		/>
+		<ListControls
+			search={search}
+			placeholder="Search products"
+			readSearch={(form) => readProductFilters(form, ceiling)}
+			onSearch={onSearch}
+			onClear={hasProductFilters(search) ? () => onSearch({ q: "", page: 1 }) : undefined}
+		>
+			<ProductStatusFilter status={search.status} />
+			<CategoryFilter category={search.category} categories={categories} />
+			<PriceRangeFilter key={ceiling} search={search} currency={currency} ceiling={ceiling} />
+		</ListControls>
 	);
 };
-
-const PriceRangeFilter = ({
-	search,
-	currency,
-}: Pick<ProductFilterProps, "search" | "currency">) => (
-	<FieldSet className="w-full min-w-0 flex-row gap-2 sm:w-48">
-		<FieldLegend className="sr-only">Price range ({currency})</FieldLegend>
-		<PriceBound
-			name="minPrice"
-			label="Min price"
-			currency={currency}
-			value={search.minPriceMinor}
-		/>
-		<PriceBound
-			name="maxPrice"
-			label="Max price"
-			currency={currency}
-			value={search.maxPriceMinor}
-		/>
-	</FieldSet>
-);
-
-export const ProductFilters = ({ search, categories, currency, onSearch }: ProductFilterProps) => (
-	<ListControls
-		search={search}
-		placeholder="Search products"
-		readSearch={(form) => readProductFilters(form, currency)}
-		onSearch={onSearch}
-		onClear={hasProductFilters(search) ? () => onSearch({ q: "", page: 1 }) : undefined}
-	>
-		<ProductStatusFilter status={search.status} />
-		<CategoryFilter category={search.category} categories={categories} />
-		<PriceRangeFilter search={search} currency={currency} />
-	</ListControls>
-);

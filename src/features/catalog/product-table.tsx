@@ -12,7 +12,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 			<Link
 				to="/products/$productId"
 				params={{ productId: product.id }}
-				className="max-w-48 truncate font-medium hover:underline sm:max-w-64"
+				className="font-medium hover:underline"
 			>
 				{product.name}
 			</Link>
@@ -22,23 +22,26 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 );
 
 const productColumns = (currency: string): Column<ProductListRow>[] => [
-	{ label: "Product", cell: (product) => <ProductName product={product} /> },
+	{ label: "Product", className: "min-w-44", cell: (product) => <ProductName product={product} /> },
 	{
 		label: "Category",
 		cell: (product) => product.categoryName ?? "Uncategorized",
 	},
 	{
 		label: "Status",
+		compact: true,
 		cell: (product) => <ProductStatus status={product.status} />,
 	},
 	{
 		label: "Price",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (product) => formatCount(product.stock),
 	},
 ];

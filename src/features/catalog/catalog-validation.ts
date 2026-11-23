@@ -1,30 +1,46 @@
 import { z } from "zod";
-import { maxMinorAmount, parseMoneyInput } from "@/lib/money";
+import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { optionalId } from "@/lib/validation";
 import { productStatuses } from "./catalog-options";
 
 export const categorySearchSchema = pageSearchSchema;
 
-const priceBound = z.int().min(0).max(maxMinorAmount).optional().catch(undefined);
+const priceMinor = z.int().min(0).max(maxMinorAmount);
+const priceBound = priceMinor.optional().catch(undefined);
+const sliderAmount = z.string().regex(/^\d+$/).transform(Number).pipe(priceMinor);
+const sliderRange = z.tuple([sliderAmount, sliderAmount]);
 
-export const productSearchSchema = pageSearchSchema.extend({
-	status: z.enum(productStatuses).optional().catch(undefined),
-	category: z.uuid().optional().catch(undefined),
-	minPriceMinor: priceBound,
-	maxPriceMinor: priceBound,
-});
+export const productSearchSchema = pageSearchSchema
+	.extend({
+		status: z.enum(productStatuses).optional().catch(undefined),
+		category: z.uuid().optional().catch(undefined),
+		minPriceMinor: priceBound,
+		maxPriceMinor: priceBound,
+	})
+	.transform((search) => {
+		const { minPriceMinor, maxPriceMinor } = search;
+		if (
+			minPriceMinor !== undefined &&
+			maxPriceMinor !== undefined &&
+			minPriceMinor > maxPriceMinor
+		) {
+			return { ...search, minPriceMinor: maxPriceMinor, maxPriceMinor: minPriceMinor };
+		}
+		return search;
+	});
 
-export const readProductFilters = (form: FormData, currency: string) => {
-	const minimum = String(form.get("minPrice") ?? "");
-	const maximum = String(form.get("maxPrice") ?? "");
-	const minPriceMinor = parseMoneyInput(minimum, currency);
-	const maxPriceMinor = parseMoneyInput(maximum, currency);
-	if ((minimum && minPriceMinor === null) || (maximum && maxPriceMinor === null)) return null;
+export const readProductFilters = (form: FormData, priceCeiling: number) => {
+	const values = form.getAll("priceRange");
+	if (values.length === 0) return productSearchSchema.parse(Object.fromEntries(form));
+	const parsed = sliderRange.safeParse(values);
+	if (!parsed.success) return null;
+	const [min, max] = parsed.data;
+	if (min > max || max > priceCeiling) return null;
 	return productSearchSchema.parse({
 		...Object.fromEntries(form),
-		minPriceMinor: minPriceMinor ?? undefined,
-		maxPriceMinor: maxPriceMinor ?? undefined,
+		minPriceMinor: min === 0 ? undefined : min,
+		maxPriceMinor: max === priceCeiling ? undefined : max,
 	});
 };
 

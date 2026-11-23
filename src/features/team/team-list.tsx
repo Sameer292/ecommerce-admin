@@ -22,9 +22,10 @@ const teamColumns: Column<StaffAccount>[] = [
 		),
 	},
 	{ label: "Email", cell: (row) => <span className="text-muted-foreground">{row.email}</span> },
-	{ label: "Role", cell: (row) => roleLabels[row.role] },
+	{ label: "Role", compact: true, cell: (row) => roleLabels[row.role] },
 	{
 		label: "Access",
+		compact: true,
 		cell: (row) => (
 			<StatusBadge tone={row.banned ? "danger" : "success"}>
 				{row.banned ? "Disabled" : "Active"}

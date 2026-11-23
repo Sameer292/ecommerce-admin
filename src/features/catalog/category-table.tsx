@@ -7,7 +7,6 @@ import type { CategoryListRow } from "./catalog.types";
 const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Category",
-		className: "w-2/5 whitespace-normal wrap-anywhere",
 		cell: (row) => (
 			<Link
 				to="/categories/$categoryId"
@@ -20,12 +19,11 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	},
 	{
 		label: "Slug",
-		className: "whitespace-normal wrap-anywhere",
 		cell: (row) => <span className="text-muted-foreground">{row.slug}</span>,
 	},
 	{
 		label: "Products",
-		className: "w-px text-right",
+		compact: true,
 		cell: (row) => (
 			<Link
 				to="/products"

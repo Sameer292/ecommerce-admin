@@ -14,7 +14,7 @@ const CategoryList = () => {
 	const { q, page } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	return (
-		<div className="flex w-full max-w-2xl flex-col gap-4">
+		<div className="flex flex-col gap-4">
 			<ListControls
 				search={{ q, page }}
 				placeholder="Search categories"

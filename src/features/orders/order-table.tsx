@@ -5,29 +5,29 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { OrderStatusBadge, PaymentStatusBadge } from "./order-labels";
 import type { OrderRow } from "./order.types";
 
+const OrderNumber = ({ id, number }: Pick<OrderRow, "id" | "number">) => (
+	<Link to="/orders/$orderId" params={{ orderId: id }} className="font-medium hover:underline">
+		#{number}
+	</Link>
+);
+
 const columns = (currency: string, zone: string): Column<OrderRow>[] => [
-	{
-		label: "Order",
-		cell: (row) => (
-			<Link
-				to="/orders/$orderId"
-				params={{ orderId: row.id }}
-				className="font-medium hover:underline"
-			>
-				#{row.number}
-			</Link>
-		),
-	},
+	{ label: "Order", cell: (row) => <OrderNumber {...row} /> },
 	{ label: "Customer", cell: (row) => row.customerName },
 	{
 		label: "Date",
-		cell: (row) => <span className="text-muted-foreground">{formatDate(row.createdAt, zone)}</span>,
+		cell: (row) => formatDate(row.createdAt, zone),
 	},
-	{ label: "Status", cell: (row) => <OrderStatusBadge status={row.status} /> },
-	{ label: "Payment", cell: (row) => <PaymentStatusBadge status={row.paymentStatus} /> },
+	{ label: "Status", compact: true, cell: (row) => <OrderStatusBadge status={row.status} /> },
+	{
+		label: "Payment",
+		compact: true,
+		cell: (row) => <PaymentStatusBadge status={row.paymentStatus} />,
+	},
 	{
 		label: "Total",
-		className: "text-right tabular-nums",
+		compact: true,
+		className: "tabular-nums",
 		cell: (row) => formatMoney(row.totalMinor, currency),
 	},
 ];

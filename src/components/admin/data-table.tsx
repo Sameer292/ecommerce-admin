@@ -11,6 +11,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { DataTableProps } from "./list.types";
 
+const columnWidth = (compact?: boolean) =>
+	compact ? "w-[12%] whitespace-nowrap" : "min-w-24 whitespace-normal wrap-anywhere";
+
 const TableEmpty = ({ title, description }: { title: string; description?: string }) => (
 	<Empty className="py-11">
 		<EmptyHeader>
@@ -27,8 +30,11 @@ const DataRows = <Row extends { id: string }>({
 	<TableBody>
 		{rows.map((row) => (
 			<TableRow key={row.id}>
-				{columns.map(({ label, cell, className }) => (
-					<TableCell key={label} className={cn("px-4 py-3", className)}>
+				{columns.map(({ label, cell, compact, className }) => (
+					<TableCell
+						key={label}
+						className={cn("px-4 py-3", columnWidth(compact), className, "text-left")}
+					>
 						{cell(row)}
 					</TableCell>
 				))}
@@ -46,11 +52,16 @@ const TableContents = <Row extends { id: string }>({
 		<TableCaption className="sr-only">{label}</TableCaption>
 		<TableHeader className="bg-muted/35">
 			<TableRow>
-				{columns.map(({ label, className }) => (
+				{columns.map(({ label, compact, className }) => (
 					<TableHead
 						key={label}
 						scope="col"
-						className={cn("h-10 px-4 text-xs text-muted-foreground", className)}
+						className={cn(
+							"h-10 px-4 text-xs text-muted-foreground",
+							columnWidth(compact),
+							className,
+							"text-left",
+						)}
 					>
 						{label}
 					</TableHead>

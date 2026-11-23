@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export type Column<Row> = {
 	label: string;
 	cell: (row: Row) => ReactNode;
+	compact?: boolean;
 	className?: string;
 };
 
