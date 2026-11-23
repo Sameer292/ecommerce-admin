@@ -1,0 +1,67 @@
+import { DashboardSquare01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Link, type LinkProps } from "@tanstack/react-router";
+import type { Role } from "@/features/auth/auth.types";
+import { can } from "@/features/auth/permissions";
+
+type NavigationItem = {
+	to: LinkProps["to"];
+	label: string;
+	icon: typeof DashboardSquare01Icon;
+	teamOnly?: boolean;
+};
+
+const groups: { name: string; items: NavigationItem[] }[] = [
+	{
+		name: "Workspace",
+		items: [{ to: "/", label: "Overview", icon: DashboardSquare01Icon }],
+	},
+];
+
+const NavigationLink = ({
+	item,
+	onNavigate,
+}: {
+	item: NavigationItem;
+	onNavigate?: () => void;
+}) => (
+	<Link
+		to={item.to}
+		activeOptions={{ exact: item.to === "/", includeSearch: false }}
+		onClick={onNavigate}
+		className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[status=active]:bg-sidebar-accent data-[status=active]:font-semibold data-[status=active]:text-sidebar-accent-foreground"
+	>
+		<HugeiconsIcon icon={item.icon} className="size-[18px]" aria-hidden />
+		{item.label}
+	</Link>
+);
+
+export const Navigation = ({
+	role,
+	onNavigate,
+}: {
+	role: Role;
+	onNavigate?: () => void;
+}) => (
+	<nav
+		aria-label="Main navigation"
+		className="flex flex-1 flex-col gap-6 px-3 py-5"
+	>
+		{groups.map((group) => (
+			<div key={group.name} className="flex flex-col gap-1">
+				<p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+					{group.name}
+				</p>
+				{group.items
+					.filter((item) => !item.teamOnly || can(role, "manageTeam"))
+					.map((item) => (
+						<NavigationLink
+							key={item.label}
+							item={item}
+							onNavigate={onNavigate}
+						/>
+					))}
+			</div>
+		))}
+	</nav>
+);

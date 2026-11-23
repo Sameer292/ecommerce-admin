@@ -12,7 +12,11 @@
 			"src/**/*.tsx",
 			"tests/**/*.ts",
 			"tests/**/*.tsx",
-			"!**/*.d.ts"
+			"!**/*.d.ts",
+			"scripts/**/*.ts",
+			"drizzle.config.ts",
+			"vite.config.ts",
+			"!src/routeTree.gen.ts"
 		]
 	},
 	"formatter": {

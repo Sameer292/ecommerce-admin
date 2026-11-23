@@ -1,60 +1,50 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
-import { TanStackDevtools } from "@tanstack/react-devtools"
+import {
+	HeadContent,
+	Link,
+	Scripts,
+	createRootRoute,
+} from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
+import type { ReactNode } from "react";
+import appCss from "../styles.css?url";
 
-import appCss from "../styles.css?url"
+const RootDocument = ({ children }: { children: ReactNode }) => (
+	<html lang="en" suppressHydrationWarning>
+		<head>
+			<HeadContent />
+		</head>
+		<body>
+			<ThemeProvider
+				attribute="class"
+				defaultTheme="system"
+				disableTransitionOnChange
+			>
+				{children}
+			</ThemeProvider>
+			<Scripts />
+		</body>
+	</html>
+);
+
+const NotFound = () => (
+	<main className="mx-auto flex max-w-lg flex-col gap-4 px-6 py-16">
+		<h1 className="font-heading text-3xl font-semibold">Page not found</h1>
+		<Link to="/" className="text-primary underline underline-offset-4">
+			Back to overview
+		</Link>
+	</main>
+);
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "TanStack Start Starter",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-    ],
-  }),
-  notFoundComponent: () => (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>404</h1>
-      <p>The requested page could not be found.</p>
-    </main>
-  ),
-  shellComponent: RootDocument,
-})
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Scripts />
-      </body>
-    </html>
-  )
-}
+	head: () => ({
+		meta: [
+			{ charSet: "utf-8" },
+			{ name: "viewport", content: "width=device-width, initial-scale=1" },
+			{ name: "robots", content: "noindex, nofollow" },
+			{ title: "Store admin" },
+		],
+		links: [{ rel: "stylesheet", href: appCss }],
+	}),
+	notFoundComponent: NotFound,
+	shellComponent: RootDocument,
+});
