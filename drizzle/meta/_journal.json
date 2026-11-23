@@ -15,6 +15,20 @@
       "when": 1795452973049,
       "tag": "0001_cuddly_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795453732237,
+      "tag": "0002_careful_kid_colt",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795454881732,
+      "tag": "0003_complex_luke_cage",
+      "breakpoints": true
     }
   ]
 }

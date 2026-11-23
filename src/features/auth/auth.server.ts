@@ -17,7 +17,8 @@ export const auth = betterAuth({
 		disableSignUp: true,
 		minPasswordLength: 12,
 	},
-	session: { expiresIn: 60 * 60 * 24, updateAge: 60 * 60 * 4 },
+	session: { expiresIn: 60 * 60 * 24, disableSessionRefresh: true },
+	telemetry: { enabled: false },
 	rateLimit: {
 		enabled: true,
 		storage: "database",

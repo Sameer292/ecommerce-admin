@@ -3,6 +3,10 @@ import {
 	DashboardSquare01Icon,
 	Folder01Icon,
 	Package01Icon,
+	Settings01Icon,
+	ShoppingBasket01Icon,
+	UserMultipleIcon,
+	UserSettings02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link, type LinkProps } from "@tanstack/react-router";
@@ -19,7 +23,11 @@ type NavigationItem = {
 const groups: { name: string; items: NavigationItem[] }[] = [
 	{
 		name: "Workspace",
-		items: [{ to: "/", label: "Overview", icon: DashboardSquare01Icon }],
+		items: [
+			{ to: "/", label: "Overview", icon: DashboardSquare01Icon },
+			{ to: "/orders", label: "Orders", icon: ShoppingBasket01Icon },
+			{ to: "/customers", label: "Customers", icon: UserMultipleIcon },
+		],
 	},
 	{
 		name: "Catalog",
@@ -27,6 +35,13 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 			{ to: "/products", label: "Products", icon: Package01Icon },
 			{ to: "/categories", label: "Categories", icon: Folder01Icon },
 			{ to: "/inventory", label: "Inventory", icon: BoxesIcon },
+		],
+	},
+	{
+		name: "Administration",
+		items: [
+			{ to: "/team", label: "Team", icon: UserSettings02Icon, teamOnly: true },
+			{ to: "/settings", label: "Settings", icon: Settings01Icon },
 		],
 	},
 ];

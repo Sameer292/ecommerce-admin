@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { pageSearchDefaults } from "@/lib/pagination";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { PageHeading } from "@/components/admin/page-heading";
 import { InventoryList } from "@/features/inventory/inventory-list";
 import { inventorySearchSchema } from "@/features/inventory/inventory-validation";
@@ -21,6 +22,7 @@ const InventoryPage = () => {
 
 export const Route = createFileRoute("/_admin/inventory/")({
 	validateSearch: inventorySearchSchema,
+	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => readInventory({ data: deps }),
 	component: InventoryPage,

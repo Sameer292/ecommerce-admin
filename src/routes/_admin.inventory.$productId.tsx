@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
 import { readStock } from "@/features/inventory/inventory.functions";
@@ -36,6 +36,7 @@ const StockPage = () => {
 
 export const Route = createFileRoute("/_admin/inventory/$productId")({
 	validateSearch: pageSearchSchema.pick({ page: true }),
+	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps, params }) => readStock({ data: { id: params.productId, page: deps.page } }),
 	component: StockPage,

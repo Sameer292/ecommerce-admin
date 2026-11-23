@@ -1,3 +1,5 @@
+import type { Permission, Role } from "./auth.types";
+
 export const roles = ["superuser", "manager", "viewer"] as const;
 
 export const roleLabels = {
@@ -18,5 +20,3 @@ export const can = (role: Role, permission: Permission) =>
 	permission === "read" ||
 	role === "superuser" ||
 	(role === "manager" && permission === "manageCommerce");
-
-import type { Permission, Role } from "./auth.types";

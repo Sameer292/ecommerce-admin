@@ -1,0 +1,104 @@
+import { useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { AdminForm } from "@/components/admin/admin-form";
+import { SelectField, TextField } from "@/components/admin/form-fields";
+import { FormSection } from "@/components/admin/form-section";
+import { NativeSelectOption } from "@/components/ui/native-select";
+import type { Role } from "@/features/auth/auth.types";
+import { roleDescriptions, roleLabels, roles } from "@/features/auth/permissions";
+import { addStaffAccount, writeStaffAccount } from "./team.functions";
+import type { StaffAccount } from "./team.types";
+
+const RoleField = ({ selected, options }: { selected: Role; options: readonly Role[] }) => (
+	<SelectField name="role" label="Role" defaultValue={selected}>
+		{options.map((value) => (
+			<NativeSelectOption key={value} value={value}>
+				{roleLabels[value]}
+			</NativeSelectOption>
+		))}
+	</SelectField>
+);
+
+const NewStaffFields = () => (
+	<>
+		<TextField name="name" label="Name" maxLength={80} required />
+		<TextField name="email" label="Email" type="email" maxLength={254} required />
+		<TextField
+			name="password"
+			label="Initial password"
+			type="password"
+			autoComplete="new-password"
+			minLength={12}
+			maxLength={128}
+			hint="Use at least 12 characters. Share this password with the staff member securely."
+			required
+		/>
+		<RoleField selected="viewer" options={roles} />
+	</>
+);
+
+const RoleGuide = () => (
+	<FormSection title="Role permissions">
+		<dl className="flex flex-col gap-3 text-sm">
+			{roles.map((role) => (
+				<div key={role}>
+					<dt className="font-medium">{roleLabels[role]}</dt>
+					<dd className="text-muted-foreground">{roleDescriptions[role]}</dd>
+				</div>
+			))}
+		</dl>
+	</FormSection>
+);
+
+export const NewStaffForm = () => {
+	const navigate = useNavigate();
+	const save = useServerFn(addStaffAccount);
+	return (
+		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+			<FormSection title="Account details">
+				<AdminForm
+					onSave={(data) => save({ data })}
+					onSuccess={() => navigate({ to: "/team" })}
+					submitLabel="Create account"
+				>
+					<NewStaffFields />
+				</AdminForm>
+			</FormSection>
+			<RoleGuide />
+		</div>
+	);
+};
+
+const EditableAccess = ({ account }: { account: StaffAccount }) => (
+	<>
+		<input type="hidden" name="id" value={account.id} />
+		<RoleField selected={account.role} options={["manager", "viewer"]} />
+		<SelectField
+			name="status"
+			label="Account access"
+			defaultValue={account.banned ? "disabled" : "active"}
+		>
+			<NativeSelectOption value="active">Active</NativeSelectOption>
+			<NativeSelectOption value="disabled">Disabled</NativeSelectOption>
+		</SelectField>
+	</>
+);
+
+export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
+	const navigate = useNavigate();
+	const save = useServerFn(writeStaffAccount);
+	return (
+		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+			<FormSection title="Account access">
+				{account.role === "superuser" ? (
+					<p className="text-sm">{roleDescriptions.superuser}</p>
+				) : (
+					<AdminForm onSave={(data) => save({ data })} onSuccess={() => navigate({ to: "/team" })}>
+						<EditableAccess account={account} />
+					</AdminForm>
+				)}
+			</FormSection>
+			<RoleGuide />
+		</div>
+	);
+};

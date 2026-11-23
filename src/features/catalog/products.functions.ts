@@ -1,14 +1,10 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { formDataSchema, idSchema } from "@/lib/validation";
 import { requireStaff } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
 import { categoryOptions, findCategory } from "./categories.server";
-import {
-	formDataSchema,
-	idSchema,
-	productFormSchema,
-	productSearchSchema,
-} from "./catalog-validation";
+import { productFormSchema, productSearchSchema } from "./catalog-validation";
 import { deleteProduct, findProduct, listProducts, saveProduct } from "./products.server";
 
 export const readProducts = createServerFn()

@@ -1,3 +1,4 @@
+import type { StoreSettingsValues } from "./settings.types";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { storeSettings } from "@/db/schema/settings";
@@ -12,3 +13,9 @@ export const getStoreSettings = async () => {
 		currency: env.STORE_CURRENCY,
 	};
 };
+
+export const saveStoreSettings = (values: StoreSettingsValues) =>
+	db
+		.insert(storeSettings)
+		.values({ id: 1, ...values })
+		.onConflictDoUpdate({ target: storeSettings.id, set: values });

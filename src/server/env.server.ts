@@ -9,6 +9,12 @@ const schema = z.object({
 		.string()
 		.regex(/^[a-zA-Z0-9-]+$/)
 		.optional(),
+	STORE_INTEGRATION_TOKEN: z
+		.string()
+		.min(32)
+		.max(128)
+		.regex(/^[A-Za-z0-9._-]+$/)
+		.optional(),
 	STORE_NAME: z.string().trim().min(1).max(80).default("Commerce"),
 	STORE_CURRENCY: currencySchema.default("USD"),
 	STORE_TIME_ZONE: timeZoneSchema.default("UTC"),

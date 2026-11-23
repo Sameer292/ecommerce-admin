@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { pageSearchDefaults } from "@/lib/pagination";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { NewRecord } from "@/components/admin/new-record";
 import { PageHeading } from "@/components/admin/page-heading";
 import { can } from "@/features/auth/permissions";
@@ -31,6 +32,7 @@ const ProductsPage = () => {
 
 export const Route = createFileRoute("/_admin/products/")({
 	validateSearch: productSearchSchema,
+	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => readProducts({ data: deps }),
 	component: ProductsPage,

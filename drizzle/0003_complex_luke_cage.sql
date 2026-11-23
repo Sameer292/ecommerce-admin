@@ -1,0 +1,1 @@
+ALTER TABLE "commerce_admin"."orders" ADD COLUMN "import_digest" text;

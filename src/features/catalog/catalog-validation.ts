@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { pageSearchSchema } from "@/lib/pagination";
+import { optionalId } from "@/lib/validation";
 import { productStatuses } from "./catalog-options";
-
-export const idSchema = z.object({ id: z.uuid() });
-export const formDataSchema = z.instanceof(FormData);
 
 export const categorySearchSchema = pageSearchSchema;
 
@@ -19,7 +17,7 @@ const slug = z
 	.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens for the slug.");
 
 export const categoryFormSchema = z.object({
-	id: z.union([z.uuid(), z.literal("")]).transform((id) => id || undefined),
+	id: optionalId,
 	name: z.string().trim().min(1, "Enter a category name.").max(120),
 	slug,
 	description: z.string().trim().max(1_000),

@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { pageSearchDefaults } from "@/lib/pagination";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { ListControls } from "@/components/admin/list-controls";
 import { NewRecord } from "@/components/admin/new-record";
 import { PageControls } from "@/components/admin/page-controls";
@@ -52,6 +53,7 @@ const CategoriesPage = () => {
 
 export const Route = createFileRoute("/_admin/categories/")({
 	validateSearch: categorySearchSchema,
+	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => readCategories({ data: deps }),
 	component: CategoriesPage,

@@ -1,7 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireStaff } from "@/features/auth/session.server";
-import { formDataSchema, idSchema } from "@/features/catalog/catalog-validation";
+import { formDataSchema, idSchema } from "@/lib/validation";
 import { findProduct, listProducts } from "@/features/catalog/products.server";
 import { pageSearchSchema } from "@/lib/pagination";
 import { mutate } from "@/server/mutation.server";

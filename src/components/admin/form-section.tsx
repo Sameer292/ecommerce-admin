@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 
 export const FormSection = ({
@@ -13,7 +13,7 @@ export const FormSection = ({
 }) => (
 	<Card size="sm" className="gap-5 p-5">
 		<CardHeader className="px-0">
-			<CardTitle className="font-heading text-base">{title}</CardTitle>
+			<h2 className="font-heading text-base font-semibold">{title}</h2>
 			{description && <CardDescription>{description}</CardDescription>}
 		</CardHeader>
 		<CardContent className="px-0">

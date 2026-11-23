@@ -1,13 +1,9 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { formDataSchema, idSchema } from "@/lib/validation";
 import { requireStaff } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
-import {
-	categoryFormSchema,
-	categorySearchSchema,
-	formDataSchema,
-	idSchema,
-} from "./catalog-validation";
+import { categoryFormSchema, categorySearchSchema } from "./catalog-validation";
 import { deleteCategory, findCategory, listCategories, saveCategory } from "./categories.server";
 
 export const readCategories = createServerFn()
