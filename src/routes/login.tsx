@@ -1,13 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { StoreMark } from "@/components/admin/store-mark";
 import { ThemeToggle } from "@/components/admin/theme-toggle";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/login-form";
 import { readStaff } from "@/features/auth/session.functions";
 
@@ -19,16 +13,12 @@ const LoginPage = () => (
 		<div className="flex w-full max-w-sm flex-col gap-6">
 			<div className="flex items-center justify-center gap-2.5">
 				<StoreMark />
-				<span className="font-heading text-lg font-semibold tracking-tight">
-					Store admin
-				</span>
+				<span className="font-heading text-lg font-semibold tracking-tight">Store admin</span>
 			</div>
 			<Card size="sm" className="gap-6 p-5 sm:p-6">
 				<CardHeader className="px-0">
-					<CardTitle className="font-heading text-2xl">Sign in</CardTitle>
-					<CardDescription>
-						Use your staff account to access the store.
-					</CardDescription>
+					<h1 className="font-heading text-2xl font-semibold">Sign in</h1>
+					<CardDescription>Use your staff account to access the store.</CardDescription>
 				</CardHeader>
 				<CardContent className="px-0">
 					<LoginForm />

@@ -6,10 +6,7 @@ import { cn } from "cn";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const FieldSet = ({
-	className,
-	...props
-}: React.ComponentProps<"fieldset">) => {
+const FieldSet = ({ className, ...props }: React.ComponentProps<"fieldset">) => {
 	return (
 		<fieldset
 			data-slot="field-set"
@@ -53,23 +50,20 @@ const FieldGroup = ({ className, ...props }: React.ComponentProps<"div">) => {
 	);
 };
 
-const fieldVariants = cva(
-	"group/field flex w-full gap-2 data-[invalid=true]:text-destructive",
-	{
-		variants: {
-			orientation: {
-				vertical: "flex-col *:w-full [&>.sr-only]:w-auto",
-				horizontal:
-					"flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-				responsive:
-					"flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-			},
-		},
-		defaultVariants: {
-			orientation: "vertical",
+const fieldVariants = cva("group/field flex w-full gap-2 data-[invalid=true]:text-destructive", {
+	variants: {
+		orientation: {
+			vertical: "flex-col *:w-full [&>.sr-only]:w-auto",
+			horizontal:
+				"flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+			responsive:
+				"flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
 		},
 	},
-);
+	defaultVariants: {
+		orientation: "vertical",
+	},
+});
 
 const Field = ({
 	className,
@@ -90,19 +84,13 @@ const FieldContent = ({ className, ...props }: React.ComponentProps<"div">) => {
 	return (
 		<div
 			data-slot="field-content"
-			className={cn(
-				"group/field-content flex flex-1 flex-col gap-0.5 leading-snug",
-				className,
-			)}
+			className={cn("group/field-content flex flex-1 flex-col gap-0.5 leading-snug", className)}
 			{...props}
 		/>
 	);
 };
 
-const FieldLabel = ({
-	className,
-	...props
-}: React.ComponentProps<typeof Label>) => {
+const FieldLabel = ({ className, ...props }: React.ComponentProps<typeof Label>) => {
 	return (
 		<Label
 			data-slot="field-label"
@@ -129,10 +117,7 @@ const FieldTitle = ({ className, ...props }: React.ComponentProps<"div">) => {
 	);
 };
 
-const FieldDescription = ({
-	className,
-	...props
-}: React.ComponentProps<"p">) => {
+const FieldDescription = ({ className, ...props }: React.ComponentProps<"p">) => {
 	return (
 		<p
 			data-slot="field-description"
@@ -180,11 +165,7 @@ const FieldSeparator = ({
 type FieldErrors = Array<{ message?: string } | undefined>;
 
 const renderErrors = (errors: FieldErrors = []) => {
-	const messages = [
-		...new Set(
-			errors.flatMap((error) => (error?.message ? [error.message] : [])),
-		),
-	];
+	const messages = [...new Set(errors.flatMap((error) => (error?.message ? [error.message] : [])))];
 	if (messages.length <= 1) return messages[0];
 
 	return (

@@ -7,6 +7,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+    --success: oklch(0.42 0.1 165);
+    --warning: oklch(0.48 0.11 70);
     --background: oklch(0.98 0.004 160);
     --foreground: oklch(0.148 0.004 228.8);
     --card: oklch(1 0 0);
@@ -42,6 +44,8 @@
 }
 
 .dark {
+    --success: oklch(0.8 0.12 165);
+    --warning: oklch(0.83 0.12 80);
     --background: oklch(0.17 0.009 168);
     --foreground: oklch(0.987 0.002 197.1);
     --card: oklch(0.21 0.011 171);
@@ -76,6 +80,8 @@
 }
 
 @theme inline {
+    --color-success: var(--success);
+    --color-warning: var(--warning);
     --font-sans: 'Inter Variable', sans-serif;
     --font-heading: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);

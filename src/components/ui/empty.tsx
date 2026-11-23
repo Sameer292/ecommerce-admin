@@ -58,19 +58,13 @@ const EmptyTitle = ({ className, ...props }: React.ComponentProps<"div">) => {
 	return (
 		<div
 			data-slot="empty-title"
-			className={cn(
-				"font-heading text-sm font-medium tracking-tight",
-				className,
-			)}
+			className={cn("font-heading text-sm font-medium tracking-tight", className)}
 			{...props}
 		/>
 	);
 };
 
-const EmptyDescription = ({
-	className,
-	...props
-}: React.ComponentProps<"p">) => {
+const EmptyDescription = ({ className, ...props }: React.ComponentProps<"p">) => {
 	return (
 		<div
 			data-slot="empty-description"
@@ -96,11 +90,4 @@ const EmptyContent = ({ className, ...props }: React.ComponentProps<"div">) => {
 	);
 };
 
-export {
-	Empty,
-	EmptyHeader,
-	EmptyTitle,
-	EmptyDescription,
-	EmptyContent,
-	EmptyMedia,
-};
+export { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia };

@@ -1,3 +1,4 @@
+import { useHydrated } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const LoginFields = () => (
 	</FieldGroup>
 );
 
-export const LoginForm = () => {
+const useSignIn = () => {
 	const [pending, setPending] = useState(false);
 	const [error, setError] = useState("");
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -60,15 +61,21 @@ export const LoginForm = () => {
 		}
 		setPending(false);
 	};
+	return { error, pending, submit };
+};
+
+export const LoginForm = () => {
+	const { error, pending, submit } = useSignIn();
+	const hydrated = useHydrated();
 	return (
-		<form className="flex flex-col gap-5" onSubmit={submit}>
+		<form method="post" className="flex flex-col gap-5" onSubmit={submit}>
 			<LoginFields />
 			{error && (
 				<Alert variant="destructive" role="alert">
 					<AlertDescription>{error}</AlertDescription>
 				</Alert>
 			)}
-			<Button type="submit" size="lg" className="h-10" disabled={pending}>
+			<Button type="submit" size="lg" className="h-10" disabled={!hydrated || pending}>
 				{pending ? "Signing in…" : "Sign in"}
 			</Button>
 		</form>

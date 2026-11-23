@@ -1,0 +1,105 @@
+import { useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { AdminForm } from "@/components/admin/admin-form";
+import { DataTable } from "@/components/admin/data-table";
+import { NotesField, TextField } from "@/components/admin/form-fields";
+import { FormSection } from "@/components/admin/form-section";
+import type { Column, ListPage } from "@/components/admin/list.types";
+import { PageControls } from "@/components/admin/page-controls";
+import type { Product } from "@/features/catalog/catalog.types";
+import { StockStatus } from "@/features/catalog/product-labels";
+import { formatCount, formatDate } from "@/lib/format";
+import { writeStock } from "./inventory.functions";
+import type { StockHistoryRow } from "./inventory.types";
+
+export const StockSummary = ({ product }: { product: Product }) => (
+	<FormSection
+		title="Stock on hand"
+		description={`Low-stock threshold: ${formatCount(product.lowStockThreshold)}`}
+	>
+		<div className="flex flex-wrap items-center gap-4">
+			<span className="font-heading text-4xl font-semibold tracking-tight">
+				{formatCount(product.stock)}
+			</span>
+			<StockStatus {...product} />
+		</div>
+	</FormSection>
+);
+
+type AdjustmentFormProps = { productId: string; adjustmentId: string };
+
+const AdjustmentFields = ({ productId, adjustmentId }: AdjustmentFormProps) => (
+	<>
+		<input type="hidden" name="id" value={adjustmentId} />
+		<input type="hidden" name="productId" value={productId} />
+		<TextField
+			name="delta"
+			label="Change in units"
+			type="number"
+			min={-1000000}
+			max={1000000}
+			required
+			hint="Enter a positive number to add stock or a negative number to remove it."
+		/>
+		<NotesField name="reason" label="Reason" maxLength={500} required />
+	</>
+);
+
+export const AdjustStockForm = (props: AdjustmentFormProps) => {
+	const submit = useServerFn(writeStock);
+	const router = useRouter();
+	return (
+		<FormSection
+			title="Adjust stock"
+			description="Record a receiving, count, damage, or other inventory adjustment."
+		>
+			<AdminForm
+				onSave={(data) => submit({ data })}
+				onSuccess={() => router.invalidate()}
+				submitLabel="Record adjustment"
+			>
+				<AdjustmentFields {...props} />
+			</AdminForm>
+		</FormSection>
+	);
+};
+
+const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
+	{ label: "Date", cell: (row) => formatDate(row.createdAt, zone) },
+	{
+		label: "Change",
+		className: "tabular-nums",
+		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
+	},
+	{
+		label: "Reason",
+		className: "min-w-44 max-w-96 whitespace-normal",
+		cell: (row) => row.reason,
+	},
+	{ label: "Changed by", cell: (row) => row.staffName ?? "System" },
+];
+
+export const StockHistory = ({
+	rows,
+	total,
+	page,
+	zone,
+	onPage,
+}: ListPage<StockHistoryRow> & {
+	page: number;
+	zone: string;
+	onPage: (page: number) => void;
+}) => (
+	<section className="flex flex-col gap-4" aria-labelledby="stock-history">
+		<h2 id="stock-history" className="font-heading text-xl font-semibold">
+			Adjustment history
+		</h2>
+		<DataTable
+			rows={rows}
+			columns={stockColumns(zone)}
+			label="Adjustment history"
+			empty="No adjustments yet"
+		/>
+		<PageControls total={total} page={page} onPage={onPage} />
+	</section>
+);

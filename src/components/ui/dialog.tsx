@@ -22,10 +22,7 @@ const DialogClose = ({ ...props }: DialogPrimitive.Close.Props) => {
 	return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 };
 
-const DialogOverlay = ({
-	className,
-	...props
-}: DialogPrimitive.Backdrop.Props) => {
+const DialogOverlay = ({ className, ...props }: DialogPrimitive.Backdrop.Props) => {
 	return (
 		<DialogPrimitive.Backdrop
 			data-slot="dialog-overlay"
@@ -37,6 +34,16 @@ const DialogOverlay = ({
 		/>
 	);
 };
+
+const DialogDismiss = () => (
+	<DialogPrimitive.Close
+		data-slot="dialog-close"
+		render={<Button variant="ghost" className="absolute top-2 right-2" size="icon-sm" />}
+	>
+		<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+		<span className="sr-only">Close</span>
+	</DialogPrimitive.Close>
+);
 
 const DialogContent = ({
 	className,
@@ -58,21 +65,7 @@ const DialogContent = ({
 				{...props}
 			>
 				{children}
-				{showCloseButton && (
-					<DialogPrimitive.Close
-						data-slot="dialog-close"
-						render={
-							<Button
-								variant="ghost"
-								className="absolute top-2 right-2"
-								size="icon-sm"
-							/>
-						}
-					>
-						<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-						<span className="sr-only">Close</span>
-					</DialogPrimitive.Close>
-				)}
+				{showCloseButton && <DialogDismiss />}
 			</DialogPrimitive.Popup>
 		</DialogPortal>
 	);
@@ -80,11 +73,7 @@ const DialogContent = ({
 
 const DialogHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
 	return (
-		<div
-			data-slot="dialog-header"
-			className={cn("flex flex-col gap-2", className)}
-			{...props}
-		/>
+		<div data-slot="dialog-header" className={cn("flex flex-col gap-2", className)} {...props} />
 	);
 };
 
@@ -107,9 +96,7 @@ const DialogFooter = ({
 		>
 			{children}
 			{showCloseButton && (
-				<DialogPrimitive.Close render={<Button variant="outline" />}>
-					Close
-				</DialogPrimitive.Close>
+				<DialogPrimitive.Close render={<Button variant="outline" />}>Close</DialogPrimitive.Close>
 			)}
 		</div>
 	);
@@ -119,19 +106,13 @@ const DialogTitle = ({ className, ...props }: DialogPrimitive.Title.Props) => {
 	return (
 		<DialogPrimitive.Title
 			data-slot="dialog-title"
-			className={cn(
-				"font-heading text-base leading-none font-medium",
-				className,
-			)}
+			className={cn("font-heading text-base leading-none font-medium", className)}
 			{...props}
 		/>
 	);
 };
 
-const DialogDescription = ({
-	className,
-	...props
-}: DialogPrimitive.Description.Props) => {
+const DialogDescription = ({ className, ...props }: DialogPrimitive.Description.Props) => {
 	return (
 		<DialogPrimitive.Description
 			data-slot="dialog-description"

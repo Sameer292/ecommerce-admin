@@ -1,8 +1,4 @@
-import {
-	createCsrfMiddleware,
-	createMiddleware,
-	createStart,
-} from "@tanstack/react-start";
+import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 
 const privateResponses = createMiddleware().server(({ next }) => {

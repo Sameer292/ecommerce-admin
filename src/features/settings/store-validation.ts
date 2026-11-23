@@ -16,7 +16,4 @@ export const timeZoneSchema = z
 const supportedCurrencies = Intl.supportedValuesOf("currency");
 export const currencySchema = z
 	.string()
-	.refine(
-		(value) => supportedCurrencies.includes(value),
-		"Enter a supported ISO currency code.",
-	);
+	.refine((value) => supportedCurrencies.includes(value), "Enter a supported ISO currency code.");

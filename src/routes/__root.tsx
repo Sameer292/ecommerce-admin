@@ -1,9 +1,4 @@
-import {
-	HeadContent,
-	Link,
-	Scripts,
-	createRootRoute,
-} from "@tanstack/react-router";
+import { HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
@@ -14,11 +9,7 @@ const RootDocument = ({ children }: { children: ReactNode }) => (
 			<HeadContent />
 		</head>
 		<body>
-			<ThemeProvider
-				attribute="class"
-				defaultTheme="system"
-				disableTransitionOnChange
-			>
+			<ThemeProvider attribute="class" defaultTheme="system" disableTransitionOnChange>
 				{children}
 			</ThemeProvider>
 			<Scripts />

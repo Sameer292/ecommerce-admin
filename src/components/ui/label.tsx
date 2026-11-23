@@ -1,12 +1,7 @@
 import type * as React from "react";
 import { cn } from "cn";
 
-const Label = ({
-	className,
-	htmlFor,
-	children,
-	...props
-}: React.ComponentProps<"label">) => {
+const Label = ({ className, htmlFor, children, ...props }: React.ComponentProps<"label">) => {
 	return (
 		<label
 			data-slot="label"

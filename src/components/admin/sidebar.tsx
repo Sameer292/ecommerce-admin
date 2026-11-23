@@ -7,23 +7,11 @@ import { StoreMark } from "./store-mark";
 
 type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
 
-const StoreIdentity = ({
-	name,
-	onNavigate,
-}: {
-	name: string;
-	onNavigate?: () => void;
-}) => (
-	<Link
-		to="/"
-		onClick={onNavigate}
-		className="flex min-w-0 items-center gap-3 px-5 py-5"
-	>
+const StoreIdentity = ({ name, onNavigate }: { name: string; onNavigate?: () => void }) => (
+	<Link to="/" onClick={onNavigate} className="flex min-w-0 items-center gap-3 px-5 py-5">
 		<StoreMark />
 		<span className="flex min-w-0 flex-col">
-			<span className="truncate font-heading font-semibold tracking-tight">
-				{name}
-			</span>
+			<span className="truncate font-heading font-semibold tracking-tight">{name}</span>
 			<span className="text-xs text-muted-foreground">Store admin</span>
 		</span>
 	</Link>
@@ -39,19 +27,13 @@ const StaffProfile = ({ staff }: Pick<Workspace, "staff">) => (
 		</span>
 		<div className="flex min-w-0 flex-1 flex-col">
 			<span className="truncate text-sm font-medium">{staff.name}</span>
-			<span className="text-xs text-muted-foreground">
-				{roleLabels[staff.role]}
-			</span>
+			<span className="text-xs text-muted-foreground">{roleLabels[staff.role]}</span>
 		</div>
 		<SignOut />
 	</div>
 );
 
-export const Sidebar = ({
-	staff,
-	store,
-	onNavigate,
-}: Workspace & { onNavigate?: () => void }) => (
+export const Sidebar = ({ staff, store, onNavigate }: Workspace & { onNavigate?: () => void }) => (
 	<>
 		<StoreIdentity name={store.name} onNavigate={onNavigate} />
 		<Navigation role={staff.role} onNavigate={onNavigate} />

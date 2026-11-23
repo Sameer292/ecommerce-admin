@@ -1,11 +1,4 @@
-import {
-	bigint,
-	boolean,
-	index,
-	integer,
-	text,
-	timestamp,
-} from "drizzle-orm/pg-core";
+import { bigint, boolean, index, integer, text, timestamp } from "drizzle-orm/pg-core";
 import { commerce } from "./namespace";
 
 export const user = commerce.table("staff_user", {
@@ -14,12 +7,8 @@ export const user = commerce.table("staff_user", {
 	email: text().notNull().unique(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text(),
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	role: text().default("viewer").notNull(),
 	banned: boolean().default(false),
 	banReason: text("ban_reason"),
@@ -32,12 +21,8 @@ export const session = commerce.table(
 		id: text().primaryKey(),
 		expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 		token: text().notNull().unique(),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
 		userId: text("user_id")
@@ -68,12 +53,8 @@ export const account = commerce.table(
 		}),
 		scope: text(),
 		password: text(),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [index().on(table.userId)],
 );
@@ -85,12 +66,8 @@ export const verification = commerce.table(
 		identifier: text().notNull(),
 		value: text().notNull(),
 		expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [index().on(table.identifier)],
 );

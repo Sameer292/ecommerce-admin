@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-	currencySchema,
-	timeZoneSchema,
-} from "@/features/settings/store-validation";
+import { currencySchema, timeZoneSchema } from "@/features/settings/store-validation";
 
 const schema = z.object({
 	DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),

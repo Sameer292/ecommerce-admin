@@ -4,20 +4,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/features/auth/auth-client";
 
-export const SignOut = () => {
-	const [error, setError] = useState(false);
-	const [pending, setPending] = useState(false);
+const useSignOut = () => {
+	const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
 	const signOut = async () => {
-		setPending(true);
+		setStatus("pending");
 		try {
 			const result = await authClient.signOut();
 			if (result.error) throw result.error;
 			window.location.assign("/login");
 		} catch {
-			setError(true);
-			setPending(false);
+			setStatus("error");
 		}
 	};
+	return { status, signOut };
+};
+
+export const SignOut = () => {
+	const { status, signOut } = useSignOut();
 	return (
 		<div className="flex flex-col gap-1">
 			<Button
@@ -25,11 +28,11 @@ export const SignOut = () => {
 				size="icon"
 				aria-label="Sign out"
 				onClick={signOut}
-				disabled={pending}
+				disabled={status === "pending"}
 			>
 				<HugeiconsIcon icon={Logout01Icon} />
 			</Button>
-			{error && (
+			{status === "error" && (
 				<p role="alert" className="text-xs text-destructive">
 					Sign-out failed.
 				</p>

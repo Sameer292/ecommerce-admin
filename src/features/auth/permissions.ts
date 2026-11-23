@@ -12,8 +12,7 @@ export const roleDescriptions = {
 	viewer: "Read-only access to store data and settings.",
 } as const;
 
-export const isRole = (value: unknown): value is Role =>
-	roles.some((role) => role === value);
+export const isRole = (value: unknown): value is Role => roles.some((role) => role === value);
 
 export const can = (role: Role, permission: Permission) =>
 	permission === "read" ||

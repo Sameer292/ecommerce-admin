@@ -19,7 +19,6 @@ export const getStaff = async () => {
 export const requireStaff = async (permission: Permission = "read") => {
 	const staff = await getStaff();
 	if (!staff) throw redirect({ to: "/login" });
-	if (!can(staff.role, permission))
-		throw new Error("You don’t have permission to do that.");
+	if (!can(staff.role, permission)) throw new Error("You don’t have permission to do that.");
 	return staff;
 };

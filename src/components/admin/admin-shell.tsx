@@ -1,14 +1,9 @@
 import { Menu01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useHydrated } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-	Sheet,
-	SheetContent,
-	SheetTitle,
-	SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { readWorkspace } from "@/features/auth/session.functions";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
@@ -17,12 +12,12 @@ type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
 
 const MobileNav = (workspace: Workspace) => {
 	const [open, setOpen] = useState(false);
+	const hydrated = useHydrated();
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
 			<SheetTrigger
-				render={
-					<Button variant="ghost" size="icon-lg" aria-label="Open navigation" />
-				}
+				disabled={!hydrated}
+				render={<Button variant="ghost" size="icon-lg" aria-label="Open navigation" />}
 			>
 				<HugeiconsIcon icon={Menu01Icon} />
 			</SheetTrigger>
@@ -40,9 +35,7 @@ const TopBar = (workspace: Workspace) => (
 			<div className="-ml-2 lg:hidden">
 				<MobileNav {...workspace} />
 			</div>
-			<span className="truncate text-sm font-medium">
-				{workspace.store.name}
-			</span>
+			<span className="truncate text-sm font-medium">{workspace.store.name}</span>
 		</div>
 		<ThemeToggle />
 	</header>

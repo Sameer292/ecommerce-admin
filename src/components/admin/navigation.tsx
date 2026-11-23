@@ -1,4 +1,9 @@
-import { DashboardSquare01Icon } from "@hugeicons/core-free-icons";
+import {
+	BoxesIcon,
+	DashboardSquare01Icon,
+	Folder01Icon,
+	Package01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import type { Role } from "@/features/auth/auth.types";
@@ -15,6 +20,14 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 	{
 		name: "Workspace",
 		items: [{ to: "/", label: "Overview", icon: DashboardSquare01Icon }],
+	},
+	{
+		name: "Catalog",
+		items: [
+			{ to: "/products", label: "Products", icon: Package01Icon },
+			{ to: "/categories", label: "Categories", icon: Folder01Icon },
+			{ to: "/inventory", label: "Inventory", icon: BoxesIcon },
+		],
 	},
 ];
 
@@ -36,30 +49,15 @@ const NavigationLink = ({
 	</Link>
 );
 
-export const Navigation = ({
-	role,
-	onNavigate,
-}: {
-	role: Role;
-	onNavigate?: () => void;
-}) => (
-	<nav
-		aria-label="Main navigation"
-		className="flex flex-1 flex-col gap-6 px-3 py-5"
-	>
+export const Navigation = ({ role, onNavigate }: { role: Role; onNavigate?: () => void }) => (
+	<nav aria-label="Main navigation" className="flex flex-1 flex-col gap-6 px-3 py-5">
 		{groups.map((group) => (
 			<div key={group.name} className="flex flex-col gap-1">
-				<p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
-					{group.name}
-				</p>
+				<p className="px-3 pb-1 text-xs font-medium text-muted-foreground">{group.name}</p>
 				{group.items
 					.filter((item) => !item.teamOnly || can(role, "manageTeam"))
 					.map((item) => (
-						<NavigationLink
-							key={item.label}
-							item={item}
-							onNavigate={onNavigate}
-						/>
+						<NavigationLink key={item.label} item={item} onNavigate={onNavigate} />
 					))}
 			</div>
 		))}
