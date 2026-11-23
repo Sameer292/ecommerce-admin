@@ -4,6 +4,7 @@ import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { stockFilterLabels, stockFilters } from "@/features/catalog/catalog-options";
 import type { ProductListRow } from "@/features/catalog/catalog.types";
 import { StockStatus } from "@/features/catalog/product-labels";
 import { formatCount } from "@/lib/format";
@@ -50,10 +51,10 @@ const InventoryFilters = ({
 	onSearch,
 }: Pick<InventoryListProps, "search" | "onSearch">) => (
 	<ListControls
-		key={`${search.q}:${search.stock}`}
-		query={search.q}
+		search={search}
 		placeholder="Search inventory"
-		onSearch={(form) => onSearch(inventorySearchSchema.parse(Object.fromEntries(form)))}
+		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
+		onSearch={onSearch}
 		onClear={search.q || search.stock ? () => onSearch({ q: "", page: 1 }) : undefined}
 	>
 		<NativeSelect
@@ -63,7 +64,11 @@ const InventoryFilters = ({
 			className="h-9"
 		>
 			<NativeSelectOption value="">All products</NativeSelectOption>
-			<NativeSelectOption value="low">Low or out of stock</NativeSelectOption>
+			{stockFilters.map((stock) => (
+				<NativeSelectOption key={stock} value={stock}>
+					{stockFilterLabels[stock]}
+				</NativeSelectOption>
+			))}
 		</NativeSelect>
 	</ListControls>
 );

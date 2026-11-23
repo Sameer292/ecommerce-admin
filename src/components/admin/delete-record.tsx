@@ -21,7 +21,7 @@ type DeleteRecordProps = {
 
 export const DeleteRecord = ({ id, record, onDelete, onSuccess }: DeleteRecordProps) => (
 	<Dialog>
-		<DialogTrigger render={<Button variant="outline" size="lg" />}>
+		<DialogTrigger render={<Button variant="destructive" size="lg" />}>
 			<HugeiconsIcon icon={Delete02Icon} data-icon="inline-start" />
 			Delete
 		</DialogTrigger>

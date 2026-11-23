@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { stockFilters } from "@/features/catalog/catalog-options";
 import { pageSearchSchema } from "@/lib/pagination";
 
 export const inventorySearchSchema = pageSearchSchema.extend({
-	stock: z.enum(["low"]).optional().catch(undefined),
+	stock: z.enum(stockFilters).optional().catch(undefined),
 });
 
 export const adjustmentSchema = z.object({

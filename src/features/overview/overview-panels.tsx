@@ -62,9 +62,8 @@ export const StockWatch = ({ stock }: { stock: StockRow[] }) => (
 			</div>
 			<Link
 				to="/inventory"
-				search={{ stock: "low" }}
 				className={buttonVariants({ variant: "ghost", size: "icon" })}
-				aria-label="View all low-stock products"
+				aria-label="View inventory"
 			>
 				<HugeiconsIcon icon={ArrowUpRight01Icon} />
 			</Link>

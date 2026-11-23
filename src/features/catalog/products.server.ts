@@ -1,21 +1,32 @@
-import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { categories, products } from "@/db/schema/catalog";
 import { parseMoneyInput } from "@/lib/money";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { env } from "@/server/env.server";
 import { ActionError } from "@/server/mutation.server";
-import type { ProductSearch, ProductValues } from "./catalog.types";
+import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
 
 export const lowStock = sql`${products.stock} <= ${products.lowStockThreshold}`;
 
-const productFilter = ({ q, status, category }: ProductSearch, onlyLow?: boolean) => {
+const stockConditions = {
+	in: gt(products.stock, products.lowStockThreshold),
+	out: eq(products.stock, 0),
+	low: and(gt(products.stock, 0), lowStock),
+};
+
+const productFilter = (
+	{ q, status, category, minPriceMinor, maxPriceMinor }: ProductSearch,
+	stock?: StockFilter,
+) => {
 	const pattern = searchPattern(q);
 	return and(
 		q ? or(ilike(products.name, pattern), ilike(products.sku, pattern)) : undefined,
 		status ? eq(products.status, status) : undefined,
 		category ? eq(products.categoryId, category) : undefined,
-		onlyLow ? and(eq(products.status, "active"), lowStock) : undefined,
+		minPriceMinor === undefined ? undefined : gte(products.priceMinor, minPriceMinor),
+		maxPriceMinor === undefined ? undefined : lte(products.priceMinor, maxPriceMinor),
+		stock ? stockConditions[stock] : undefined,
 	);
 };
 
@@ -31,8 +42,8 @@ const columns = {
 	categoryName: categories.name,
 };
 
-export const listProducts = async (search: ProductSearch, onlyLow?: boolean) => {
-	const where = productFilter(search, onlyLow);
+export const listProducts = async (search: ProductSearch, stock?: StockFilter) => {
+	const where = productFilter(search, stock);
 	const [rows, total] = await Promise.all([
 		db
 			.select(columns)

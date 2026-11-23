@@ -1,18 +1,13 @@
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { FormEvent, ReactNode } from "react";
+import { useHydrated } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import type { ListControlsProps, ListFormProps, ListSearch } from "./list.types";
+import { filterKey, useFilterTimer, useListFormKey } from "./use-list-form";
 
-type ListControlsProps = {
-	query: string;
-	placeholder: string;
-	children?: ReactNode;
-	onSearch: (data: FormData) => void;
-	onClear?: () => void;
-};
-
-const SearchField = ({ query, placeholder }: Pick<ListControlsProps, "query" | "placeholder">) => (
+const SearchField = ({ query, placeholder }: Pick<ListFormProps, "query" | "placeholder">) => (
 	<div className="relative min-w-40 flex-1 sm:max-w-xs">
 		<HugeiconsIcon
 			icon={Search01Icon}
@@ -31,31 +26,46 @@ const SearchField = ({ query, placeholder }: Pick<ListControlsProps, "query" | "
 	</div>
 );
 
-export const ListControls = ({
-	query,
-	placeholder,
-	children,
-	onSearch,
-	onClear,
-}: ListControlsProps) => {
-	const submit = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		onSearch(new FormData(event.currentTarget));
+const ListForm = ({ query, placeholder, children, onSearch, onClear }: ListFormProps) => {
+	const hydrated = useHydrated();
+	const { cancel, events } = useFilterTimer(onSearch);
+	const clear = () => {
+		cancel();
+		onClear?.();
 	};
 	return (
 		<search>
-			<form className="flex flex-wrap items-center gap-2" onSubmit={submit}>
-				<SearchField query={query} placeholder={placeholder} />
-				{children}
-				<Button variant="outline" size="lg" type="submit">
-					Search
-				</Button>
-				{onClear && (
-					<Button variant="ghost" size="lg" type="button" onClick={onClear}>
-						Clear
-					</Button>
-				)}
+			<form {...events}>
+				<FieldSet disabled={!hydrated} className="min-w-0 flex-row flex-wrap items-center gap-2">
+					<SearchField query={query} placeholder={placeholder} />
+					{children}
+					{onClear && (
+						<Button variant="ghost" size="lg" type="button" onClick={clear}>
+							Clear
+						</Button>
+					)}
+				</FieldSet>
 			</form>
 		</search>
 	);
+};
+
+export const ListControls = <Search extends ListSearch>({
+	search,
+	readSearch,
+	onSearch,
+	onClear,
+	...props
+}: ListControlsProps<Search>) => {
+	const applied = filterKey(search);
+	const { key, sent } = useListFormKey(applied);
+	const apply = (form: FormData) => {
+		const next = readSearch(form);
+		if (!next) return;
+		const signature = filterKey(next);
+		if (search.page === 1 && signature === (sent.current.at(-1) ?? applied)) return;
+		sent.current.push(signature);
+		onSearch(next);
+	};
+	return <ListForm key={key} query={search.q} onSearch={apply} onClear={onClear} {...props} />;
 };

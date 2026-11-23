@@ -34,10 +34,10 @@ type CustomerListProps = ListPage<CustomerRow> & {
 export const CustomerList = ({ rows, total, zone, search, onSearch }: CustomerListProps) => (
 	<div className="flex flex-col gap-4">
 		<ListControls
-			key={search.q}
-			query={search.q}
+			search={search}
 			placeholder="Search customers"
-			onSearch={(form) => onSearch(pageSearchSchema.parse(Object.fromEntries(form)))}
+			readSearch={(form) => pageSearchSchema.parse(Object.fromEntries(form))}
+			onSearch={onSearch}
 			onClear={search.q ? () => onSearch({ q: "", page: 1 }) : undefined}
 		/>
 		<DataTable

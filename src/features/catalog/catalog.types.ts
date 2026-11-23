@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { categories, products } from "@/db/schema/catalog";
+import type { stockFilters } from "./catalog-options";
 import type {
 	categoryFormSchema,
 	categorySearchSchema,
@@ -17,6 +18,7 @@ export type ProductListRow = Pick<
 	categoryName: string | null;
 };
 export type CategoryListRow = Category & { productCount: number };
+export type StockFilter = (typeof stockFilters)[number];
 export type ProductSearch = z.output<typeof productSearchSchema>;
 export type CategorySearch = z.output<typeof categorySearchSchema>;
 export type ProductValues = z.output<typeof productFormSchema>;

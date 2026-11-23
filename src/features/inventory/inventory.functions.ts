@@ -12,7 +12,7 @@ export const readInventory = createServerFn()
 	.validator(inventorySearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		return listProducts(data, data.stock === "low");
+		return listProducts(data, data.stock);
 	});
 
 export const readStock = createServerFn()

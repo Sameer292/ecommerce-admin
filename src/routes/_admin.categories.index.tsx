@@ -14,14 +14,12 @@ const CategoryList = () => {
 	const { q, page } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex w-full max-w-2xl flex-col gap-4">
 			<ListControls
-				key={q}
-				query={q}
+				search={{ q, page }}
 				placeholder="Search categories"
-				onSearch={(form) =>
-					navigate({ search: categorySearchSchema.parse(Object.fromEntries(form)) })
-				}
+				readSearch={(form) => categorySearchSchema.parse(Object.fromEntries(form))}
+				onSearch={(search) => navigate({ search })}
 				onClear={q ? () => navigate({ search: { q: "", page: 1 } }) : undefined}
 			/>
 			<CategoryTable rows={rows} filtered={Boolean(q || page > 1)} />

@@ -16,10 +16,10 @@ type OrderListProps = ListPage<OrderRow> & {
 
 const OrderFilters = ({ search, onSearch }: Pick<OrderListProps, "search" | "onSearch">) => (
 	<ListControls
-		key={`${search.q}:${search.status}`}
-		query={search.q}
+		search={search}
 		placeholder="Search orders or customers"
-		onSearch={(form) => onSearch(orderSearchSchema.parse(Object.fromEntries(form)))}
+		readSearch={(form) => orderSearchSchema.parse(Object.fromEntries(form))}
+		onSearch={onSearch}
 		onClear={search.q || search.status ? () => onSearch({ q: "", page: 1 }) : undefined}
 	>
 		<NativeSelect

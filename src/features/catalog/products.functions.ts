@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { requireStaff } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
-import { categoryOptions, findCategory } from "./categories.server";
+import { categoryOptions } from "./categories.server";
 import { productFormSchema, productSearchSchema } from "./catalog-validation";
 import { deleteProduct, findProduct, listProducts, saveProduct } from "./products.server";
 
@@ -11,11 +11,8 @@ export const readProducts = createServerFn()
 	.validator(productSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [page, category] = await Promise.all([
-			listProducts(data),
-			data.category ? findCategory(data.category) : undefined,
-		]);
-		return { ...page, category };
+		const [page, categories] = await Promise.all([listProducts(data), categoryOptions()]);
+		return { ...page, categories };
 	});
 
 export const readNewProduct = createServerFn().handler(async () => {

@@ -1,14 +1,32 @@
 import { z } from "zod";
+import { maxMinorAmount, parseMoneyInput } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { optionalId } from "@/lib/validation";
 import { productStatuses } from "./catalog-options";
 
 export const categorySearchSchema = pageSearchSchema;
 
+const priceBound = z.int().min(0).max(maxMinorAmount).optional().catch(undefined);
+
 export const productSearchSchema = pageSearchSchema.extend({
 	status: z.enum(productStatuses).optional().catch(undefined),
 	category: z.uuid().optional().catch(undefined),
+	minPriceMinor: priceBound,
+	maxPriceMinor: priceBound,
 });
+
+export const readProductFilters = (form: FormData, currency: string) => {
+	const minimum = String(form.get("minPrice") ?? "");
+	const maximum = String(form.get("maxPrice") ?? "");
+	const minPriceMinor = parseMoneyInput(minimum, currency);
+	const maxPriceMinor = parseMoneyInput(maximum, currency);
+	if ((minimum && minPriceMinor === null) || (maximum && maxPriceMinor === null)) return null;
+	return productSearchSchema.parse({
+		...Object.fromEntries(form),
+		minPriceMinor: minPriceMinor ?? undefined,
+		maxPriceMinor: maxPriceMinor ?? undefined,
+	});
+};
 
 const slug = z
 	.string()

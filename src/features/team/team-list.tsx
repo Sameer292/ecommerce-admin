@@ -41,10 +41,10 @@ type TeamListProps = ListPage<StaffAccount> & {
 export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 	<div className="flex flex-col gap-4">
 		<ListControls
-			key={search.q}
-			query={search.q}
+			search={search}
 			placeholder="Search staff"
-			onSearch={(form) => onSearch(pageSearchSchema.parse(Object.fromEntries(form)))}
+			readSearch={(form) => pageSearchSchema.parse(Object.fromEntries(form))}
+			onSearch={onSearch}
 			onClear={search.q ? () => onSearch({ q: "", page: 1 }) : undefined}
 		/>
 		<DataTable

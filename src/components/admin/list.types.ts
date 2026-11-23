@@ -15,3 +15,22 @@ export type DataTableProps<Row> = {
 	empty: string;
 	emptyDescription?: string;
 };
+
+export type ListSearch = { page: number; q: string };
+
+export type ListControlsProps<Search extends ListSearch> = {
+	search: Search;
+	placeholder: string;
+	children?: ReactNode;
+	readSearch: (form: FormData) => Search | null;
+	onSearch: (search: Search) => void;
+	onClear?: () => void;
+};
+
+export type ListFormProps = {
+	query: string;
+	placeholder: string;
+	children?: ReactNode;
+	onSearch: (form: FormData) => void;
+	onClear?: () => void;
+};
