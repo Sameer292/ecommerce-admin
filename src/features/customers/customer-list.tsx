@@ -21,8 +21,8 @@ const customerColumns = (zone: string): Column<CustomerRow>[] => [
 		),
 	},
 	{ label: "Email", cell: (row) => <span className="text-muted-foreground">{row.email}</span> },
-	{ label: "Phone", compact: true, cell: (row) => row.phone || "—" },
-	{ label: "Added", compact: true, cell: (row) => formatDate(row.createdAt, zone) },
+	{ label: "Phone", cell: (row) => row.phone || "—" },
+	{ label: "Added", cell: (row) => formatDate(row.createdAt, zone) },
 ];
 
 type CustomerListProps = ListPage<CustomerRow> & {

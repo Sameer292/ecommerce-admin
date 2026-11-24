@@ -22,25 +22,22 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 );
 
 const productColumns = (currency: string): Column<ProductListRow>[] => [
-	{ label: "Product", className: "min-w-44", cell: (product) => <ProductName product={product} /> },
+	{ label: "Product", className: "min-w-30", cell: (product) => <ProductName product={product} /> },
 	{
 		label: "Category",
 		cell: (product) => product.categoryName ?? "Uncategorized",
 	},
 	{
 		label: "Status",
-		compact: true,
 		cell: (product) => <ProductStatus status={product.status} />,
 	},
 	{
 		label: "Price",
-		compact: true,
 		className: "tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
-		compact: true,
 		className: "tabular-nums",
 		cell: (product) => formatCount(product.stock),
 	},

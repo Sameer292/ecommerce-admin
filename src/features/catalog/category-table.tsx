@@ -23,7 +23,6 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	},
 	{
 		label: "Products",
-		compact: true,
 		cell: (row) => (
 			<Link
 				to="/products"
