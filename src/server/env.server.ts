@@ -3,12 +3,9 @@ import { currencySchema, timeZoneSchema } from "@/features/settings/store-valida
 
 const schema = z.object({
 	DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
-	BETTER_AUTH_URL: z.url({ protocol: /^https?$/ }),
-	BETTER_AUTH_SECRET: z.string().min(32),
-	AUTH_CLIENT_IP_HEADER: z
-		.string()
-		.regex(/^[a-zA-Z0-9-]+$/)
-		.optional(),
+	SUPABASE_URL: z.url({ protocol: /^https?$/ }),
+	SUPABASE_PUBLISHABLE_KEY: z.string().trim().min(1),
+	SUPABASE_SECRET_KEY: z.string().trim().min(1),
 	STORE_INTEGRATION_TOKEN: z
 		.string()
 		.min(32)

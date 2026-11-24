@@ -9,7 +9,8 @@ import {
 	staffIdSchema,
 	teamSearchSchema,
 } from "./team-validation";
-import { createStaffAccount, editStaffAccount, findStaffAccount, listTeam } from "./team.server";
+import { createStaffAccount } from "./provision-staff.server";
+import { editStaffAccount, findStaffAccount, listTeam } from "./team.server";
 
 export const readTeam = createServerFn()
 	.validator(teamSearchSchema)

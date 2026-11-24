@@ -36,6 +36,13 @@
       "when": 1795510787520,
       "tag": "0004_category_icons",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795526922697,
+      "tag": "0005_supabase_auth",
+      "breakpoints": true
     }
   ]
 }

@@ -1,16 +1,18 @@
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/features/auth/auth-client";
+import { signOutStaff } from "@/features/auth/auth.functions";
 
 const useSignOut = () => {
+	const endSession = useServerFn(signOutStaff);
 	const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
 	const signOut = async () => {
 		setStatus("pending");
 		try {
-			const result = await authClient.signOut();
-			if (result.error) throw result.error;
+			const result = await endSession();
+			if (!result.success) return setStatus("error");
 			window.location.assign("/login");
 		} catch {
 			setStatus("error");

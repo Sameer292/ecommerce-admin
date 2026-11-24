@@ -30,7 +30,6 @@ import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.n
 import { Route as AdminTeamIndexRouteImport } from './routes/_admin.team.index'
 import { Route as AdminTeamStaffIdRouteImport } from './routes/_admin.team.$staffId'
 import { Route as AdminTeamNewRouteImport } from './routes/_admin.team.new'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
 import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
 
@@ -140,11 +139,6 @@ const AdminTeamNewRoute = AdminTeamNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AdminTeamRoute,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiStoreCatalogRoute = ApiStoreCatalogRouteImport.update({
   id: '/api/store/catalog',
   path: '/api/store/catalog',
@@ -171,7 +165,6 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories/': typeof AdminCategoriesIndexRoute
@@ -195,7 +188,6 @@ export interface FileRoutesByTo {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories': typeof AdminCategoriesIndexRoute
@@ -222,7 +214,6 @@ export interface FileRoutesById {
   '/_admin/products/new': typeof AdminProductsNewRoute
   '/_admin/team/$staffId': typeof AdminTeamStaffIdRoute
   '/_admin/team/new': typeof AdminTeamNewRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/_admin/categories/': typeof AdminCategoriesIndexRoute
@@ -249,7 +240,6 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
-    | '/api/auth/$'
     | '/api/store/catalog'
     | '/api/store/orders'
     | '/categories/'
@@ -273,7 +263,6 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
-    | '/api/auth/$'
     | '/api/store/catalog'
     | '/api/store/orders'
     | '/categories'
@@ -299,7 +288,6 @@ export interface FileRouteTypes {
     | '/_admin/products/new'
     | '/_admin/team/$staffId'
     | '/_admin/team/new'
-    | '/api/auth/$'
     | '/api/store/catalog'
     | '/api/store/orders'
     | '/_admin/categories/'
@@ -313,7 +301,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
 }
@@ -467,13 +454,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamNewRouteImport
       parentRoute: typeof AdminTeamRoute
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/store/catalog': {
       id: '/api/store/catalog'
       path: '/api/store/catalog'
@@ -550,7 +530,6 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,
 }

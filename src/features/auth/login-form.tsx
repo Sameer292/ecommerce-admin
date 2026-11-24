@@ -1,18 +1,11 @@
 import { useHydrated } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authClient } from "./auth-client";
-
-const signIn = (form: HTMLFormElement) => {
-	const data = new FormData(form);
-	return authClient.signIn.email({
-		email: String(data.get("email")).trim().toLowerCase(),
-		password: String(data.get("password")),
-	});
-};
+import { signInStaff } from "./auth.functions";
 
 const LoginFields = () => (
 	<FieldGroup>
@@ -42,6 +35,7 @@ const LoginFields = () => (
 );
 
 const useSignIn = () => {
+	const signIn = useServerFn(signInStaff);
 	const [pending, setPending] = useState(false);
 	const [error, setError] = useState("");
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -49,13 +43,9 @@ const useSignIn = () => {
 		setPending(true);
 		setError("");
 		try {
-			const result = await signIn(event.currentTarget);
-			if (!result.error) return window.location.assign("/");
-			setError(
-				result.error.status === 429
-					? "Too many attempts. Try again in a minute."
-					: "Sign-in failed. Check your email and password.",
-			);
+			const result = await signIn({ data: new FormData(event.currentTarget) });
+			if (result.success) return window.location.assign("/");
+			setError(result.error);
 		} catch {
 			setError("Couldn’t connect. Try again.");
 		}

@@ -6,6 +6,8 @@ dist-ssr
 .env*
 .nitro
 .tanstack
+supabase/.temp/
+supabase/.branches/
 .wrangler
 .output
 .vinxi

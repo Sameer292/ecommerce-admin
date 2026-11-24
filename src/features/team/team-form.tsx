@@ -29,7 +29,7 @@ const NewStaffFields = () => (
 			type="password"
 			autoComplete="new-password"
 			minLength={12}
-			maxLength={128}
+			maxLength={72}
 			hint="Use at least 12 characters. Share this password with the staff member securely."
 			required
 		/>

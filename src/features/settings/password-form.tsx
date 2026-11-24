@@ -1,24 +1,9 @@
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
-import { authClient } from "@/features/auth/auth-client";
-import type { MutationResult } from "@/server/mutation.types";
-
-const changePassword = async (data: FormData): Promise<MutationResult> => {
-	const currentPassword = String(data.get("currentPassword"));
-	const newPassword = String(data.get("newPassword"));
-	if (newPassword !== data.get("confirmation"))
-		return { success: false, error: "The new passwords don’t match." };
-	const { error } = await authClient.changePassword({
-		currentPassword,
-		newPassword,
-		revokeOtherSessions: true,
-	});
-	return error
-		? { success: false, error: "Couldn’t change the password. Check your current password." }
-		: { success: true };
-};
+import { changeStaffPassword } from "@/features/auth/auth.functions";
 
 const PasswordFields = () => (
 	<>
@@ -35,7 +20,7 @@ const PasswordFields = () => (
 			type="password"
 			autoComplete="new-password"
 			minLength={12}
-			maxLength={128}
+			maxLength={72}
 			required
 		/>
 		<TextField
@@ -44,7 +29,7 @@ const PasswordFields = () => (
 			type="password"
 			autoComplete="new-password"
 			minLength={12}
-			maxLength={128}
+			maxLength={72}
 			required
 		/>
 	</>
@@ -52,11 +37,12 @@ const PasswordFields = () => (
 
 export const PasswordForm = ({ email }: { email: string }) => {
 	const [changed, setChanged] = useState(0);
+	const changePassword = useServerFn(changeStaffPassword);
 	return (
 		<FormSection title="Your account" description={email}>
 			<AdminForm
 				key={changed}
-				onSave={changePassword}
+				onSave={(data) => changePassword({ data })}
 				onSuccess={() => setChanged((count) => count + 1)}
 				submitLabel="Change password"
 			>
