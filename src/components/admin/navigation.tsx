@@ -56,10 +56,11 @@ const NavigationLink = ({
 	<Link
 		to={item.to}
 		activeOptions={{ exact: item.to === "/", includeSearch: false }}
+		preload={"intent"}
 		onClick={onNavigate}
 		className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[status=active]:bg-sidebar-accent data-[status=active]:font-semibold data-[status=active]:text-sidebar-accent-foreground"
 	>
-		<HugeiconsIcon icon={item.icon} className="size-[18px]" aria-hidden />
+		<HugeiconsIcon icon={item.icon} className="size-4.5" aria-hidden />
 		{item.label}
 	</Link>
 );

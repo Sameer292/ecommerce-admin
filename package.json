@@ -15,7 +15,7 @@
     "db:migrate": "drizzle-kit migrate",
     "admin:create": "bun scripts/create-admin.ts",
     "test": "bun test",
-    "start": "srvx --prod -s ../client dist/server/server.js",
+    "start": "srvx --prod -s ../public .output/server/index.mjs",
     "db:seed": "bun scripts/seed.ts"
   },
   "dependencies": {
