@@ -43,9 +43,13 @@ export const products = commerce.table(
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
-		index().on(table.name, table.id),
-		index().on(table.categoryId, table.name, table.id),
-		index().on(table.status, table.name, table.id),
+		index("products_name_id_index").on(sql`lower(${table.name})`, table.id),
+		index("products_category_id_name_id_index").on(
+			table.categoryId,
+			sql`lower(${table.name})`,
+			table.id,
+		),
+		index("products_status_name_id_index").on(table.status, sql`lower(${table.name})`, table.id),
 		index("products_low_stock")
 			.on(table.stock, table.id)
 			.where(sql`${table.stock} <= ${table.lowStockThreshold} AND ${table.status} = 'active'`),
