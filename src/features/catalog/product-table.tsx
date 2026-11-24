@@ -25,7 +25,7 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Product",
 		sort: "name.asc",
-		className: "min-w-44",
+		className: "min-w-30",
 		cell: (product) => <ProductName product={product} />,
 	},
 	{
@@ -35,19 +35,16 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	},
 	{
 		label: "Status",
-		compact: true,
 		cell: (product) => <ProductStatus status={product.status} />,
 	},
 	{
 		label: "Price",
-		compact: true,
 		sort: "price.asc",
 		className: "tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
-		compact: true,
 		sort: "stock.desc",
 		className: "tabular-nums",
 		cell: (product) => formatCount(product.stock),

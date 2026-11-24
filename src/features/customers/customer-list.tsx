@@ -27,13 +27,8 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 		sort: "email.asc",
 		cell: (row) => <span className="text-muted-foreground">{row.email}</span>,
 	},
-	{ label: "Phone", compact: true, cell: (row) => row.phone || "—" },
-	{
-		label: "Added",
-		compact: true,
-		sort: "date.desc",
-		cell: (row) => formatDate(row.createdAt, zone),
-	},
+	{ label: "Phone", cell: (row) => row.phone || "—" },
+	{ label: "Added", sort: "date.desc", cell: (row) => formatDate(row.createdAt, zone) },
 	{
 		label: "Total purchases",
 		sort: "purchases.desc",

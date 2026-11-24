@@ -25,7 +25,6 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	},
 	{
 		label: "Products",
-		compact: true,
 		sort: "count.desc",
 		cell: (row) => (
 			<Link
