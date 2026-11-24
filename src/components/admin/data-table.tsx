@@ -33,7 +33,7 @@ const DataRows = <Row extends { id: string }>({
 				{columns.map(({ label, cell, compact, className }) => (
 					<TableCell
 						key={label}
-						className={cn("px-4 py-3", columnWidth(compact), className, "text-left")}
+						className={cn("px-4 py-3", columnWidth(compact), "text-left", className)}
 					>
 						{cell(row)}
 					</TableCell>
@@ -62,8 +62,8 @@ const TableContents = <Row extends { id: string }>({
 						className={cn(
 							"h-10 px-4 text-xs text-muted-foreground",
 							columnWidth(compact),
-							className,
 							"text-left",
+							className,
 						)}
 					/>
 				))}

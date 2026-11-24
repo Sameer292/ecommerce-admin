@@ -9,11 +9,12 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Category",
 		sort: "name.asc",
+
 		cell: (row) => (
 			<Link
 				to="/categories/$categoryId"
 				params={{ categoryId: row.id }}
-				className="inline-flex items-center gap-3 font-medium hover:underline"
+				className="inline-flex items-center gap-4 font-medium hover:underline"
 			>
 				<CategoryIcon icon={row.icon} />
 				{row.name}
@@ -28,6 +29,7 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Products",
 		sort: "count.desc",
+		className: "text-center",
 		cell: (row) => (
 			<Link
 				to="/products"

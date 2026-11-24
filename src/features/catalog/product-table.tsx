@@ -46,10 +46,15 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "In stock",
 		sort: "stock.desc",
-		className: "tabular-nums",
+		className: "tabular-nums text-center",
 		cell: (product) => formatCount(product.stock),
 	},
-	{ label: "Added", sort: "date.desc", cell: (product) => formatDate(product.createdAt, zone) },
+	{
+		label: "Added",
+		sort: "date.desc",
+		className: "text-center",
+		cell: (product) => formatDate(product.createdAt, zone),
+	},
 ];
 
 export const ProductTable = ({

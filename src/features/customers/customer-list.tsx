@@ -32,7 +32,7 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 	{
 		label: "Total purchases",
 		sort: "purchases.desc",
-		className: "tabular-nums",
+		className: "tabular-nums ",
 		cell: (row) => formatMoney(row.totalPurchasesMinor, currency),
 	},
 ];

@@ -31,17 +31,17 @@ const inventoryColumns: Column<ProductListRow>[] = [
 		sort: "sku.asc",
 		cell: (row) => <span className="text-muted-foreground">{row.sku}</span>,
 	},
-	{ label: "Status", cell: (row) => <StockStatus {...row} /> },
-	{
-		label: "Threshold",
-		sort: "threshold.asc",
-		className: "tabular-nums",
-		cell: (row) => formatCount(row.lowStockThreshold),
-	},
+	{ label: "Status", className: "text-center", cell: (row) => <StockStatus {...row} /> },
+	// {
+	// 	label: "Threshold",
+	// 	sort: "threshold.asc",
+	// 	className: "tabular-nums text-center",
+	// 	cell: (row) => formatCount(row.lowStockThreshold),
+	// },
 	{
 		label: "On hand",
 		sort: "stock.desc",
-		className: "tabular-nums font-medium",
+		className: "tabular-nums font-medium text-center",
 		cell: (row) => formatCount(row.stock),
 	},
 ];
