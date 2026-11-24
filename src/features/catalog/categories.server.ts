@@ -22,6 +22,7 @@ export const listCategories = async ({ page, q, sort }: CategorySearch) => {
 				name: categories.name,
 				slug: categories.slug,
 				description: categories.description,
+				icon: categories.icon,
 				createdAt: categories.createdAt,
 				productCount,
 			})

@@ -6,6 +6,7 @@ import { demoId, slugify } from "./helpers";
 const catalog = [
 	[
 		"Bags & Carry",
+		"bag",
 		[
 			["Ridge Daypack", 68],
 			["Linework Canvas Tote", 36],
@@ -17,6 +18,7 @@ const catalog = [
 	],
 	[
 		"Drinkware",
+		"mug",
 		[
 			["Brushed Steel Bottle", 34],
 			["Alpine Travel Mug", 38],
@@ -27,6 +29,7 @@ const catalog = [
 	],
 	[
 		"Stationery",
+		"book",
 		[
 			["Field Notes Journal", 18],
 			["Desk Calendar", 24],
@@ -37,6 +40,7 @@ const catalog = [
 	],
 	[
 		"Home & Living",
+		"home",
 		[
 			["Entryway Catchall", 48],
 			["Amber Glass Candle", 30],
@@ -48,6 +52,7 @@ const catalog = [
 	],
 	[
 		"Accessories",
+		"tag",
 		[
 			["Trail Cap", 32],
 			["Everyday Crew Socks", 15],
@@ -58,6 +63,7 @@ const catalog = [
 	],
 	[
 		"Travel",
+		"luggage",
 		[
 			["Packing Cube Set", 46],
 			["Passport Wallet", 29],
@@ -68,12 +74,15 @@ const catalog = [
 	],
 ] as const;
 
-export const demoCategories: (typeof categories.$inferInsert)[] = catalog.map(([name], index) => ({
-	id: demoId(1, index),
-	name,
-	slug: `demo-${slugify(name)}`,
-	description: `A collection of ${name.toLowerCase()} for the sample store.`,
-}));
+export const demoCategories: (typeof categories.$inferInsert)[] = catalog.map(
+	([name, icon], index) => ({
+		id: demoId(1, index),
+		name,
+		icon,
+		slug: `demo-${slugify(name)}`,
+		description: `A collection of ${name.toLowerCase()} for the sample store.`,
+	}),
+);
 
 const unit = 10 ** currencyDigits(env.STORE_CURRENCY);
 
@@ -98,6 +107,6 @@ const productRow = (
 	};
 };
 
-export const demoProducts = catalog.flatMap(([, entries], category) =>
+export const demoProducts = catalog.flatMap(([, , entries], category) =>
 	entries.map(([name, price], slot) => productRow(name, price, category, slot)),
 );

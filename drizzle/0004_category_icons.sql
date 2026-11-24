@@ -1,0 +1,2 @@
+CREATE TYPE "commerce_admin"."category_icon" AS ENUM('folder', 'bag', 'book', 'electronics', 'gift', 'home', 'luggage', 'mug', 'package', 'plant', 'shirt', 'tag');--> statement-breakpoint
+ALTER TABLE "commerce_admin"."categories" ADD COLUMN "icon" "commerce_admin"."category_icon" DEFAULT 'folder' NOT NULL;

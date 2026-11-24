@@ -3,6 +3,7 @@ import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
 import { formatCount } from "@/lib/format";
 import type { CategoryListRow } from "./catalog.types";
+import { CategoryIcon } from "./category-icon";
 
 const categoryColumns: Column<CategoryListRow>[] = [
 	{
@@ -12,8 +13,9 @@ const categoryColumns: Column<CategoryListRow>[] = [
 			<Link
 				to="/categories/$categoryId"
 				params={{ categoryId: row.id }}
-				className="font-medium hover:underline"
+				className="inline-flex items-center gap-3 font-medium hover:underline"
 			>
+				<CategoryIcon icon={row.icon} />
 				{row.name}
 			</Link>
 		),

@@ -1,3 +1,20 @@
+export const defaultCategoryIcon = "folder";
+
+export const categoryIcons = [
+	defaultCategoryIcon,
+	"bag",
+	"book",
+	"electronics",
+	"gift",
+	"home",
+	"luggage",
+	"mug",
+	"package",
+	"plant",
+	"shirt",
+	"tag",
+] as const;
+
 export const productStatuses = ["draft", "active", "archived"] as const;
 
 export const productStatusLabels = {

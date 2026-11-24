@@ -1,9 +1,14 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { productStatuses } from "../../features/catalog/catalog-options";
+import {
+	categoryIcons,
+	defaultCategoryIcon,
+	productStatuses,
+} from "../../features/catalog/catalog-options";
 import { commerce } from "./namespace";
 
 export const productStatus = commerce.enum("product_status", productStatuses);
+export const categoryIcon = commerce.enum("category_icon", categoryIcons);
 
 export const categories = commerce.table(
 	"categories",
@@ -12,6 +17,7 @@ export const categories = commerce.table(
 		name: text().notNull(),
 		slug: text().notNull().unique(),
 		description: text().notNull().default(""),
+		icon: categoryIcon().notNull().default(defaultCategoryIcon),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [index().on(table.name, table.id)],

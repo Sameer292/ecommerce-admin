@@ -5,6 +5,7 @@ import { NotesField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
 import type { Category } from "./catalog.types";
 import { writeCategory } from "./categories.functions";
+import { CategoryIconField } from "./category-icon-field";
 
 const CategoryFields = ({ category }: { category?: Category }) => (
 	<FormSection title="Category details">
@@ -18,6 +19,7 @@ const CategoryFields = ({ category }: { category?: Category }) => (
 			pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
 			hint="Lowercase letters, numbers, and hyphens."
 		/>
+		<CategoryIconField icon={category?.icon} />
 		<NotesField
 			name="description"
 			label="Description"

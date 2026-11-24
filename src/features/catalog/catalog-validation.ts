@@ -3,7 +3,7 @@ import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
 import { optionalId } from "@/lib/validation";
-import { productStatuses } from "./catalog-options";
+import { categoryIcons, productStatuses } from "./catalog-options";
 
 export const categorySearchSchema = pageSearchSchema.extend({
 	sort: sortSchema("name", "slug", "count"),
@@ -54,15 +54,18 @@ const slug = z
 	.max(100)
 	.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens for the slug.");
 
-export const categoryFormSchema = z.object({
+const catalogFormSchema = z.object({
 	id: optionalId,
 	name: z.string().trim().min(1, "Enter a category name.").max(120),
 	slug,
 	description: z.string().trim().max(1_000),
 });
 
-export const productFormSchema = z.object({
-	...categoryFormSchema.shape,
+export const categoryFormSchema = catalogFormSchema.extend({
+	icon: z.enum(categoryIcons, "Choose a category icon.").optional(),
+});
+
+export const productFormSchema = catalogFormSchema.extend({
 	sku: z
 		.string()
 		.trim()
