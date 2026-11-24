@@ -68,3 +68,5 @@ The dashboard counts paid order totals by payment date, excludes refunded orders
 ## Checks
 
 Run `bun run check`, `bun run typecheck`, `bun test`, and `bun run build`. Generate new SQL migrations with `bun run db:generate` after editing the Drizzle schema.
+
+Run `TEST_DATABASE=1 bun test tests/database.test.ts` with the configured database to check concurrent queries, the 15-second query timeout, and recovery after cancellation. This check only runs reads and takes about 15 seconds. The shared client also limits connection and pool queue waits to 10 seconds and disables query pipelining for compatibility with older Supavisor transaction poolers.
