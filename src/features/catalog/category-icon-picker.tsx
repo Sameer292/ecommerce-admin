@@ -47,7 +47,6 @@ const IconGrid = ({ icons, selected, onSelect }: IconSelection & { icons: Catego
 				}
 			>
 				<HugeiconsIcon icon={categoryIconOptions[icon].glyph} aria-hidden />
-				{categoryIconOptions[icon].label}
 			</PopoverClose>
 		))}
 	</div>
