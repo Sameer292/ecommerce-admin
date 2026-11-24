@@ -25,6 +25,7 @@ const CustomersPage = () => {
 			<CustomerList
 				{...data}
 				zone={store.timeZone}
+				currency={store.currency}
 				search={search}
 				onSearch={(search) => navigate({ search })}
 			/>

@@ -4,11 +4,11 @@ import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { customerSearchSchema } from "./customer-validation";
 import type { CustomerRow, CustomerSearch } from "./customer.types";
 
-const customerColumns = (zone: string): Column<CustomerRow>[] => [
+const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] => [
 	{
 		label: "Customer",
 		sort: "name.asc",
@@ -34,15 +34,29 @@ const customerColumns = (zone: string): Column<CustomerRow>[] => [
 		sort: "date.desc",
 		cell: (row) => formatDate(row.createdAt, zone),
 	},
+	{
+		label: "Total purchases",
+		sort: "purchases.desc",
+		className: "tabular-nums",
+		cell: (row) => formatMoney(row.totalPurchasesMinor, currency),
+	},
 ];
 
 type CustomerListProps = ListPage<CustomerRow> & {
 	search: CustomerSearch;
 	zone: string;
+	currency: string;
 	onSearch: (search: CustomerSearch) => void;
 };
 
-export const CustomerList = ({ rows, total, zone, search, onSearch }: CustomerListProps) => (
+export const CustomerList = ({
+	rows,
+	total,
+	zone,
+	currency,
+	search,
+	onSearch,
+}: CustomerListProps) => (
 	<div className="flex flex-col gap-4">
 		<ListControls
 			search={search}
@@ -54,7 +68,7 @@ export const CustomerList = ({ rows, total, zone, search, onSearch }: CustomerLi
 		<DataTable
 			sorting={listSorting(search, "name.asc", customerSearchSchema, onSearch)}
 			rows={rows}
-			columns={customerColumns(zone)}
+			columns={customerColumns(zone, currency)}
 			label="Customers"
 			empty={search.q || search.page > 1 ? "No matching customers" : "No customers yet"}
 		/>

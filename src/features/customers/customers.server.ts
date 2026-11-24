@@ -1,15 +1,26 @@
-import { eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
+import { orders } from "@/db/schema/orders";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
+
+const paidOrdersTotal = db
+	.select({ total: sql`coalesce(sum(${orders.totalMinor}), 0)` })
+	.from(orders)
+	.where(and(eq(orders.customerId, customers.id), eq(orders.paymentStatus, "paid")));
+
+const totalPurchasesMinor = sql<number>`(${paidOrdersTotal})`
+	.mapWith(Number)
+	.as("total_purchases_minor");
 
 const searchColumns = {
 	name: alphabetical(customers.name),
 	email: alphabetical(customers.email),
 	date: customers.createdAt,
+	purchases: totalPurchasesMinor,
 };
 
 export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
@@ -22,6 +33,7 @@ export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
 				name: customers.name,
 				email: customers.email,
 				phone: customers.phone,
+				totalPurchasesMinor,
 				createdAt: customers.createdAt,
 			})
 			.from(customers)

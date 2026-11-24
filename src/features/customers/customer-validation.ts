@@ -12,5 +12,5 @@ export const customerFormSchema = z.object({
 });
 
 export const customerSearchSchema = pageSearchSchema.extend({
-	sort: sortSchema("name", "email", "date"),
+	sort: sortSchema("name", "email", "date", "purchases"),
 });
