@@ -34,6 +34,7 @@ export const orders = commerce.table(
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
+		index("orders_number_search_index").using("gin", table.number.op("gin_trgm_ops")),
 		index().on(table.createdAt, table.id),
 		index().on(table.status, table.createdAt, table.id),
 		index().on(table.customerId, table.createdAt, table.id),

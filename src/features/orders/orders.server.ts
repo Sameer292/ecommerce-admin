@@ -1,4 +1,5 @@
-import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
+import { union } from "drizzle-orm/pg-core";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
@@ -37,10 +38,16 @@ const orderFilter = ({ q, status }: OrderSearch, customerId?: string) => {
 	const pattern = searchPattern(q);
 	return and(
 		q
-			? or(
-					ilike(orders.number, pattern),
-					ilike(customers.name, pattern),
-					ilike(customers.email, pattern),
+			? inArray(
+					orders.id,
+					union(
+						db.select({ id: orders.id }).from(orders).where(ilike(orders.number, pattern)),
+						db
+							.select({ id: orders.id })
+							.from(customers)
+							.innerJoin(orders, eq(orders.customerId, customers.id))
+							.where(or(ilike(customers.name, pattern), ilike(customers.email, pattern))),
+					),
 				)
 			: undefined,
 		status ? eq(orders.status, status) : undefined,
@@ -50,18 +57,12 @@ const orderFilter = ({ q, status }: OrderSearch, customerId?: string) => {
 
 export const listOrders = async (search: OrderSearch, customerId?: string) => {
 	const where = orderFilter(search, customerId);
-	// The count uses the same customer join when matching names or email addresses.
-	const totalsQuery = db
-		.select({ total: count() })
-		.from(orders)
-		.innerJoin(customers, eq(orders.customerId, customers.id))
-		.where(where);
-	const [rows, totals] = await Promise.all([
+	const [rows, total] = await Promise.all([
 		orderRows(where)
 			.orderBy(...orderBySort(orderSortColumns, search.sort ?? "date.desc", orders.id))
 			.limit(pageSize)
 			.offset(pageOffset(search.page)),
-		totalsQuery,
+		db.$count(orders, where),
 	]);
-	return { rows, total: totals[0]?.total ?? 0 };
+	return { rows, total };
 };

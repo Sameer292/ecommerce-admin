@@ -1,4 +1,4 @@
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
@@ -8,11 +8,13 @@ import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
 
 const paidOrdersTotal = db
-	.select({ total: sql`coalesce(sum(${orders.totalMinor}), 0)` })
+	.select({ customerId: orders.customerId, total: sql`sum(${orders.totalMinor})`.as("total") })
 	.from(orders)
-	.where(and(eq(orders.customerId, customers.id), eq(orders.paymentStatus, "paid")));
+	.where(eq(orders.paymentStatus, "paid"))
+	.groupBy(orders.customerId)
+	.as("paid_orders_total");
 
-const totalPurchasesMinor = sql<number>`(${paidOrdersTotal})`
+const totalPurchasesMinor = sql<number>`coalesce(${paidOrdersTotal.total}, 0)`
 	.mapWith(Number)
 	.as("total_purchases_minor");
 
@@ -37,6 +39,7 @@ export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
 				createdAt: customers.createdAt,
 			})
 			.from(customers)
+			.leftJoin(paidOrdersTotal, eq(paidOrdersTotal.customerId, customers.id))
 			.where(where)
 			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", customers.id))
 			.limit(pageSize)

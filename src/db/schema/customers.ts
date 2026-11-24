@@ -14,6 +14,8 @@ export const customers = commerce.table(
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
+		index("customers_name_search_index").using("gin", table.name.op("gin_trgm_ops")),
+		index("customers_email_search_index").using("gin", table.email.op("gin_trgm_ops")),
 		index().on(table.name, table.id),
 		index().on(table.createdAt),
 		check("customers_email_normalized", sql`${table.email} = lower(trim(${table.email}))`),
