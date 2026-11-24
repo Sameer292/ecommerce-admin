@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
+import { sortSchema } from "@/lib/sort";
 import { optionalId } from "@/lib/validation";
 import { productStatuses } from "./catalog-options";
 
-export const categorySearchSchema = pageSearchSchema;
+export const categorySearchSchema = pageSearchSchema.extend({
+	sort: sortSchema("name", "slug", "count"),
+});
 
 const priceMinor = z.int().min(0).max(maxMinorAmount);
 const priceBound = priceMinor.optional().catch(undefined);
@@ -13,6 +16,7 @@ const sliderRange = z.tuple([sliderAmount, sliderAmount]);
 
 export const productSearchSchema = pageSearchSchema
 	.extend({
+		sort: sortSchema("name", "category", "price", "stock", "date"),
 		status: z.enum(productStatuses).optional().catch(undefined),
 		category: z.uuid().optional().catch(undefined),
 		minPriceMinor: priceBound,

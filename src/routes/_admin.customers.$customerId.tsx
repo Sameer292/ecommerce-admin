@@ -7,23 +7,35 @@ import { can } from "@/features/auth/permissions";
 import { CustomerForm } from "@/features/customers/customer-form";
 import { readCustomer, removeCustomer } from "@/features/customers/customers.functions";
 import { OrderTable } from "@/features/orders/order-table";
-import { pageSearchSchema } from "@/lib/pagination";
+import { orderSearchSchema } from "@/features/orders/order-validation";
+
+const orderHistorySearchSchema = orderSearchSchema.pick({ page: true, sort: true });
 
 const CustomerOrders = () => {
 	const { orders } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
-	const { page } = Route.useSearch();
+	const search = Route.useSearch();
+	const { page, sort } = search;
 	const navigate = Route.useNavigate();
 	return (
 		<section aria-labelledby="customer-orders" className="flex min-w-0 flex-col gap-3">
 			<h2 className="font-heading text-xl font-semibold" id="customer-orders">
 				Order history
 			</h2>
-			<OrderTable rows={orders.rows} currency={store.currency} zone={store.timeZone} />
+			<OrderTable
+				rows={orders.rows}
+				currency={store.currency}
+				zone={store.timeZone}
+				sorting={{
+					value: sort ?? "date.desc",
+					onChange: (sort) =>
+						navigate({ search: orderHistorySearchSchema.parse({ page: 1, sort }) }),
+				}}
+			/>
 			<PageControls
 				page={page}
 				total={orders.total}
-				onPage={(page) => navigate({ search: { page } })}
+				onPage={(page) => navigate({ search: { ...search, page } })}
 			/>
 		</section>
 	);
@@ -59,9 +71,9 @@ const CustomerPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/customers/$customerId")({
-	validateSearch: pageSearchSchema.pick({ page: true }),
+	validateSearch: orderHistorySearchSchema,
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps, params }) => readCustomer({ data: { id: params.customerId, page: deps.page } }),
+	loader: ({ deps, params }) => readCustomer({ data: { id: params.customerId, ...deps } }),
 	component: CustomerPage,
 });

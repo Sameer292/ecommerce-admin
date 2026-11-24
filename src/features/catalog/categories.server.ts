@@ -1,11 +1,19 @@
 import { asc, eq, ilike } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { ActionError } from "@/server/mutation.server";
 import type { CategorySearch, CategoryValues } from "./catalog.types";
 
-export const listCategories = async ({ page, q }: CategorySearch) => {
+const productCount = db.$count(products, eq(products.categoryId, categories.id));
+const categorySortColumns = {
+	name: alphabetical(categories.name),
+	slug: alphabetical(categories.slug),
+	count: productCount,
+};
+
+export const listCategories = async ({ page, q, sort }: CategorySearch) => {
 	const where = q ? ilike(categories.name, searchPattern(q)) : undefined;
 	const [rows, total] = await Promise.all([
 		db
@@ -15,11 +23,11 @@ export const listCategories = async ({ page, q }: CategorySearch) => {
 				slug: categories.slug,
 				description: categories.description,
 				createdAt: categories.createdAt,
-				productCount: db.$count(products, eq(products.categoryId, categories.id)),
+				productCount,
 			})
 			.from(categories)
 			.where(where)
-			.orderBy(asc(categories.name), asc(categories.id))
+			.orderBy(...orderBySort(categorySortColumns, sort ?? "name.asc", categories.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(categories, where),

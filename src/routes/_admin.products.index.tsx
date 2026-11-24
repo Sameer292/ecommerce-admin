@@ -24,6 +24,7 @@ const ProductsPage = () => {
 				{...data}
 				search={search}
 				currency={store.currency}
+				zone={store.timeZone}
 				onSearch={(search) => navigate({ search })}
 			/>
 		</>

@@ -74,7 +74,11 @@ export const ProductFilters = ({
 			placeholder="Search products"
 			readSearch={(form) => readProductFilters(form, ceiling)}
 			onSearch={onSearch}
-			onClear={hasProductFilters(search) ? () => onSearch({ q: "", page: 1 }) : undefined}
+			onClear={
+				hasProductFilters(search)
+					? () => onSearch({ q: "", page: 1, sort: search.sort })
+					: undefined
+			}
 		>
 			<ProductStatusFilter status={search.status} />
 			<CategoryFilter category={search.category} categories={categories} />

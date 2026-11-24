@@ -1,6 +1,7 @@
-import { and, asc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, or } from "drizzle-orm";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { session, user } from "@/db/schema/auth";
 import { auth } from "@/features/auth/auth.server";
 import { isRole, roles } from "@/features/auth/permissions";
@@ -25,7 +26,9 @@ const staffAccount = ({
 	return { ...staff, role };
 };
 
-export const listTeam = async ({ q, page }: StaffSearch) => {
+const searchColumns = { name: alphabetical(user.name), email: alphabetical(user.email) };
+
+export const listTeam = async ({ q, page, sort }: StaffSearch) => {
 	const pattern = searchPattern(q);
 	const where = and(
 		inArray(user.role, roles),
@@ -36,7 +39,7 @@ export const listTeam = async ({ q, page }: StaffSearch) => {
 			.select(columns)
 			.from(user)
 			.where(where)
-			.orderBy(asc(user.name), asc(user.id))
+			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", user.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(user, where),

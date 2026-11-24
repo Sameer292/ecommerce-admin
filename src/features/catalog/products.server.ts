@@ -1,8 +1,10 @@
-import { and, asc, eq, gt, gte, ilike, lte, max, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, ilike, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
 import { parseMoneyInput } from "@/lib/money";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
+import type { InventorySearch } from "@/features/inventory/inventory.types";
 import { env } from "@/server/env.server";
 import { ActionError } from "@/server/mutation.server";
 import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
@@ -16,7 +18,7 @@ const stockConditions = {
 };
 
 const productFilter = (
-	{ q, status, category, minPriceMinor, maxPriceMinor }: ProductSearch,
+	{ q, status, category, minPriceMinor, maxPriceMinor }: Omit<ProductSearch, "sort">,
 	stock?: StockFilter,
 ) => {
 	const pattern = searchPattern(q);
@@ -30,8 +32,19 @@ const productFilter = (
 	);
 };
 
+const productSortColumns = {
+	name: alphabetical(products.name),
+	category: alphabetical(sql`coalesce(${categories.name}, 'Uncategorized')`),
+	price: products.priceMinor,
+	date: products.createdAt,
+	stock: products.stock,
+	sku: alphabetical(products.sku),
+	threshold: products.lowStockThreshold,
+};
+
 const columns = {
 	id: products.id,
+	createdAt: products.createdAt,
 	name: products.name,
 	sku: products.sku,
 	imageUrl: products.imageUrl,
@@ -42,7 +55,10 @@ const columns = {
 	categoryName: categories.name,
 };
 
-export const listProducts = async (search: ProductSearch, stock?: StockFilter) => {
+export const listProducts = async (
+	search: Omit<ProductSearch, "sort"> & { sort?: ProductSearch["sort"] | InventorySearch["sort"] },
+	stock?: StockFilter,
+) => {
 	const where = productFilter(search, stock);
 	const [rows, total] = await Promise.all([
 		db
@@ -50,7 +66,7 @@ export const listProducts = async (search: ProductSearch, stock?: StockFilter) =
 			.from(products)
 			.leftJoin(categories, eq(products.categoryId, categories.id))
 			.where(where)
-			.orderBy(asc(products.name), asc(products.id))
+			.orderBy(...orderBySort(productSortColumns, search.sort ?? "name.asc", products.id))
 			.limit(pageSize)
 			.offset(pageOffset(search.page)),
 		db.$count(products, where),

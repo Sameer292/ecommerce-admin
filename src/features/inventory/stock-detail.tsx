@@ -4,7 +4,7 @@ import { AdminForm } from "@/components/admin/admin-form";
 import { DataTable } from "@/components/admin/data-table";
 import { NotesField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
-import type { Column, ListPage } from "@/components/admin/list.types";
+import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
 import type { Product } from "@/features/catalog/catalog.types";
 import { StockStatus } from "@/features/catalog/product-labels";
@@ -65,9 +65,15 @@ export const AdjustStockForm = (props: AdjustmentFormProps) => {
 };
 
 const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
-	{ label: "Date", compact: true, cell: (row) => formatDate(row.createdAt, zone) },
+	{
+		label: "Date",
+		sort: "date.desc",
+		compact: true,
+		cell: (row) => formatDate(row.createdAt, zone),
+	},
 	{
 		label: "Change",
+		sort: "change.desc",
 		compact: true,
 		className: "tabular-nums",
 		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
@@ -76,7 +82,7 @@ const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 		label: "Reason",
 		cell: (row) => row.reason,
 	},
-	{ label: "Changed by", cell: (row) => row.staffName ?? "System" },
+	{ label: "Changed by", sort: "staff.asc", cell: (row) => row.staffName ?? "System" },
 ];
 
 export const StockHistory = ({
@@ -85,10 +91,12 @@ export const StockHistory = ({
 	page,
 	zone,
 	onPage,
+	sorting,
 }: ListPage<StockHistoryRow> & {
 	page: number;
 	zone: string;
 	onPage: (page: number) => void;
+	sorting: TableSorting;
 }) => (
 	<section className="flex flex-col gap-4" aria-labelledby="stock-history">
 		<h2 id="stock-history" className="font-heading text-xl font-semibold">
@@ -97,6 +105,7 @@ export const StockHistory = ({
 		<DataTable
 			rows={rows}
 			columns={stockColumns(zone)}
+			sorting={sorting}
 			label="Adjustment history"
 			empty="No adjustments yet"
 		/>

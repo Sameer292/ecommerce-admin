@@ -1,9 +1,17 @@
 import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
 import { orders } from "@/db/schema/orders";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import type { OrderSearch } from "./order.types";
+
+const orderSortColumns = {
+	number: alphabetical(orders.number),
+	customer: alphabetical(customers.name),
+	date: orders.createdAt,
+	total: orders.totalMinor,
+};
 
 const orderColumns = {
 	id: orders.id,
@@ -20,10 +28,10 @@ const orderRows = (where?: SQL) =>
 		.select(orderColumns)
 		.from(orders)
 		.innerJoin(customers, eq(orders.customerId, customers.id))
-		.where(where)
-		.orderBy(desc(orders.createdAt), desc(orders.id));
+		.where(where);
 
-export const recentOrders = () => orderRows().limit(5);
+export const recentOrders = () =>
+	orderRows().orderBy(desc(orders.createdAt), desc(orders.id)).limit(5);
 
 const orderFilter = ({ q, status }: OrderSearch, customerId?: string) => {
 	const pattern = searchPattern(q);
@@ -49,7 +57,10 @@ export const listOrders = async (search: OrderSearch, customerId?: string) => {
 		.innerJoin(customers, eq(orders.customerId, customers.id))
 		.where(where);
 	const [rows, totals] = await Promise.all([
-		orderRows(where).limit(pageSize).offset(pageOffset(search.page)),
+		orderRows(where)
+			.orderBy(...orderBySort(orderSortColumns, search.sort ?? "date.desc", orders.id))
+			.limit(pageSize)
+			.offset(pageOffset(search.page)),
 		totalsQuery,
 	]);
 	return { rows, total: totals[0]?.total ?? 0 };

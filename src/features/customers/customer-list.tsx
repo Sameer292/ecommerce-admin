@@ -1,15 +1,17 @@
+import { listSorting } from "@/components/admin/table-sorting";
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
 import { formatDate } from "@/lib/format";
-import { pageSearchSchema } from "@/lib/pagination";
+import { customerSearchSchema } from "./customer-validation";
 import type { CustomerRow, CustomerSearch } from "./customer.types";
 
 const customerColumns = (zone: string): Column<CustomerRow>[] => [
 	{
 		label: "Customer",
+		sort: "name.asc",
 		cell: (row) => (
 			<Link
 				to="/customers/$customerId"
@@ -20,9 +22,18 @@ const customerColumns = (zone: string): Column<CustomerRow>[] => [
 			</Link>
 		),
 	},
-	{ label: "Email", cell: (row) => <span className="text-muted-foreground">{row.email}</span> },
-	{ label: "Phone", cell: (row) => row.phone || "—" },
-	{ label: "Added", cell: (row) => formatDate(row.createdAt, zone) },
+	{
+		label: "Email",
+		sort: "email.asc",
+		cell: (row) => <span className="text-muted-foreground">{row.email}</span>,
+	},
+	{ label: "Phone", compact: true, cell: (row) => row.phone || "—" },
+	{
+		label: "Added",
+		compact: true,
+		sort: "date.desc",
+		cell: (row) => formatDate(row.createdAt, zone),
+	},
 ];
 
 type CustomerListProps = ListPage<CustomerRow> & {
@@ -36,11 +47,12 @@ export const CustomerList = ({ rows, total, zone, search, onSearch }: CustomerLi
 		<ListControls
 			search={search}
 			placeholder="Search customers"
-			readSearch={(form) => pageSearchSchema.parse(Object.fromEntries(form))}
+			readSearch={(form) => customerSearchSchema.parse(Object.fromEntries(form))}
 			onSearch={onSearch}
-			onClear={search.q ? () => onSearch({ q: "", page: 1 }) : undefined}
+			onClear={search.q ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined}
 		/>
 		<DataTable
+			sorting={listSorting(search, "name.asc", customerSearchSchema, onSearch)}
 			rows={rows}
 			columns={customerColumns(zone)}
 			label="Customers"

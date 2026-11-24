@@ -1,13 +1,17 @@
 import type { ReactNode } from "react";
+import type { Sort } from "@/lib/sort";
 
 export type Column<Row> = {
 	label: string;
 	cell: (row: Row) => ReactNode;
 	compact?: boolean;
+	sort?: Sort;
 	className?: string;
 };
 
 export type ListPage<Row> = { rows: Row[]; total: number };
+
+export type TableSorting = { value: Sort; onChange: (value: Sort) => void };
 
 export type DataTableProps<Row> = {
 	columns: Column<Row>[];
@@ -15,9 +19,10 @@ export type DataTableProps<Row> = {
 	label: string;
 	empty: string;
 	emptyDescription?: string;
+	sorting?: TableSorting;
 };
 
-export type ListSearch = { page: number; q: string };
+export type ListSearch = { page: number; q: string; sort?: Sort };
 
 export type ListControlsProps<Search extends ListSearch> = {
 	search: Search;

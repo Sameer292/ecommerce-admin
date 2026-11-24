@@ -4,7 +4,7 @@ import { NewRecord } from "@/components/admin/new-record";
 import { PageHeading } from "@/components/admin/page-heading";
 import { TeamList } from "@/features/team/team-list";
 import { readTeam } from "@/features/team/team.functions";
-import { pageSearchSchema } from "@/lib/pagination";
+import { teamSearchSchema } from "@/features/team/team-validation";
 
 const TeamPage = () => {
 	const data = Route.useLoaderData();
@@ -21,7 +21,7 @@ const TeamPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/team/")({
-	validateSearch: pageSearchSchema,
+	validateSearch: teamSearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => readTeam({ data: deps }),

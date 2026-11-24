@@ -4,12 +4,12 @@ import {
 	TableBody,
 	TableCaption,
 	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { DataTableProps } from "./list.types";
+import { SortableTableHead } from "./sortable-table-head";
 
 const columnWidth = (compact?: boolean) =>
 	compact ? "w-[12%] whitespace-nowrap" : "min-w-24 whitespace-normal wrap-anywhere";
@@ -47,24 +47,25 @@ const TableContents = <Row extends { id: string }>({
 	columns,
 	rows,
 	label,
+	sorting,
 }: Omit<DataTableProps<Row>, "empty" | "emptyDescription">) => (
 	<Table>
 		<TableCaption className="sr-only">{label}</TableCaption>
 		<TableHeader className="bg-muted/35">
 			<TableRow>
-				{columns.map(({ label, compact, className }) => (
-					<TableHead
+				{columns.map(({ label, compact, className, sort }) => (
+					<SortableTableHead
 						key={label}
-						scope="col"
+						label={label}
+						sort={sort}
+						sorting={sorting}
 						className={cn(
 							"h-10 px-4 text-xs text-muted-foreground",
 							columnWidth(compact),
 							className,
 							"text-left",
 						)}
-					>
-						{label}
-					</TableHead>
+					/>
 				))}
 			</TableRow>
 		</TableHeader>

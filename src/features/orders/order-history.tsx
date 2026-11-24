@@ -1,34 +1,36 @@
 import { DataTable } from "@/components/admin/data-table";
-import type { Column, ListPage } from "@/components/admin/list.types";
+import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
 import { formatCount, formatDate, formatMoney } from "@/lib/format";
 import { orderStatusLabels } from "./order-options";
 import type { OrderActivity, OrderItem } from "./order.types";
 
+const ItemName = ({ name, sku }: Pick<OrderItem, "name" | "sku">) => (
+	<div className="flex flex-col gap-0.5">
+		<span className="font-medium">{name}</span>
+		<span className="text-xs text-muted-foreground">{sku}</span>
+	</div>
+);
+
 const itemColumns = (currency: string): Column<OrderItem>[] => [
-	{
-		label: "Item",
-		cell: (row) => (
-			<div className="flex flex-col gap-0.5">
-				<span className="font-medium">{row.name}</span>
-				<span className="text-xs text-muted-foreground">{row.sku}</span>
-			</div>
-		),
-	},
+	{ label: "Item", sort: "name.asc", cell: (row) => <ItemName {...row} /> },
 	{
 		label: "Quantity",
+		sort: "quantity.desc",
 		compact: true,
 		className: "tabular-nums",
 		cell: (row) => formatCount(row.quantity),
 	},
 	{
 		label: "Unit price",
+		sort: "price.asc",
 		compact: true,
 		className: "tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor, currency),
 	},
 	{
 		label: "Total",
+		sort: "total.asc",
 		compact: true,
 		className: "tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor * row.quantity, currency),
@@ -36,15 +38,21 @@ const itemColumns = (currency: string): Column<OrderItem>[] => [
 ];
 
 const activityColumns = (zone: string): Column<OrderActivity>[] => [
-	{ label: "Date", compact: true, cell: (row) => formatDate(row.createdAt, zone) },
+	{
+		label: "Date",
+		sort: "date.desc",
+		compact: true,
+		cell: (row) => formatDate(row.createdAt, zone),
+	},
 	{ label: "Previous status", compact: true, cell: (row) => orderStatusLabels[row.previousStatus] },
 	{ label: "New status", compact: true, cell: (row) => orderStatusLabels[row.status] },
-	{ label: "Changed by", cell: (row) => row.staffName ?? "System" },
+	{ label: "Changed by", sort: "staff.asc", cell: (row) => row.staffName ?? "System" },
 ];
 
 type OrderSectionProps<Row> = ListPage<Row> & {
 	page: number;
 	onPage: (page: number) => void;
+	sorting: TableSorting;
 };
 
 export const OrderLines = ({
@@ -52,6 +60,7 @@ export const OrderLines = ({
 	total,
 	page,
 	onPage,
+	sorting,
 	currency,
 }: OrderSectionProps<OrderItem> & { currency: string }) => (
 	<section className="flex min-w-0 flex-col gap-3" aria-labelledby="order-items-title">
@@ -59,6 +68,7 @@ export const OrderLines = ({
 			Items
 		</h2>
 		<DataTable
+			sorting={sorting}
 			rows={rows}
 			columns={itemColumns(currency)}
 			label="Items"
@@ -73,6 +83,7 @@ export const OrderHistory = ({
 	total,
 	page,
 	onPage,
+	sorting,
 	zone,
 }: OrderSectionProps<OrderActivity> & { zone: string }) => (
 	<section className="flex min-w-0 flex-col gap-3" aria-labelledby="order-activity-title">
@@ -80,6 +91,7 @@ export const OrderHistory = ({
 			Status activity
 		</h2>
 		<DataTable
+			sorting={sorting}
 			rows={rows}
 			columns={activityColumns(zone)}
 			label="Status activity"

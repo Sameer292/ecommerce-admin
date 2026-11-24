@@ -3,13 +3,30 @@ import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
 import { readStock } from "@/features/inventory/inventory.functions";
 import { AdjustStockForm, StockHistory, StockSummary } from "@/features/inventory/stock-detail";
-import { pageSearchSchema } from "@/lib/pagination";
+import { stockHistorySearchSchema } from "@/features/inventory/inventory-validation";
+
+const StockHistoryTable = () => {
+	const { history } = Route.useLoaderData();
+	const { store } = Route.useRouteContext();
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
+	return (
+		<StockHistory
+			{...history}
+			page={search.page}
+			zone={store.timeZone}
+			onPage={(page) => navigate({ search: { ...search, page } })}
+			sorting={{
+				value: search.sort ?? "date.desc",
+				onChange: (sort) => navigate({ search: stockHistorySearchSchema.parse({ page: 1, sort }) }),
+			}}
+		/>
+	);
+};
 
 const StockPage = () => {
-	const { product, history, adjustmentId } = Route.useLoaderData();
-	const { staff, store } = Route.useRouteContext();
-	const { page } = Route.useSearch();
-	const navigate = Route.useNavigate();
+	const { product, adjustmentId } = Route.useLoaderData();
+	const { staff } = Route.useRouteContext();
 	return (
 		<>
 			<DetailHeading
@@ -24,20 +41,15 @@ const StockPage = () => {
 					<AdjustStockForm key={adjustmentId} productId={product.id} adjustmentId={adjustmentId} />
 				)}
 			</div>
-			<StockHistory
-				{...history}
-				page={page}
-				zone={store.timeZone}
-				onPage={(page) => navigate({ search: { page } })}
-			/>
+			<StockHistoryTable />
 		</>
 	);
 };
 
 export const Route = createFileRoute("/_admin/inventory/$productId")({
-	validateSearch: pageSearchSchema.pick({ page: true }),
+	validateSearch: stockHistorySearchSchema,
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps, params }) => readStock({ data: { id: params.productId, page: deps.page } }),
+	loader: ({ deps, params }) => readStock({ data: { id: params.productId, ...deps } }),
 	component: StockPage,
 });

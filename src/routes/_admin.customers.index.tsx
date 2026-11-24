@@ -5,7 +5,7 @@ import { PageHeading } from "@/components/admin/page-heading";
 import { can } from "@/features/auth/permissions";
 import { CustomerList } from "@/features/customers/customer-list";
 import { readCustomers } from "@/features/customers/customers.functions";
-import { pageSearchSchema } from "@/lib/pagination";
+import { customerSearchSchema } from "@/features/customers/customer-validation";
 
 const CustomersPage = () => {
 	const data = Route.useLoaderData();
@@ -33,7 +33,7 @@ const CustomersPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/customers/")({
-	validateSearch: pageSearchSchema,
+	validateSearch: customerSearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ deps }) => readCustomers({ data: deps }),

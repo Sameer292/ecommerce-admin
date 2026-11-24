@@ -2,13 +2,17 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireStaff } from "@/features/auth/session.server";
 import { formDataSchema } from "@/lib/validation";
-import { pageSearchSchema } from "@/lib/pagination";
 import { mutate } from "@/server/mutation.server";
-import { editStaffSchema, staffAccountSchema, staffIdSchema } from "./team-validation";
+import {
+	editStaffSchema,
+	staffAccountSchema,
+	staffIdSchema,
+	teamSearchSchema,
+} from "./team-validation";
 import { createStaffAccount, editStaffAccount, findStaffAccount, listTeam } from "./team.server";
 
 export const readTeam = createServerFn()
-	.validator(pageSearchSchema)
+	.validator(teamSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff("manageTeam");
 		return listTeam(data);

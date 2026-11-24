@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
-import type { Column } from "@/components/admin/list.types";
+import type { Column, TableSorting } from "@/components/admin/list.types";
 import { formatCount } from "@/lib/format";
 import type { CategoryListRow } from "./catalog.types";
 
 const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Category",
+		sort: "name.asc",
 		cell: (row) => (
 			<Link
 				to="/categories/$categoryId"
@@ -19,10 +20,13 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	},
 	{
 		label: "Slug",
+		sort: "slug.asc",
 		cell: (row) => <span className="text-muted-foreground">{row.slug}</span>,
 	},
 	{
 		label: "Products",
+		compact: true,
+		sort: "count.desc",
 		cell: (row) => (
 			<Link
 				to="/products"
@@ -39,11 +43,14 @@ const categoryColumns: Column<CategoryListRow>[] = [
 export const CategoryTable = ({
 	rows,
 	filtered,
+	sorting,
 }: {
 	rows: CategoryListRow[];
 	filtered: boolean;
+	sorting: TableSorting;
 }) => (
 	<DataTable
+		sorting={sorting}
 		rows={rows}
 		columns={categoryColumns}
 		label="Categories"

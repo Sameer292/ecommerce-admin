@@ -3,6 +3,7 @@ import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { ListControls } from "@/components/admin/list-controls";
 import { NewRecord } from "@/components/admin/new-record";
 import { PageControls } from "@/components/admin/page-controls";
+import { listSorting } from "@/components/admin/table-sorting";
 import { PageHeading } from "@/components/admin/page-heading";
 import { can } from "@/features/auth/permissions";
 import { readCategories } from "@/features/catalog/categories.functions";
@@ -11,23 +12,25 @@ import { CategoryTable } from "@/features/catalog/category-table";
 
 const CategoryList = () => {
 	const { rows, total } = Route.useLoaderData();
-	const { q, page } = Route.useSearch();
+	const search = Route.useSearch();
+	const { q, page, sort } = search;
 	const navigate = Route.useNavigate();
+	const update = (next: typeof search) => navigate({ search: next });
 	return (
 		<div className="flex flex-col gap-4">
 			<ListControls
-				search={{ q, page }}
+				search={search}
 				placeholder="Search categories"
 				readSearch={(form) => categorySearchSchema.parse(Object.fromEntries(form))}
-				onSearch={(search) => navigate({ search })}
-				onClear={q ? () => navigate({ search: { q: "", page: 1 } }) : undefined}
+				onSearch={update}
+				onClear={q ? () => update({ q: "", page: 1, sort }) : undefined}
 			/>
-			<CategoryTable rows={rows} filtered={Boolean(q || page > 1)} />
-			<PageControls
-				page={page}
-				total={total}
-				onPage={(page) => navigate({ search: { q, page } })}
+			<CategoryTable
+				sorting={listSorting(search, "name.asc", categorySearchSchema, update)}
+				rows={rows}
+				filtered={Boolean(q || page > 1)}
 			/>
+			<PageControls page={page} total={total} onPage={(page) => update({ ...search, page })} />
 		</div>
 	);
 };

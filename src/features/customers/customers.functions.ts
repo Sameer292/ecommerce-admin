@@ -2,26 +2,26 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireStaff } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
+import { orderSearchSchema } from "@/features/orders/order-validation";
 import { listOrders } from "@/features/orders/orders.server";
-import { pageSearchSchema } from "@/lib/pagination";
 import { mutate } from "@/server/mutation.server";
-import { customerFormSchema } from "./customer-validation";
+import { customerFormSchema, customerSearchSchema } from "./customer-validation";
 import { deleteCustomer, findCustomer, listCustomers, saveCustomer } from "./customers.server";
 
 export const readCustomers = createServerFn()
-	.validator(pageSearchSchema)
+	.validator(customerSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
 		return listCustomers(data);
 	});
 
 export const readCustomer = createServerFn()
-	.validator(idSchema.extend({ page: pageSearchSchema.shape.page }))
+	.validator(idSchema.extend(orderSearchSchema.pick({ page: true, sort: true }).shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
 		const [customer, orders] = await Promise.all([
 			findCustomer(data.id),
-			listOrders({ page: data.page, q: "" }, data.id),
+			listOrders({ page: data.page, q: "", sort: data.sort }, data.id),
 		]);
 		if (!customer) throw notFound();
 		return { customer, orders };

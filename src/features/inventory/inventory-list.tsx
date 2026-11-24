@@ -1,3 +1,4 @@
+import { listSorting } from "@/components/admin/table-sorting";
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
@@ -14,6 +15,7 @@ import type { InventorySearch } from "./inventory.types";
 const inventoryColumns: Column<ProductListRow>[] = [
 	{
 		label: "Product",
+		sort: "name.asc",
 		cell: (row) => (
 			<Link
 				to="/inventory/$productId"
@@ -26,16 +28,21 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	},
 	{
 		label: "SKU",
+		sort: "sku.asc",
 		cell: (row) => <span className="text-muted-foreground">{row.sku}</span>,
 	},
-	{ label: "Status", cell: (row) => <StockStatus {...row} /> },
+	{ label: "Status", compact: true, cell: (row) => <StockStatus {...row} /> },
 	{
 		label: "Threshold",
+		compact: true,
+		sort: "threshold.asc",
 		className: "tabular-nums",
 		cell: (row) => formatCount(row.lowStockThreshold),
 	},
 	{
 		label: "On hand",
+		compact: true,
+		sort: "stock.desc",
 		className: "tabular-nums font-medium",
 		cell: (row) => formatCount(row.stock),
 	},
@@ -55,7 +62,9 @@ const InventoryFilters = ({
 		placeholder="Search inventory"
 		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
-		onClear={search.q || search.stock ? () => onSearch({ q: "", page: 1 }) : undefined}
+		onClear={
+			search.q || search.stock ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
+		}
 	>
 		<NativeSelect
 			name="stock"
@@ -77,6 +86,7 @@ export const InventoryList = ({ rows, total, search, onSearch }: InventoryListPr
 	<div className="flex flex-col gap-4">
 		<InventoryFilters search={search} onSearch={onSearch} />
 		<DataTable
+			sorting={listSorting(search, "name.asc", inventorySearchSchema, onSearch)}
 			rows={rows}
 			columns={inventoryColumns}
 			label="Inventory"

@@ -13,7 +13,15 @@ export type Product = typeof products.$inferSelect;
 export type CategoryOption = Pick<Category, "id" | "name">;
 export type ProductListRow = Pick<
 	Product,
-	"id" | "name" | "sku" | "imageUrl" | "status" | "priceMinor" | "stock" | "lowStockThreshold"
+	| "id"
+	| "createdAt"
+	| "name"
+	| "sku"
+	| "imageUrl"
+	| "status"
+	| "priceMinor"
+	| "stock"
+	| "lowStockThreshold"
 > & {
 	categoryName: string | null;
 };

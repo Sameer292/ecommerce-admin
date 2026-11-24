@@ -1,9 +1,11 @@
-import { and, asc, desc, eq, getTableColumns } from "drizzle-orm";
+import { and, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
 import { customers } from "@/db/schema/customers";
 import { orderEvents, orderItems, orders } from "@/db/schema/orders";
 import { pageOffset, pageSize } from "@/lib/pagination";
+import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import { canTransitionOrder } from "./order-options";
 import type { OrderValues } from "./order.types";
@@ -22,14 +24,22 @@ export const findOrder = async (id: string) => {
 	return row;
 };
 
-export const listOrderItems = async (id: string, page: number) => {
+const itemSortColumns = {
+	id: orderItems.id,
+	name: alphabetical(orderItems.name),
+	quantity: orderItems.quantity,
+	price: orderItems.unitPriceMinor,
+	total: sql`${orderItems.quantity}::bigint * ${orderItems.unitPriceMinor}`,
+};
+
+export const listOrderItems = async (id: string, page: number, sort: Sort = "id.asc") => {
 	const where = eq(orderItems.orderId, id);
 	const [rows, total] = await Promise.all([
 		db
 			.select()
 			.from(orderItems)
 			.where(where)
-			.orderBy(asc(orderItems.id))
+			.orderBy(...orderBySort(itemSortColumns, sort, orderItems.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(orderItems, where),
@@ -37,7 +47,12 @@ export const listOrderItems = async (id: string, page: number) => {
 	return { rows, total };
 };
 
-export const listOrderActivity = async (id: string, page: number) => {
+const activitySortColumns = {
+	date: orderEvents.createdAt,
+	staff: alphabetical(sql`coalesce(${user.name}, 'System')`),
+};
+
+export const listOrderActivity = async (id: string, page: number, sort: Sort = "date.desc") => {
 	const where = eq(orderEvents.orderId, id);
 	const [rows, total] = await Promise.all([
 		db
@@ -45,7 +60,7 @@ export const listOrderActivity = async (id: string, page: number) => {
 			.from(orderEvents)
 			.leftJoin(user, eq(orderEvents.staffId, user.id))
 			.where(where)
-			.orderBy(desc(orderEvents.createdAt), desc(orderEvents.id))
+			.orderBy(...orderBySort(activitySortColumns, sort, orderEvents.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(orderEvents, where),

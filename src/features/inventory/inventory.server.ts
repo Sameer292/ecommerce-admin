@@ -1,13 +1,25 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
 import { products } from "@/db/schema/catalog";
 import { stockAdjustments } from "@/db/schema/inventory";
 import { pageOffset, pageSize } from "@/lib/pagination";
+import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import type { AdjustmentInput } from "./inventory.types";
 
-export const findStockHistory = async (productId: string, page: number) => {
+const stockHistorySortColumns = {
+	date: stockAdjustments.createdAt,
+	change: stockAdjustments.delta,
+	staff: alphabetical(sql`coalesce(${user.name}, 'System')`),
+};
+
+export const findStockHistory = async (
+	productId: string,
+	page: number,
+	sort: Sort = "date.desc",
+) => {
 	const where = eq(stockAdjustments.productId, productId);
 	const [rows, total] = await Promise.all([
 		db
@@ -21,7 +33,7 @@ export const findStockHistory = async (productId: string, page: number) => {
 			.from(stockAdjustments)
 			.leftJoin(user, eq(stockAdjustments.staffId, user.id))
 			.where(where)
-			.orderBy(desc(stockAdjustments.createdAt), desc(stockAdjustments.id))
+			.orderBy(...orderBySort(stockHistorySortColumns, sort, stockAdjustments.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(stockAdjustments, where),

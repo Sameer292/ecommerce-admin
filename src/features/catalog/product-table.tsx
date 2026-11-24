@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
-import type { Column } from "@/components/admin/list.types";
-import { formatCount, formatMoney } from "@/lib/format";
+import type { Column, TableSorting } from "@/components/admin/list.types";
+import { formatCount, formatDate, formatMoney } from "@/lib/format";
 import type { ProductListRow } from "./catalog.types";
 import { ProductPhoto, ProductStatus } from "./product-labels";
 
@@ -21,39 +21,56 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 	</div>
 );
 
-const productColumns = (currency: string): Column<ProductListRow>[] => [
-	{ label: "Product", className: "min-w-30", cell: (product) => <ProductName product={product} /> },
+const productColumns = (currency: string, zone: string): Column<ProductListRow>[] => [
+	{
+		label: "Product",
+		sort: "name.asc",
+		className: "min-w-44",
+		cell: (product) => <ProductName product={product} />,
+	},
 	{
 		label: "Category",
+		sort: "category.asc",
 		cell: (product) => product.categoryName ?? "Uncategorized",
 	},
 	{
 		label: "Status",
+		compact: true,
 		cell: (product) => <ProductStatus status={product.status} />,
 	},
 	{
 		label: "Price",
+		compact: true,
+		sort: "price.asc",
 		className: "tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
+		compact: true,
+		sort: "stock.desc",
 		className: "tabular-nums",
 		cell: (product) => formatCount(product.stock),
 	},
+	{ label: "Added", sort: "date.desc", cell: (product) => formatDate(product.createdAt, zone) },
 ];
 
 export const ProductTable = ({
 	rows,
 	currency,
+	zone,
 	filtered,
+	sorting,
 }: {
 	rows: ProductListRow[];
 	currency: string;
+	zone: string;
 	filtered: boolean;
+	sorting: TableSorting;
 }) => (
 	<DataTable
-		columns={productColumns(currency)}
+		sorting={sorting}
+		columns={productColumns(currency, zone)}
 		rows={rows}
 		label="Products"
 		empty={filtered ? "No matching products" : "No products yet"}

@@ -9,26 +9,45 @@ import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
 import { formatDate } from "@/lib/format";
 
-const OrderTables = () => {
-	const { items, activity: events } = Route.useLoaderData();
+const OrderItemsTable = () => {
+	const { items } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
-	const { page, activity } = Route.useSearch();
+	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	return (
-		<>
-			<OrderLines
-				{...items}
-				currency={store.currency}
-				page={page}
-				onPage={(next) => navigate({ search: { page: next, activity } })}
-			/>
-			<OrderHistory
-				{...events}
-				zone={store.timeZone}
-				page={activity}
-				onPage={(next) => navigate({ search: { page, activity: next } })}
-			/>
-		</>
+		<OrderLines
+			{...items}
+			currency={store.currency}
+			page={search.page}
+			onPage={(page) => navigate({ search: { ...search, page } })}
+			sorting={{
+				value: search.sort ?? "id.asc",
+				onChange: (sort) =>
+					navigate({ search: orderDetailSearchSchema.parse({ ...search, page: 1, sort }) }),
+			}}
+		/>
+	);
+};
+
+const OrderActivityTable = () => {
+	const { activity } = Route.useLoaderData();
+	const { store } = Route.useRouteContext();
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
+	return (
+		<OrderHistory
+			{...activity}
+			zone={store.timeZone}
+			page={search.activity}
+			onPage={(activity) => navigate({ search: { ...search, activity } })}
+			sorting={{
+				value: search.activitySort ?? "date.desc",
+				onChange: (activitySort) =>
+					navigate({
+						search: orderDetailSearchSchema.parse({ ...search, activity: 1, activitySort }),
+					}),
+			}}
+		/>
 	);
 };
 
@@ -56,7 +75,8 @@ const OrderPage = () => {
 					<OrderPayment order={order} currency={store.currency} />
 				</div>
 			</div>
-			<OrderTables />
+			<OrderItemsTable />
+			<OrderActivityTable />
 		</>
 	);
 };

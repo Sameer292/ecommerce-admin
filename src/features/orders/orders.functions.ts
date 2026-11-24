@@ -20,8 +20,8 @@ export const readOrder = createServerFn()
 		await requireStaff();
 		const [detail, items, activity] = await Promise.all([
 			findOrder(data.id),
-			listOrderItems(data.id, data.page),
-			listOrderActivity(data.id, data.activity),
+			listOrderItems(data.id, data.page, data.sort),
+			listOrderActivity(data.id, data.activity, data.activitySort),
 		]);
 		if (!detail) throw notFound();
 		return { ...detail, items, activity };

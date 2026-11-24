@@ -3,10 +3,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireStaff } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { findProduct, listProducts } from "@/features/catalog/products.server";
-import { pageSearchSchema } from "@/lib/pagination";
 import { mutate } from "@/server/mutation.server";
 import { adjustStock, findStockHistory } from "./inventory.server";
-import { adjustmentSchema, inventorySearchSchema } from "./inventory-validation";
+import {
+	adjustmentSchema,
+	inventorySearchSchema,
+	stockHistorySearchSchema,
+} from "./inventory-validation";
 
 export const readInventory = createServerFn()
 	.validator(inventorySearchSchema)
@@ -16,12 +19,12 @@ export const readInventory = createServerFn()
 	});
 
 export const readStock = createServerFn()
-	.validator(idSchema.extend({ page: pageSearchSchema.shape.page }))
+	.validator(idSchema.extend(stockHistorySearchSchema.shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
 		const [product, history] = await Promise.all([
 			findProduct(data.id),
-			findStockHistory(data.id, data.page),
+			findStockHistory(data.id, data.page, data.sort),
 		]);
 		if (!product) throw notFound();
 		return { product, history, adjustmentId: crypto.randomUUID() };

@@ -1,11 +1,18 @@
-import { asc, eq, ilike, or } from "drizzle-orm";
+import { eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db/client.server";
+import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
 
-export const listCustomers = async ({ page, q }: CustomerSearch) => {
+const searchColumns = {
+	name: alphabetical(customers.name),
+	email: alphabetical(customers.email),
+	date: customers.createdAt,
+};
+
+export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
 	const pattern = searchPattern(q);
 	const where = q ? or(ilike(customers.name, pattern), ilike(customers.email, pattern)) : undefined;
 	const [rows, total] = await Promise.all([
@@ -19,7 +26,7 @@ export const listCustomers = async ({ page, q }: CustomerSearch) => {
 			})
 			.from(customers)
 			.where(where)
-			.orderBy(asc(customers.name), asc(customers.id))
+			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", customers.id))
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(customers, where),

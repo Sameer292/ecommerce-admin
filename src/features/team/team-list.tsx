@@ -1,3 +1,4 @@
+import { listSorting } from "@/components/admin/table-sorting";
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
@@ -5,12 +6,13 @@ import type { Column, ListPage } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { roleLabels } from "@/features/auth/permissions";
-import { pageSearchSchema } from "@/lib/pagination";
+import { teamSearchSchema } from "./team-validation";
 import type { StaffAccount, StaffSearch } from "./team.types";
 
 const teamColumns: Column<StaffAccount>[] = [
 	{
 		label: "Name",
+		sort: "name.asc",
 		cell: (row) => (
 			<Link
 				to="/team/$staffId"
@@ -21,13 +23,15 @@ const teamColumns: Column<StaffAccount>[] = [
 			</Link>
 		),
 	},
-	{ label: "Email", cell: (row) => <span className="text-muted-foreground">{row.email}</span> },
 	{
-		label: "Role",
-		cell: (row) => roleLabels[row.role],
+		label: "Email",
+		sort: "email.asc",
+		cell: (row) => <span className="text-muted-foreground">{row.email}</span>,
 	},
+	{ label: "Role", compact: true, cell: (row) => roleLabels[row.role] },
 	{
 		label: "Access",
+		compact: true,
 		cell: (row) => (
 			<StatusBadge tone={row.banned ? "danger" : "success"}>
 				{row.banned ? "Disabled" : "Active"}
@@ -46,11 +50,12 @@ export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 		<ListControls
 			search={search}
 			placeholder="Search staff"
-			readSearch={(form) => pageSearchSchema.parse(Object.fromEntries(form))}
+			readSearch={(form) => teamSearchSchema.parse(Object.fromEntries(form))}
 			onSearch={onSearch}
-			onClear={search.q ? () => onSearch({ q: "", page: 1 }) : undefined}
+			onClear={search.q ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined}
 		/>
 		<DataTable
+			sorting={listSorting(search, "name.asc", teamSearchSchema, onSearch)}
 			rows={rows}
 			columns={teamColumns}
 			label="Staff accounts"
