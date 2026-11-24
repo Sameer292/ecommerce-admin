@@ -7,7 +7,13 @@ import { nitro } from "nitro/vite";
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
-	plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
+	plugins: [
+		devtools(),
+		tailwindcss(),
+		tanstackStart(),
+		nitro({ compressPublicAssets: { gzip: true, brotli: true } }),
+		viteReact(),
+	],
 });
 
 export default config;

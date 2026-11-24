@@ -1,7 +1,8 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
+import { compressHtml } from "@/server/compression";
 
-const privateResponses = createMiddleware().server(({ next }) => {
+const privateResponses = createMiddleware().server(async ({ next, request }) => {
 	setResponseHeaders(
 		new Headers({
 			"Cache-Control": "private, no-store",
@@ -10,7 +11,8 @@ const privateResponses = createMiddleware().server(({ next }) => {
 			"Referrer-Policy": "same-origin",
 		}),
 	);
-	return next();
+	const result = await next();
+	return { ...result, response: compressHtml(request, result.response) };
 });
 
 export const startInstance = createStart(() => ({

@@ -29,6 +29,7 @@ Staff sign in with email and password and can change their own password. Superus
 - Enable email/password sign-in. For an admin-only Supabase project, turn off account signups in Authentication settings. Keep `commerce_admin` and `commerce_admin_legacy_auth` outside the exposed schemas in the Supabase Data API.
 - Set `STORE_NAME`, `STORE_TIME_ZONE`, and `STORE_CURRENCY` before loading records. Superusers can update the name, reporting time zone, and contact email from Settings. Amounts are stored as integer minor units of the configured currency.
 - Run `bun run db:migrate` and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
+- Production builds generate gzip and Brotli static assets. HTML uses streaming gzip when the client accepts it.
 
 ### Moving an existing deployment
 
