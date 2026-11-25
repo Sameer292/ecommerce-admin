@@ -1,6 +1,6 @@
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useHydrated } from "@tanstack/react-router";
+import { useHydrated, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,10 @@ const SearchField = ({ query, placeholder }: Pick<ListFormProps, "query" | "plac
 
 const ListForm = ({ query, placeholder, children, onSearch, onClear }: ListFormProps) => {
 	const hydrated = useHydrated();
+	const updating = useRouterState({
+		select: ({ status, location, resolvedLocation }) =>
+			status === "pending" && location.pathname === resolvedLocation?.pathname,
+	});
 	const { cancel, events } = useFilterTimer(onSearch);
 	const clear = () => {
 		cancel();
@@ -46,6 +50,9 @@ const ListForm = ({ query, placeholder, children, onSearch, onClear }: ListFormP
 					)}
 				</FieldSet>
 			</form>
+			<p role="status" className={updating ? "mt-2 text-sm text-muted-foreground" : "sr-only"}>
+				{updating ? "Updating results…" : ""}
+			</p>
 		</search>
 	);
 };

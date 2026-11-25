@@ -52,7 +52,9 @@ export const PageControls = ({ total, page, onPage }: PageControlsProps) => {
 			aria-label="Pagination"
 			className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"
 		>
-			<span>{count}</span>
+			<span role="status" aria-atomic="true">
+				{count}
+			</span>
 			{(total > pageSize || page > 1) && (
 				<PageButtons page={page} onPage={onPage} last={lastPage(total)} />
 			)}
