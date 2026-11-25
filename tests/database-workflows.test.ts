@@ -439,6 +439,23 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(failures.rows[0].orderId);
 		await trackOrderSync("WEB-REPORT", "payment", async () => new Response(null, { status: 200 }));
 		assert.equal(await countOrderSyncFailures(), 0);
+
+		await connection`
+			insert into commerce_admin.products (name, slug, sku, status, price_minor, stock, reserved_stock, incoming_stock, damaged_stock)
+			values ('Counted test item', 'counted-test-item', 'COUNTED-TEST', 'active', 3000, 10, 7, 8, 1)
+		`;
+		const { listProducts } = await import("../src/features/catalog/products.server");
+		const available = await listProducts(
+			{ page: 1, q: "COUNTED-TEST", status: "active" },
+			"at_or_below",
+		);
+		assert.equal(available.total, 1);
+		assert.equal(available.rows[0].stock, 10);
+		assert.equal(available.rows[0].availableStock, 2);
+		await assert.rejects(
+			connection`update commerce_admin.products set damaged_stock = 4 where sku = 'COUNTED-TEST'`,
+			{ code: "23514" },
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

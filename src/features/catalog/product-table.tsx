@@ -46,10 +46,10 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
-		label: "In stock",
+		label: "Available",
 		sort: "stock.desc",
 		className: "text-right tabular-nums",
-		cell: (product) => formatCount(product.stock),
+		cell: (product) => formatCount(product.availableStock),
 	},
 	{
 		label: "Added",

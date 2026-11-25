@@ -39,7 +39,12 @@ const inventoryColumns: Column<ProductListRow>[] = [
 		cell: (row) => <span className="text-muted-foreground truncate">{row.sku}</span>,
 	},
 	{ label: "Publication", cell: (row) => <ProductStatus status={row.status} /> },
-	{ label: "Stock status", cell: (row) => <StockStatus {...row} /> },
+	{
+		label: "Stock status",
+		cell: (row) => (
+			<StockStatus stock={row.availableStock} lowStockThreshold={row.lowStockThreshold} />
+		),
+	},
 	{
 		label: "Threshold",
 		sort: "threshold.asc",
@@ -48,9 +53,14 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	},
 	{
 		label: "On hand",
-		sort: "stock.desc",
 		className: "text-right font-medium tabular-nums",
 		cell: (row) => formatCount(row.stock),
+	},
+	{
+		label: "Available",
+		sort: "stock.desc",
+		className: "text-right font-medium tabular-nums",
+		cell: (row) => formatCount(row.availableStock),
 	},
 ];
 

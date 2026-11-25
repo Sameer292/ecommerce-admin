@@ -72,7 +72,12 @@ export const adjustStockInTransaction = async (transaction: Transaction, input: 
 	const [updated] = await transaction
 		.update(products)
 		.set({ stock: newStock, updatedAt: new Date() })
-		.where(and(eq(products.id, input.productId), sql`${newStock} BETWEEN 0 AND 2147483647`))
+		.where(
+			and(
+				eq(products.id, input.productId),
+				sql`${newStock} BETWEEN ${products.reservedStock}::bigint + ${products.damagedStock} AND 2147483647`,
+			),
+		)
 		.returning({ id: products.id });
 	if (!updated) throw new ActionError("This adjustment would put stock outside its allowed range.");
 };

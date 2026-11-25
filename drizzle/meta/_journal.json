@@ -141,6 +141,13 @@
       "when": 1795646425781,
       "tag": "0019_order_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795646639839,
+      "tag": "0020_stock_levels",
+      "breakpoints": true
     }
   ]
 }

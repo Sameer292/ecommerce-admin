@@ -2,7 +2,7 @@ import { and, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
-import { categories, products } from "@/db/schema/catalog";
+import { availableStock, categories, products } from "@/db/schema/catalog";
 import { stockAdjustments } from "@/db/schema/inventory";
 import { orderItems } from "@/db/schema/orders";
 import { parseMoneyInput } from "@/lib/money";
@@ -12,12 +12,12 @@ import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
 import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
 
-export const lowStock = sql`${products.stock} <= ${products.lowStockThreshold}`;
+export const lowStock = lte(availableStock, products.lowStockThreshold);
 
 const stockConditions = {
-	in: gt(products.stock, products.lowStockThreshold),
-	out: eq(products.stock, 0),
-	low: and(gt(products.stock, 0), lowStock),
+	in: gt(availableStock, products.lowStockThreshold),
+	out: eq(availableStock, 0),
+	low: and(gt(availableStock, 0), lowStock),
 	at_or_below: lowStock,
 };
 
@@ -41,7 +41,7 @@ const productSortColumns = {
 	category: alphabetical(sql`coalesce(${categories.name}, 'Uncategorized')`),
 	price: products.priceMinor,
 	date: products.createdAt,
-	stock: products.stock,
+	stock: availableStock,
 	sku: alphabetical(products.sku),
 	threshold: products.lowStockThreshold,
 };
@@ -55,6 +55,7 @@ const columns = {
 	status: products.status,
 	priceMinor: products.priceMinor,
 	stock: products.stock,
+	availableStock,
 	lowStockThreshold: products.lowStockThreshold,
 	categoryName: categories.name,
 };

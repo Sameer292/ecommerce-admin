@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "@/db/client.server";
-import { products } from "@/db/schema/catalog";
+import { availableStock, products } from "@/db/schema/catalog";
 import { requireStaff } from "@/features/auth/session.server";
 import { lowStock } from "@/features/catalog/products.server";
 import { orderWorkCounts, recentOrders } from "@/features/orders/orders.server";
@@ -18,12 +18,12 @@ const watchStock = async () => {
 				id: products.id,
 				name: products.name,
 				sku: products.sku,
-				stock: products.stock,
+				stock: availableStock,
 				lowStockThreshold: products.lowStockThreshold,
 			})
 			.from(products)
 			.where(where)
-			.orderBy(asc(products.stock), asc(products.id))
+			.orderBy(asc(availableStock), asc(products.id))
 			.limit(5),
 		db.$count(products, where),
 	]);

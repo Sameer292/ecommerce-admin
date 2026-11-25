@@ -39,6 +39,9 @@ export const products = commerce.table(
 		status: productStatus().notNull().default("draft"),
 		priceMinor: integer("price_minor").notNull(),
 		stock: integer().notNull().default(0),
+		reservedStock: integer("reserved_stock").notNull().default(0),
+		incomingStock: integer("incoming_stock").notNull().default(0),
+		damagedStock: integer("damaged_stock").notNull().default(0),
 		lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
 		version: integer().notNull().default(0),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -52,12 +55,23 @@ export const products = commerce.table(
 			table.id,
 		),
 		index("products_status_name_id_index").on(table.status, sql`lower(${table.name})`, table.id),
-		index("products_low_stock")
-			.on(table.stock, table.id)
-			.where(sql`${table.stock} <= ${table.lowStockThreshold} AND ${table.status} = 'active'`),
+		index("products_available_low_stock")
+			.on(sql`(${table.stock} - ${table.reservedStock} - ${table.damagedStock})`, table.id)
+			.where(
+				sql`${table.stock} - ${table.reservedStock} - ${table.damagedStock} <= ${table.lowStockThreshold} AND ${table.status} = 'active'`,
+			),
 		check(
 			"products_nonnegative_values",
 			sql`${table.priceMinor} >= 0 AND ${table.stock} >= 0 AND ${table.lowStockThreshold} >= 0`,
 		),
+		check(
+			"products_stock_levels",
+			sql`${table.reservedStock} >= 0 AND ${table.incomingStock} >= 0 AND ${table.damagedStock} >= 0 AND ${table.reservedStock}::bigint + ${table.damagedStock} <= ${table.stock}`,
+		),
 	],
 );
+
+export const availableStock =
+	sql<number>`${products.stock} - ${products.reservedStock} - ${products.damagedStock}`.mapWith(
+		Number,
+	);

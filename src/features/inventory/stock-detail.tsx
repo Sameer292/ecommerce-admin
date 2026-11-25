@@ -14,15 +14,31 @@ import type { StockHistoryRow } from "./inventory.types";
 
 export const StockSummary = ({ product }: { product: Product }) => (
 	<FormSection
-		title="Stock on hand"
+		title="Stock levels"
 		description={`Low-stock threshold: ${formatCount(product.lowStockThreshold)}`}
 	>
 		<div className="flex flex-wrap items-center gap-4">
 			<span className="font-heading text-4xl font-semibold tracking-tight">
-				{formatCount(product.stock)}
+				{formatCount(product.stock - product.reservedStock - product.damagedStock)} available
 			</span>
-			<StockStatus {...product} />
+			<StockStatus
+				stock={product.stock - product.reservedStock - product.damagedStock}
+				lowStockThreshold={product.lowStockThreshold}
+			/>
 		</div>
+		<dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+			{[
+				["On hand", product.stock],
+				["Reserved", product.reservedStock],
+				["Incoming", product.incomingStock],
+				["Damaged", product.damagedStock],
+			].map(([label, quantity]) => (
+				<div key={label}>
+					<dt className="text-muted-foreground">{label}</dt>
+					<dd className="font-medium tabular-nums">{formatCount(Number(quantity))}</dd>
+				</div>
+			))}
+		</dl>
 	</FormSection>
 );
 

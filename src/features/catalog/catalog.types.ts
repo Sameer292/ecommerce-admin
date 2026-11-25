@@ -24,6 +24,7 @@ export type ProductListRow = Pick<
 	| "lowStockThreshold"
 > & {
 	categoryName: string | null;
+	availableStock: number;
 };
 export type CategoryListRow = Category & { productCount: number };
 export type StockFilter = (typeof stockFilters)[number];
