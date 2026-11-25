@@ -15,11 +15,20 @@ import { AdminForm } from "./admin-form";
 type DeleteRecordProps = {
 	id: string;
 	record: string;
+	name: string;
+	blockedReason?: string;
 	onDelete: (data: FormData) => Promise<MutationResult>;
 	onSuccess: () => unknown;
 };
 
-export const DeleteRecord = ({ id, record, onDelete, onSuccess }: DeleteRecordProps) => (
+export const DeleteRecord = ({
+	id,
+	record,
+	name,
+	blockedReason,
+	onDelete,
+	onSuccess,
+}: DeleteRecordProps) => (
 	<Dialog>
 		<DialogTrigger render={<Button variant="destructive" size="lg" />}>
 			<HugeiconsIcon icon={Delete02Icon} data-icon="inline-start" />
@@ -27,20 +36,22 @@ export const DeleteRecord = ({ id, record, onDelete, onSuccess }: DeleteRecordPr
 		</DialogTrigger>
 		<DialogContent>
 			<DialogHeader>
-				<DialogTitle>Delete {record}?</DialogTitle>
+				<DialogTitle>Delete {name}?</DialogTitle>
 				<DialogDescription>
-					This permanently removes the {record} from your store.
+					{blockedReason ?? `This permanently removes the ${record} from your store.`}
 				</DialogDescription>
 			</DialogHeader>
-			<AdminForm
-				onSave={onDelete}
-				onSuccess={onSuccess}
-				submitLabel={`Delete ${record}`}
-				successMessage="Record deleted."
-				destructive
-			>
-				<input type="hidden" name="id" value={id} />
-			</AdminForm>
+			{!blockedReason && (
+				<AdminForm
+					onSave={onDelete}
+					onSuccess={onSuccess}
+					submitLabel={`Delete ${record}`}
+					successMessage={`${name} deleted.`}
+					destructive
+				>
+					<input type="hidden" name="id" value={id} />
+				</AdminForm>
+			)}
 		</DialogContent>
 	</Dialog>
 );

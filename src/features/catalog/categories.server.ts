@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, sql } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -44,7 +44,10 @@ export const categoryOptions = () =>
 		.orderBy(asc(categories.name), asc(categories.id));
 
 export const findCategory = async (id: string) => {
-	const [category] = await db.select().from(categories).where(eq(categories.id, id));
+	const [category] = await db
+		.select({ ...getTableColumns(categories), productCount })
+		.from(categories)
+		.where(eq(categories.id, id));
 	return category;
 };
 

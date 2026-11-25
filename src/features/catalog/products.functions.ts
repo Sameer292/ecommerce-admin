@@ -10,6 +10,7 @@ import {
 	findProduct,
 	highestProductPrice,
 	listProducts,
+	productHasHistory,
 	saveProduct,
 } from "./products.server";
 
@@ -34,9 +35,13 @@ export const readProduct = createServerFn()
 	.validator(idSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [product, categories] = await Promise.all([findProduct(data.id), categoryOptions()]);
+		const [product, categories, hasHistory] = await Promise.all([
+			findProduct(data.id),
+			categoryOptions(),
+			productHasHistory(data.id),
+		]);
 		if (!product) throw notFound();
-		return { product, categories };
+		return { product, categories, hasHistory };
 	});
 
 export const writeProduct = createServerFn({ method: "POST" })

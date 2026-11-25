@@ -28,6 +28,12 @@ const CategoryPage = () => {
 					<DeleteRecord
 						id={category.id}
 						record="category"
+						name={category.name}
+						blockedReason={
+							category.productCount > 0
+								? "Move its products to another category before deleting this category."
+								: undefined
+						}
 						onDelete={(data) => remove({ data })}
 						onSuccess={() => navigate({ href: returnHref })}
 					/>

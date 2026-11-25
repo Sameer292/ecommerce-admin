@@ -2,6 +2,8 @@ import { and, eq, gt, gte, ilike, lte, max, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
+import { stockAdjustments } from "@/db/schema/inventory";
+import { orderItems } from "@/db/schema/orders";
 import { parseMoneyInput } from "@/lib/money";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import type { InventorySearch } from "@/features/inventory/inventory.types";
@@ -82,6 +84,18 @@ export const highestProductPrice = async () => {
 export const findProduct = async (id: string) => {
 	const [product] = await db.select().from(products).where(eq(products.id, id));
 	return product;
+};
+
+export const productHasHistory = async (id: string) => {
+	const [orders, stock] = await Promise.all([
+		db.select({ id: orderItems.id }).from(orderItems).where(eq(orderItems.productId, id)).limit(1),
+		db
+			.select({ id: stockAdjustments.id })
+			.from(stockAdjustments)
+			.where(eq(stockAdjustments.productId, id))
+			.limit(1),
+	]);
+	return orders.length > 0 || stock.length > 0;
 };
 
 export const saveProduct = async ({ id, price, version, ...values }: ProductValues) => {
