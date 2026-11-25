@@ -1,14 +1,39 @@
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
+import { StatusBadge } from "@/components/admin/status-badge";
 import { formatCount, formatDateTime, formatMoney } from "@/lib/format";
 import { orderStatusLabels } from "./order-options";
 import type { OrderActivity, OrderItem } from "./order.types";
 
-const ItemName = ({ name, sku }: Pick<OrderItem, "name" | "sku">) => (
-	<div className="flex flex-col gap-0.5">
-		<span className="font-medium">{name}</span>
-		<span className="text-xs text-muted-foreground">{sku}</span>
+const ItemName = ({ name, sku, productId }: Pick<OrderItem, "name" | "sku" | "productId">) => (
+	<div className="flex flex-col items-start gap-1">
+		{productId ? (
+			<Link
+				to="/products/$productId"
+				params={{ productId }}
+				className="font-medium hover:underline"
+			>
+				{name}
+			</Link>
+		) : (
+			<span className="font-medium">{name}</span>
+		)}
+		<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+			<span>{sku}</span>
+			{productId ? (
+				<Link
+					to="/inventory/$productId"
+					params={{ productId }}
+					aria-label={`Inventory for ${sku}`}
+					className="underline underline-offset-3"
+				>
+					Inventory
+				</Link>
+			) : (
+				<StatusBadge tone="warning">Unlinked SKU</StatusBadge>
+			)}
+		</div>
 	</div>
 );
 
@@ -104,3 +129,4 @@ export const OrderHistory = ({
 		<PageControls total={total} page={page} onPage={onPage} />
 	</section>
 );
+import { Link } from "@tanstack/react-router";
