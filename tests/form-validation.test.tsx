@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { object as ZObject, string as ZString } from "zod";
-import { FieldValidation, TextField } from "../src/components/admin/form-fields";
+import {
+	FieldValidation,
+	ReadOnlyFields,
+	SelectField,
+	TextField,
+} from "../src/components/admin/form-fields";
 import { ActionError, mutate } from "../src/server/mutation.server";
 
 test("validation returns errors by field and the form renders an accessible link", async () => {
@@ -38,4 +43,18 @@ test("validation returns errors by field and the form renders an accessible link
 			fieldErrors: { price: "Enter a numeric price." },
 		},
 	);
+});
+
+test("read-only fields show values and selected labels as text", () => {
+	const markup = renderToStaticMarkup(
+		<ReadOnlyFields value={true}>
+			<TextField name="name" label="Name" defaultValue="Trail Mug" />
+			<SelectField name="status" label="Status" defaultValue="draft">
+				<option value="draft">Draft label</option>
+			</SelectField>
+		</ReadOnlyFields>,
+	);
+	assert.match(markup, /Trail Mug/);
+	assert.match(markup, /Draft label/);
+	assert.doesNotMatch(markup, /<(input|select)/);
 });

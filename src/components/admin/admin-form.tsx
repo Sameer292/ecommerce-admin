@@ -2,10 +2,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FieldError, FieldSet } from "@/components/ui/field";
 import { useToastManager } from "@/components/ui/toast";
 import type { MutationFailure, MutationResult } from "@/server/mutation.types";
-import { FieldValidation } from "./form-fields";
+import { FieldValidation, ReadOnlyFields } from "./form-fields";
 import { useUnsavedChanges } from "./unsaved-changes";
 
 type FormProps = {
@@ -71,29 +72,32 @@ export const AdminForm = ({
 	const { failure, pending, submit } = useSubmitForm({ onSave, onSuccess, successMessage });
 	const hydrated = useHydrated();
 	const { register } = useUnsavedChanges();
+	if (!onSave) {
+		return (
+			<section aria-label="Read-only access" className="flex flex-col items-start gap-4">
+				<Badge variant="secondary">Read-only access</Badge>
+				<div className="flex w-full min-w-0 flex-col gap-4">
+					<ReadOnlyFields value={true}>{children}</ReadOnlyFields>
+				</div>
+			</section>
+		);
+	}
 	return (
-		<form
-			ref={onSave ? register : undefined}
-			method="post"
-			onSubmit={submit}
-			className="flex flex-col gap-4"
-		>
-			<FieldSet disabled={!onSave || !hydrated || pending} className="min-w-0">
+		<form ref={register} method="post" onSubmit={submit} className="flex flex-col gap-4">
+			<FieldSet disabled={!hydrated || pending} className="min-w-0">
 				<FieldValidation value={failure?.fieldErrors}>{children}</FieldValidation>
 			</FieldSet>
 			{failure && <FieldError>{failure.error}</FieldError>}
-			{onSave && (
-				<div className="flex justify-end">
-					<Button
-						type="submit"
-						size="lg"
-						variant={destructive ? "destructive" : "default"}
-						disabled={!hydrated || pending}
-					>
-						{pending ? "Saving…" : submitLabel}
-					</Button>
-				</div>
-			)}
+			<div className="flex justify-end">
+				<Button
+					type="submit"
+					size="lg"
+					variant={destructive ? "destructive" : "default"}
+					disabled={!hydrated || pending}
+				>
+					{pending ? "Saving…" : submitLabel}
+				</Button>
+			</div>
 		</form>
 	);
 };

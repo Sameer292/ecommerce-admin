@@ -37,6 +37,7 @@ export const CategoryIconField = ({
 		<FormField
 			label="Icon"
 			name="icon"
+			readOnlyValue={categoryIconOptions[selected].label}
 			render={(field) => (
 				<>
 					<input type="hidden" name="icon" value={selected} />
