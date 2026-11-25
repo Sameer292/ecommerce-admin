@@ -1,8 +1,7 @@
-import { z } from "zod";
+import { object as ZObject, string as ZString } from "zod";
 
-export const listReturnSearchSchema = z.object({
-	returnTo: z
-		.string()
+export const listReturnSearchSchema = ZObject({
+	returnTo: ZString()
 		.max(2_000)
 		.regex(/^\/(products|categories|customers|inventory|orders|team)(\?[^#]*)?$/)
 		.optional()

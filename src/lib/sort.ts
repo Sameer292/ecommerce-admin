@@ -1,12 +1,11 @@
-import { z } from "zod";
+import { enum as ZEnum, templateLiteral as ZTemplateLiteral } from "zod";
 
 export type Sort = `${string}.${"asc" | "desc"}`;
 
 export const sortSchema = <const Fields extends readonly [string, ...string[]]>(
 	...fields: Fields
 ) =>
-	z
-		.templateLiteral([z.enum(fields), ".", z.enum(["asc", "desc"])])
+	ZTemplateLiteral([ZEnum(fields), ".", ZEnum(["asc", "desc"])])
 		.optional()
 		.catch(undefined);
 

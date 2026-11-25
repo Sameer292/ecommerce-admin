@@ -1,10 +1,9 @@
-import { z } from "zod";
+import { coerce as ZCoerce, literal as ZLiteral, object as ZObject } from "zod";
 
 export const defaultRange = 30;
-export const overviewSearchSchema = z.object({
-	range: z.coerce
-		.number<number>()
-		.pipe(z.literal([7, 30, 90]))
+export const overviewSearchSchema = ZObject({
+	range: ZCoerce.number<number>()
+		.pipe(ZLiteral([7, 30, 90]))
 		.catch(defaultRange)
 		.default(defaultRange),
 });

@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { output as ZOutput } from "zod";
 import type { orderEvents, orderItems, orders } from "@/db/schema/orders";
 import type { orderStatuses, paymentStatuses } from "./order-options";
 import type {
@@ -18,6 +18,6 @@ export type OrderRow = Pick<
 	customerName: string;
 };
 export type OrderActivity = typeof orderEvents.$inferSelect & { staffName: string | null };
-export type OrderSearch = z.output<typeof orderSearchSchema>;
-export type OrderDetailSearch = z.output<typeof orderDetailSearchSchema>;
-export type OrderValues = z.output<typeof orderFormSchema>;
+export type OrderSearch = ZOutput<typeof orderSearchSchema>;
+export type OrderDetailSearch = ZOutput<typeof orderDetailSearchSchema>;
+export type OrderValues = ZOutput<typeof orderFormSchema>;

@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { output as ZOutput } from "zod";
 import type { categories, products } from "@/db/schema/catalog";
 import type { stockFilters } from "./catalog-options";
 import type {
@@ -27,7 +27,7 @@ export type ProductListRow = Pick<
 };
 export type CategoryListRow = Category & { productCount: number };
 export type StockFilter = (typeof stockFilters)[number];
-export type ProductSearch = z.output<typeof productSearchSchema>;
-export type CategorySearch = z.output<typeof categorySearchSchema>;
-export type ProductValues = z.output<typeof productFormSchema>;
-export type CategoryValues = z.output<typeof categoryFormSchema>;
+export type ProductSearch = ZOutput<typeof productSearchSchema>;
+export type CategorySearch = ZOutput<typeof categorySearchSchema>;
+export type ProductValues = ZOutput<typeof productFormSchema>;
+export type CategoryValues = ZOutput<typeof categoryFormSchema>;

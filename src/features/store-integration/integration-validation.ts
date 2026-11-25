@@ -1,44 +1,52 @@
-import { z } from "zod";
+import {
+	array as ZArray,
+	discriminatedUnion as ZDiscriminatedUnion,
+	email as ZEmail,
+	int as ZInt,
+	iso as ZIso,
+	literal as ZLiteral,
+	object as ZObject,
+	string as ZString,
+} from "zod";
 import { maxMinorAmount } from "@/lib/money";
 
-const amount = z.int().min(0).max(maxMinorAmount);
-const timestamp = z.iso.datetime({ offset: true }).transform((value) => new Date(value));
-const orderNumber = z
-	.string()
+const amount = ZInt().min(0).max(maxMinorAmount);
+const timestamp = ZIso.datetime({ offset: true }).transform((value) => new Date(value));
+const orderNumber = ZString()
 	.trim()
 	.min(1)
 	.max(80)
 	.regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/);
-const sku = z.string().trim().min(1).max(80).toUpperCase();
+const sku = ZString().trim().min(1).max(80).toUpperCase();
 
-const line = z.object({
+const line = ZObject({
 	sku,
-	name: z.string().trim().min(1).max(120),
-	quantity: z.int().min(1).max(1_000_000),
+	name: ZString().trim().min(1).max(120),
+	quantity: ZInt().min(1).max(1_000_000),
 	unitPriceMinor: amount,
 });
 
-const customer = z.object({
-	name: z.string().trim().min(1).max(120),
-	email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
-	phone: z.string().trim().max(40).default(""),
+const customer = ZObject({
+	name: ZString().trim().min(1).max(120),
+	email: ZString().trim().toLowerCase().max(254).pipe(ZEmail()),
+	phone: ZString().trim().max(40).default(""),
 });
 
-export const paymentUpdateSchema = z.discriminatedUnion("status", [
-	z.object({ number: orderNumber, status: z.literal("paid"), paidAt: timestamp }),
-	z.object({ number: orderNumber, status: z.literal("refunded") }),
+export const paymentUpdateSchema = ZDiscriminatedUnion("status", [
+	ZObject({ number: orderNumber, status: ZLiteral("paid"), paidAt: timestamp }),
+	ZObject({ number: orderNumber, status: ZLiteral("refunded") }),
 ]);
 
-export const importOrderSchema = z.object({
+export const importOrderSchema = ZObject({
 	number: orderNumber,
-	currency: z.string().regex(/^[A-Z]{3}$/),
+	currency: ZString().regex(/^[A-Z]{3}$/),
 	createdAt: timestamp,
 	paidAt: timestamp.optional(),
 	customer,
-	items: z.array(line).min(1).max(100),
+	items: ZArray(line).min(1).max(100),
 	shippingMinor: amount.default(0),
 	taxMinor: amount.default(0),
 	discountMinor: amount.default(0),
-	shippingName: z.string().trim().max(120).default(""),
-	shippingAddress: z.string().trim().max(1_000).default(""),
+	shippingName: ZString().trim().max(120).default(""),
+	shippingAddress: ZString().trim().max(1_000).default(""),
 });

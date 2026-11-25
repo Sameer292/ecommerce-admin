@@ -1,7 +1,7 @@
-import type { z } from "zod";
+import type { output as ZOutput } from "zod";
 import type { overviewSearchSchema } from "./overview-validation";
 
-export type OverviewRange = z.output<typeof overviewSearchSchema>["range"];
+export type OverviewRange = ZOutput<typeof overviewSearchSchema>["range"];
 export type DateWindow = { from: string; currentFrom: string; to: string; timeZone: string };
 export type Comparison = { current: number; previous: number };
 export type DailySales = { date: string; sales: number; paidOrders: number };

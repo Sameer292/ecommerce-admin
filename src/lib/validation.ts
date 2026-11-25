@@ -1,5 +1,11 @@
-import { z } from "zod";
+import {
+	instanceof as ZInstanceOf,
+	literal as ZLiteral,
+	object as ZObject,
+	union as ZUnion,
+	uuid as ZUuid,
+} from "zod";
 
-export const idSchema = z.object({ id: z.uuid() });
-export const formDataSchema = z.instanceof(FormData);
-export const optionalId = z.union([z.uuid(), z.literal("")]).transform((id) => id || undefined);
+export const idSchema = ZObject({ id: ZUuid() });
+export const formDataSchema = ZInstanceOf(FormData);
+export const optionalId = ZUnion([ZUuid(), ZLiteral("")]).transform((id) => id || undefined);

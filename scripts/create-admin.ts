@@ -1,12 +1,12 @@
-import { z } from "zod";
+import { object as ZObject, string as ZString } from "zod";
 import { connection } from "../src/db/client.server";
 import { staffEmailSchema, staffPasswordSchema } from "../src/features/auth/auth-validation";
 import { createStaffAccount } from "../src/features/team/provision-staff.server";
 
-const input = z.object({
+const input = ZObject({
 	ADMIN_EMAIL: staffEmailSchema,
 	ADMIN_PASSWORD: staffPasswordSchema,
-	ADMIN_NAME: z.string().trim().min(1).max(80).default("Store owner"),
+	ADMIN_NAME: ZString().trim().min(1).max(80).default("Store owner"),
 });
 
 try {

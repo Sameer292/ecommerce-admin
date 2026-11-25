@@ -1,0 +1,1 @@
+Use named Zod imports with `Z`-prefixed PascalCase aliases, such as `import { string as ZString, object as ZObject } from "zod"`, and call those aliases directly. Use type-only named imports for types, such as `import type { output as ZOutput } from "zod"`. Never import the `z` namespace.

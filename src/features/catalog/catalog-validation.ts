@@ -1,4 +1,14 @@
-import { z } from "zod";
+import {
+	enum as ZEnum,
+	int as ZInt,
+	literal as ZLiteral,
+	object as ZObject,
+	string as ZString,
+	tuple as ZTuple,
+	union as ZUnion,
+	url as ZUrl,
+	uuid as ZUuid,
+} from "zod";
 import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
@@ -9,16 +19,16 @@ export const categorySearchSchema = pageSearchSchema.extend({
 	sort: sortSchema("name", "slug", "count"),
 });
 
-const priceMinor = z.int().min(0).max(maxMinorAmount);
+const priceMinor = ZInt().min(0).max(maxMinorAmount);
 const priceBound = priceMinor.optional().catch(undefined);
-const sliderAmount = z.string().regex(/^\d+$/).transform(Number).pipe(priceMinor);
-const sliderRange = z.tuple([sliderAmount, sliderAmount]);
+const sliderAmount = ZString().regex(/^\d+$/).transform(Number).pipe(priceMinor);
+const sliderRange = ZTuple([sliderAmount, sliderAmount]);
 
 export const productSearchSchema = pageSearchSchema
 	.extend({
 		sort: sortSchema("name", "category", "price", "stock", "date"),
-		status: z.enum(productStatuses).optional().catch(undefined),
-		category: z.uuid().optional().catch(undefined),
+		status: ZEnum(productStatuses).optional().catch(undefined),
+		category: ZUuid().optional().catch(undefined),
 		minPriceMinor: priceBound,
 		maxPriceMinor: priceBound,
 	})
@@ -48,37 +58,34 @@ export const readProductFilters = (form: FormData, priceCeiling: number) => {
 	});
 };
 
-const slug = z
-	.string()
+const slug = ZString()
 	.trim()
 	.max(100)
 	.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens for the slug.");
 
-const catalogFormSchema = z.object({
+const catalogFormSchema = ZObject({
 	id: optionalId,
-	name: z.string().trim().min(1, "Enter a category name.").max(120),
+	name: ZString().trim().min(1, "Enter a category name.").max(120),
 	slug,
-	description: z.string().trim().max(1_000),
+	description: ZString().trim().max(1_000),
 });
 
 export const categoryFormSchema = catalogFormSchema.extend({
-	icon: z.enum(categoryIcons, "Choose a category icon.").optional(),
+	icon: ZEnum(categoryIcons, "Choose a category icon.").optional(),
 });
 
 export const productFormSchema = catalogFormSchema.extend({
-	sku: z
-		.string()
+	sku: ZString()
 		.trim()
 		.min(1, "Enter a SKU.")
 		.max(80)
 		.transform((value) => value.toUpperCase()),
-	imageUrl: z.union([z.literal(""), z.url({ protocol: /^https$/ })]).pipe(z.string().max(2_000)),
-	categoryId: z.union([z.uuid(), z.literal("")]).transform((value) => value || null),
-	status: z.enum(productStatuses),
-	price: z.string().trim().min(1, "Enter a price.").max(24),
-	lowStockThreshold: z
-		.string()
+	imageUrl: ZUnion([ZLiteral(""), ZUrl({ protocol: /^https$/ })]).pipe(ZString().max(2_000)),
+	categoryId: ZUnion([ZUuid(), ZLiteral("")]).transform((value) => value || null),
+	status: ZEnum(productStatuses),
+	price: ZString().trim().min(1, "Enter a price.").max(24),
+	lowStockThreshold: ZString()
 		.regex(/^\d+$/, "Enter a whole number for the low-stock threshold.")
 		.transform(Number)
-		.pipe(z.int().min(0).max(1_000_000)),
+		.pipe(ZInt().min(0).max(1_000_000)),
 });
