@@ -5,7 +5,7 @@ import type { editStaffSchema, staffAccountSchema, teamSearchSchema } from "./te
 
 export type StaffAccount = Pick<
 	typeof user.$inferSelect,
-	"id" | "name" | "email" | "banned" | "createdAt"
+	"id" | "name" | "email" | "banned" | "createdAt" | "version"
 > & { role: Role; linked: boolean };
 export type StaffSearch = ZOutput<typeof teamSearchSchema>;
 export type StaffValues = ZOutput<typeof staffAccountSchema>;

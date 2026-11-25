@@ -8,6 +8,7 @@ import type { StoreSettings } from "./settings.types";
 
 const StoreFields = ({ store }: { store: StoreSettings }) => (
 	<>
+		<input type="hidden" name="version" value={store.version} />
 		<TextField name="name" label="Store name" defaultValue={store.name} maxLength={80} required />
 		<TextField
 			name="contactEmail"

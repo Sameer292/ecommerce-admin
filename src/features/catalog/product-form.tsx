@@ -1,6 +1,7 @@
 import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { FormSection } from "@/components/admin/form-section";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
@@ -105,6 +106,7 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 );
 
 export const ProductForm = ({ product, categories, currency, editable }: ProductFormProps) => {
+	const [version] = useState(product?.version);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
 	const save = useServerFn(writeProduct);
@@ -115,6 +117,7 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 			submitLabel={product ? "Save product" : "Create product"}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
+			{product && <input type="hidden" name="version" value={version} />}
 			<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
 				<ProductDetails product={product} categories={categories} />
 				<ProductSettings product={product} currency={currency} />

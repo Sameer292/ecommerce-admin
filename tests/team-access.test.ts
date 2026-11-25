@@ -28,25 +28,25 @@ test("only active superusers can edit access and concurrent revocations leave on
 				('unlinked', null, 'Unlinked', 'unlinked@example.test', 'superuser', false),
 				('manager', null, 'Manager', 'manager@example.test', 'manager', false)
 		`;
-		const { editStaffAccount } = await import("../src/features/team/team.server");
+		const { editStaffAccount, findStaffAccount } = await import("../src/features/team/team.server");
 		const { findActiveStaff } = await import("../src/features/auth/session.server");
 		await assert.rejects(
-			editStaffAccount({ id: first, role: "superuser", status: "disabled" }, first),
+			editStaffAccount({ id: first, version: 0, role: "superuser", status: "disabled" }, first),
 			/At least one active superuser/,
 		);
 		await assert.rejects(
-			editStaffAccount({ id: first, role: "manager", status: "active" }, first),
+			editStaffAccount({ id: first, version: 0, role: "manager", status: "active" }, first),
 			/At least one active superuser/,
 		);
 		await assert.rejects(
-			editStaffAccount({ id: "manager", role: "superuser", status: "active" }, first),
+			editStaffAccount({ id: "manager", version: 0, role: "superuser", status: "active" }, first),
 			/This account can’t be changed here/,
 		);
-		await editStaffAccount({ id: second, role: "superuser", status: "active" }, first);
+		await editStaffAccount({ id: second, version: 0, role: "superuser", status: "active" }, first);
 
 		const [firstEdit, secondEdit] = await Promise.allSettled([
-			editStaffAccount({ id: second, role: "superuser", status: "disabled" }, first),
-			editStaffAccount({ id: first, role: "superuser", status: "disabled" }, second),
+			editStaffAccount({ id: second, version: 1, role: "superuser", status: "disabled" }, first),
+			editStaffAccount({ id: first, version: 0, role: "superuser", status: "disabled" }, second),
 		]);
 		assert.notEqual(firstEdit.status, secondEdit.status);
 		const remaining = firstEdit.status === "fulfilled" ? first : second;
@@ -57,8 +57,16 @@ test("only active superusers can edit access and concurrent revocations leave on
 		assert.equal((await findActiveStaff(remaining))?.role, "superuser");
 		assert.equal(await findActiveStaff(disabled), null);
 
-		await editStaffAccount({ id: disabled, role: "superuser", status: "active" }, remaining);
-		await editStaffAccount({ id: disabled, role: "viewer", status: "active" }, remaining);
+		const account = await findStaffAccount(disabled);
+		assert.ok(account);
+		await editStaffAccount(
+			{ id: disabled, version: account.version, role: "superuser", status: "active" },
+			remaining,
+		);
+		await editStaffAccount(
+			{ id: disabled, version: account.version + 1, role: "viewer", status: "active" },
+			remaining,
+		);
 		assert.equal((await findActiveStaff(disabled))?.role, "viewer");
 		assert.equal((await findActiveStaff(remaining))?.role, "superuser");
 	} finally {

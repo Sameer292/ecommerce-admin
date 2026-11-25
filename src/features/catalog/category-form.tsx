@@ -1,6 +1,7 @@
 import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { NotesField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
@@ -37,6 +38,7 @@ export const CategoryForm = ({
 	category?: Category;
 	editable: boolean;
 }) => {
+	const [version] = useState(category?.version);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/categories");
 	const save = useServerFn(writeCategory);
@@ -48,6 +50,7 @@ export const CategoryForm = ({
 				submitLabel={category ? "Save category" : "Create category"}
 			>
 				<input type="hidden" name="id" value={category?.id ?? ""} />
+				{category && <input type="hidden" name="version" value={version} />}
 				<CategoryFields category={category} />
 			</AdminForm>
 		</div>

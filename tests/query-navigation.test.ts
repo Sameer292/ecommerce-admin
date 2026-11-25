@@ -37,7 +37,7 @@ test("product hover and click share data, while filters, IDs, invalidation and r
 		...originalSession,
 		readWorkspace: async (): Promise<Awaited<ReturnType<typeof readWorkspace>>> => ({
 			staff: { id: "staff-1", name: "Owner", email: "owner@example.test", role: "superuser" },
-			store: { name: "Store", contactEmail: "", timeZone: "UTC", currency: "USD" },
+			store: { name: "Store", contactEmail: "", timeZone: "UTC", currency: "USD", version: 0 },
 		}),
 	}));
 	const makeRouter = () => {

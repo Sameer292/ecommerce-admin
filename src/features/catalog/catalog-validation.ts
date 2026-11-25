@@ -12,7 +12,7 @@ import {
 import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
-import { optionalId } from "@/lib/validation";
+import { editVersionSchema, optionalId } from "@/lib/validation";
 import { categoryIcons, productStatuses } from "./catalog-options";
 
 export const categorySearchSchema = pageSearchSchema.extend({
@@ -65,6 +65,7 @@ const slug = ZString()
 
 const catalogFormSchema = ZObject({
 	id: optionalId,
+	version: editVersionSchema.optional(),
 	slug,
 	description: ZString().trim().max(1_000),
 });

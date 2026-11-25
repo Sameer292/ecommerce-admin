@@ -1,6 +1,7 @@
 import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
@@ -71,9 +72,10 @@ export const NewStaffForm = () => {
 	);
 };
 
-const EditableAccess = ({ account }: { account: StaffAccount }) => (
+const EditableAccess = ({ account, version }: { account: StaffAccount; version: number }) => (
 	<>
 		<input type="hidden" name="id" value={account.id} />
+		<input type="hidden" name="version" value={version} />
 		<RoleField
 			selected={account.role}
 			options={account.role === "superuser" ? roles : ["manager", "viewer"]}
@@ -90,6 +92,7 @@ const EditableAccess = ({ account }: { account: StaffAccount }) => (
 );
 
 export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
+	const [version] = useState(account.version);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/team");
 	const save = useServerFn(writeStaffAccount);
@@ -100,7 +103,7 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
 				>
-					<EditableAccess account={account} />
+					<EditableAccess account={account} version={version} />
 				</AdminForm>
 			</FormSection>
 			<RoleGuide />

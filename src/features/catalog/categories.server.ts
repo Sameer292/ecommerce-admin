@@ -1,4 +1,4 @@
-import { asc, eq, ilike } from "drizzle-orm";
+import { and, asc, eq, ilike, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -23,6 +23,7 @@ export const listCategories = async ({ page, q, sort }: CategorySearch) => {
 				slug: categories.slug,
 				description: categories.description,
 				icon: categories.icon,
+				version: categories.version,
 				createdAt: categories.createdAt,
 				productCount,
 			})
@@ -47,14 +48,15 @@ export const findCategory = async (id: string) => {
 	return category;
 };
 
-export const saveCategory = async ({ id, ...values }: CategoryValues) => {
+export const saveCategory = async ({ id, version, ...values }: CategoryValues) => {
 	if (!id) return db.insert(categories).values(values);
 	const [updated] = await db
 		.update(categories)
-		.set(values)
-		.where(eq(categories.id, id))
+		.set({ ...values, version: sql`${categories.version} + 1` })
+		.where(and(eq(categories.id, id), eq(categories.version, version ?? -1)))
 		.returning({ id: categories.id });
-	if (!updated) throw new ActionError("This category no longer exists.");
+	if (!updated)
+		throw new ActionError("This category changed or was removed. Refresh before saving.");
 };
 
 export const deleteCategory = (id: string) => db.delete(categories).where(eq(categories.id, id));

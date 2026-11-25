@@ -1,4 +1,4 @@
-import { eq, ilike, or, sql } from "drizzle-orm";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
@@ -54,14 +54,15 @@ export const findCustomer = async (id: string) => {
 	return customer;
 };
 
-export const saveCustomer = async ({ id, ...values }: CustomerValues) => {
+export const saveCustomer = async ({ id, version, ...values }: CustomerValues) => {
 	if (!id) return db.insert(customers).values(values);
 	const [updated] = await db
 		.update(customers)
-		.set({ ...values, updatedAt: new Date() })
-		.where(eq(customers.id, id))
+		.set({ ...values, updatedAt: new Date(), version: sql`${customers.version} + 1` })
+		.where(and(eq(customers.id, id), eq(customers.version, version ?? -1)))
 		.returning({ id: customers.id });
-	if (!updated) throw new ActionError("This customer no longer exists.");
+	if (!updated)
+		throw new ActionError("This customer changed or was removed. Refresh before saving.");
 };
 
 export const deleteCustomer = (id: string) => db.delete(customers).where(eq(customers.id, id));

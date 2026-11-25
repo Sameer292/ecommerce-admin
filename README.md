@@ -78,3 +78,5 @@ Run `TEST_QUERY_DATABASE_URL=postgresql://... bun test tests/commerce-queries.te
 Run `TEST_TEAM_DATABASE_URL=postgresql://... bun test tests/team-access.test.ts` against an empty disposable database on local Supabase to check staff revocation and last-superuser protection under concurrent edits. This test applies the migrations and writes staff fixtures.
 
 Run `TEST_PAYMENT_DATABASE_URL=postgresql://... bun test tests/payment.test.ts` against an empty disposable local database to check that payment retries preserve the recorded timestamp and reject conflicting timestamps.
+
+Run `TEST_EDIT_DATABASE_URL=postgresql://... bun test tests/edit-conflicts.test.ts` against an empty disposable local database to verify that competing saves cannot overwrite category, product, customer, settings, or staff edits.

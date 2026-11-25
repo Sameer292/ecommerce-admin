@@ -13,6 +13,7 @@ const columns = {
 	email: user.email,
 	role: user.role,
 	banned: user.banned,
+	version: user.version,
 	authUserId: user.authUserId,
 	createdAt: user.createdAt,
 };
@@ -55,7 +56,7 @@ export const findStaffAccount = async (id: string) => {
 	return row && staffAccount(row);
 };
 
-export const editStaffAccount = ({ id, role, status }: EditStaffValues, actorId: string) =>
+export const editStaffAccount = ({ id, role, status, version }: EditStaffValues, actorId: string) =>
 	db.transaction(
 		async (transaction) => {
 			// Serialize staff writes so simultaneous edits cannot revoke every owner.
@@ -76,14 +77,19 @@ export const editStaffAccount = ({ id, role, status }: EditStaffValues, actorId:
 			if ((banned || role !== "superuser") && !owners.some((owner) => owner.id !== id))
 				throw new ActionError("At least one active superuser must remain.");
 
-			const [updated] = await transaction
-				.update(user)
-				.set({ role, banned, updatedAt: new Date() })
+			const [target] = await transaction
+				.select({ version: user.version })
+				.from(user)
 				.where(
 					and(eq(user.id, id), inArray(user.role, role === "superuser" ? ["superuser"] : roles)),
-				)
-				.returning({ id: user.id });
-			if (!updated) throw new ActionError("This account can’t be changed here.");
+				);
+			if (!target) throw new ActionError("This account can’t be changed here.");
+			if (target.version !== version)
+				throw new ActionError("This account changed. Refresh before saving.");
+			await transaction
+				.update(user)
+				.set({ role, banned, updatedAt: new Date(), version: version + 1 })
+				.where(eq(user.id, id));
 		},
 		{ isolationLevel: "read committed" },
 	);

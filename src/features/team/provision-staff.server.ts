@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { user } from "@/db/schema/auth";
 import { supabaseAdmin } from "@/features/auth/supabase-admin.server";
@@ -11,7 +11,7 @@ const linkStaffProfile = async (authUserId: string, profile: Omit<StaffValues, "
 		.values({ id: authUserId, authUserId, ...profile })
 		.onConflictDoUpdate({
 			target: user.email,
-			set: { authUserId, updatedAt: new Date() },
+			set: { authUserId, updatedAt: new Date(), version: sql`${user.version} + 1` },
 			setWhere: and(isNull(user.authUserId), eq(user.role, profile.role)),
 		})
 		.returning({ id: user.id });
