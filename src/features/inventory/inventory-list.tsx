@@ -64,12 +64,7 @@ const InventoryFilters = ({
 			search.q || search.stock ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
 		}
 	>
-		<NativeSelect
-			name="stock"
-			aria-label="Stock filter"
-			defaultValue={search.stock ?? ""}
-			className="h-9"
-		>
+		<NativeSelect name="stock" aria-label="Stock filter" defaultValue={search.stock ?? ""}>
 			<NativeSelectOption value="">All products</NativeSelectOption>
 			{stockFilters.map((stock) => (
 				<NativeSelectOption key={stock} value={stock}>

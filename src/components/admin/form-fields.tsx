@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { FieldErrors } from "@/server/mutation.types";
-import { cn } from "@/lib/utils";
 
 export const FieldValidation = createContext<FieldErrors | undefined>(undefined);
 export const ReadOnlyFields = createContext(false);
@@ -60,18 +59,13 @@ export const FormField = ({
 	);
 };
 
-export const TextField = ({
-	label,
-	hint,
-	className,
-	...props
-}: FieldInfo & ComponentProps<typeof Input>) => (
+export const TextField = ({ label, hint, ...props }: FieldInfo & ComponentProps<typeof Input>) => (
 	<FormField
 		label={label}
 		hint={hint}
 		name={props.name}
 		readOnlyValue={props.value ?? props.defaultValue}
-		render={(field) => <Input {...props} {...field} className={cn("h-9", className)} />}
+		render={(field) => <Input {...props} {...field} />}
 	/>
 );
 
@@ -97,7 +91,7 @@ export const SelectField = ({
 			name={props.name}
 			readOnlyValue={display}
 			render={(field) => (
-				<NativeSelect {...props} {...field} className="h-9 w-full">
+				<NativeSelect {...props} {...field} className="w-full">
 					{children}
 				</NativeSelect>
 			)}

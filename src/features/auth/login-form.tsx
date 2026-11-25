@@ -67,7 +67,7 @@ export const LoginForm = () => {
 					<AlertDescription>{failure.error}</AlertDescription>
 				</Alert>
 			)}
-			<Button type="submit" size="lg" className="h-10" disabled={!hydrated || pending}>
+			<Button type="submit" size="lg" disabled={!hydrated || pending}>
 				{pending ? "Signing in…" : "Sign in"}
 			</Button>
 		</form>

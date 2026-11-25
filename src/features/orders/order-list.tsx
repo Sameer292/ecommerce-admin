@@ -25,12 +25,7 @@ const OrderFilters = ({ search, onSearch }: Pick<OrderListProps, "search" | "onS
 			search.q || search.status ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
 		}
 	>
-		<NativeSelect
-			name="status"
-			aria-label="Order status"
-			defaultValue={search.status ?? ""}
-			className="h-9"
-		>
+		<NativeSelect name="status" aria-label="Order status" defaultValue={search.status ?? ""}>
 			<NativeSelectOption value="">All statuses</NativeSelectOption>
 			{orderStatuses.map((status) => (
 				<NativeSelectOption key={status} value={status}>

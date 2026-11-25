@@ -11,7 +11,7 @@ const SearchField = ({ query, placeholder }: Pick<ListFormProps, "query" | "plac
 	<div className="relative min-w-40 flex-1 sm:max-w-xs">
 		<HugeiconsIcon
 			icon={Search01Icon}
-			className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground"
+			className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 size-4 text-muted-foreground"
 			aria-hidden
 		/>
 		<Input
@@ -21,7 +21,7 @@ const SearchField = ({ query, placeholder }: Pick<ListFormProps, "query" | "plac
 			placeholder={placeholder}
 			defaultValue={query}
 			maxLength={100}
-			className="h-9 pl-9"
+			className="pl-9"
 		/>
 	</div>
 );
