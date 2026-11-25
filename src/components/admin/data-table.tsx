@@ -12,7 +12,7 @@ import type { DataTableProps } from "./list.types";
 import { SortableTableHead } from "./sortable-table-head";
 
 const columnWidth = (compact?: boolean) =>
-	compact ? "w-[12%] whitespace-nowrap" : "min-w-24 whitespace-normal wrap-anywhere";
+	compact ? "w-[12%] whitespace-nowrap" : "min-w-24 whitespace-normal wrap-normal";
 
 const TableEmpty = ({ title, description }: { title: string; description?: string }) => (
 	<Empty className="py-11">

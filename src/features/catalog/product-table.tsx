@@ -16,7 +16,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 			>
 				{product.name}
 			</Link>
-			<span className="text-xs text-muted-foreground">{product.sku}</span>
+			<span className="text-xs whitespace-nowrap text-muted-foreground">{product.sku}</span>
 		</div>
 	</div>
 );
@@ -25,7 +25,7 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Product",
 		sort: "name.asc",
-		className: "min-w-30",
+		className: "min-w-64",
 		cell: (product) => <ProductName product={product} />,
 	},
 	{
