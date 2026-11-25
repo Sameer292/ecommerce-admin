@@ -2,6 +2,8 @@
 
 A standalone admin workspace for one storefront per deployment. TanStack Start serves the UI, typed server functions, and the storefront integration API. Supabase provides Auth and PostgreSQL. Drizzle manages the private `commerce_admin` schema. The workspace uses shadcn/ui and Tailwind with a persisted light or dark theme.
 
+The workspace covers catalog, order fulfillment, inventory, customers, and staff access. Fix correctness, accessibility, and the existing staff workflows first. Scope multiwarehouse operations, bespoke permissions, merchandising rules, and profitability reporting against a store's actual workflow and data requirements before adding them.
+
 ## Run locally
 
 1. Install dependencies with `bun install`. Use Node.js 22.12 or newer and a running Docker engine.
