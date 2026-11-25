@@ -1,6 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
+import { getStoreSettings } from "@/features/settings/settings.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import {
@@ -17,7 +18,8 @@ export const readOrders = createServerFn()
 	.validator(orderSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		return listOrders(data);
+		const { timeZone } = await getStoreSettings();
+		return listOrders(data, undefined, timeZone);
 	});
 
 export const readOrder = createServerFn()

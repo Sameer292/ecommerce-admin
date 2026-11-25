@@ -70,6 +70,25 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(duplicates[0].id, duplicates[1].id);
 		assert.equal(duplicates.filter(({ created }) => created).length, 1);
 		assert.equal((await connection`select id from commerce_admin.order_items`).length, 1);
+		const { listOrders } = await import("../src/features/orders/orders.server");
+		const filters = {
+			page: 1,
+			q: "",
+			view: "overdue_unpaid",
+			payment: "pending",
+			minTotalMinor: 1500,
+			maxTotalMinor: 1500,
+		} as const;
+		assert.equal(
+			(await listOrders({ ...filters, placedThrough: "2025-12-31" }, undefined, "America/New_York"))
+				.total,
+			1,
+		);
+		assert.equal(
+			(await listOrders({ ...filters, placedThrough: "2025-12-31" }, undefined, "UTC")).total,
+			0,
+		);
+		assert.equal((await listOrders({ ...filters, maxTotalMinor: 1400 })).total, 0);
 		const { findStoreOrderStatus } = await import(
 			"../src/features/store-integration/orders.server"
 		);
