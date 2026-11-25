@@ -9,7 +9,7 @@ import { ListPagination } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { stockFilterLabels, stockFilters } from "@/features/catalog/catalog-options";
 import type { ProductListRow } from "@/features/catalog/catalog.types";
-import { StockStatus } from "@/features/catalog/product-labels";
+import { ProductStatus, StockStatus } from "@/features/catalog/product-labels";
 import { formatCount } from "@/lib/format";
 import { inventorySearchSchema } from "./inventory-validation";
 import type { InventorySearch } from "./inventory.types";
@@ -33,13 +33,14 @@ const inventoryColumns: Column<ProductListRow>[] = [
 		sort: "sku.asc",
 		cell: (row) => <span className="text-muted-foreground truncate">{row.sku}</span>,
 	},
-	{ label: "Status", className: "text-center", cell: (row) => <StockStatus {...row} /> },
-	// {
-	// 	label: "Threshold",
-	// 	sort: "threshold.asc",
-	// 	className: "text-right tabular-nums",
-	// 	cell: (row) => formatCount(row.lowStockThreshold),
-	// },
+	{ label: "Publication", cell: (row) => <ProductStatus status={row.status} /> },
+	{ label: "Stock status", cell: (row) => <StockStatus {...row} /> },
+	{
+		label: "Threshold",
+		sort: "threshold.asc",
+		className: "text-right tabular-nums",
+		cell: (row) => formatCount(row.lowStockThreshold),
+	},
 	{
 		label: "On hand",
 		sort: "stock.desc",
