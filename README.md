@@ -19,7 +19,7 @@ A standalone admin workspace for one storefront per deployment. TanStack Start s
 | Manager | Manage products, categories, stock, order fulfillment, and customers |
 | Viewer | Read the dashboard, commerce data, and store preferences |
 
-Staff sign in with email and password and can change their own password. Superusers can create accounts and manage manager and viewer access. The app checks staff access on each protected request, so disabling an account blocks its dashboard access immediately. A Supabase user needs a linked staff record to enter the dashboard. Share initial passwords through a secure channel.
+Staff sign in with email and password and can change their own password. Superusers can create accounts and manage staff access from Team. They can disable or demote a superuser as long as at least one active, linked superuser remains. The app checks staff access on each protected request, so disabling an account blocks its dashboard access immediately. A Supabase user needs a linked staff record to enter the dashboard. Share initial passwords through a secure channel.
 
 ## Per-client settings and deployment
 
@@ -74,3 +74,5 @@ Run `bun run check`, `bun run typecheck`, `bun test`, and `bun run build`. Gener
 Run `TEST_DATABASE=1 bun test tests/database.test.ts` with the configured database to check concurrent queries, the 15-second query timeout, and recovery after cancellation. This check only runs reads and takes about 15 seconds. The shared client also limits connection and pool queue waits to 10 seconds and disables query pipelining for compatibility with older Supavisor transaction poolers.
 
 Run `TEST_QUERY_DATABASE_URL=postgresql://... bun test tests/commerce-queries.test.ts` against an empty disposable database on local Supabase to check search results, spending totals, and query plans with 100,000 orders and 10,000 customers. This test applies the migrations and writes fixtures; discard the test database afterward.
+
+Run `TEST_TEAM_DATABASE_URL=postgresql://... bun test tests/team-access.test.ts` against an empty disposable database on local Supabase to check staff revocation and last-superuser protection under concurrent edits. This test applies the migrations and writes staff fixtures.

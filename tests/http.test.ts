@@ -49,6 +49,13 @@ test("Axios preserves server-function JSON, forms, streams, error responses and 
 	const address = server.address();
 	assert.ok(address && typeof address !== "string");
 	const origin = `http://127.0.0.1:${address.port}`;
+	const interceptor = axios.interceptors.request.use((config) => {
+		assert.ok(
+			!(config.data instanceof ReadableStream),
+			"Chromium rejects streaming uploads over HTTP/1.1",
+		);
+		return config;
+	});
 	try {
 		const json = await axiosFetch(`${origin}/json`, {
 			method: "POST",
@@ -79,6 +86,7 @@ test("Axios preserves server-function JSON, forms, streams, error responses and 
 		abort.abort();
 		await assert.rejects(axiosFetch(`${origin}/json`, { signal: abort.signal }), axios.isCancel);
 	} finally {
+		axios.interceptors.request.eject(interceptor);
 		finishStream();
 		server.closeAllConnections();
 		await new Promise<void>((resolve, reject) =>

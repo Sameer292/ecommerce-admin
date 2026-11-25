@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
@@ -55,11 +55,35 @@ export const findStaffAccount = async (id: string) => {
 	return row && staffAccount(row);
 };
 
-export const editStaffAccount = async ({ id, role, status }: EditStaffValues) => {
-	const [updated] = await db
-		.update(user)
-		.set({ role, banned: status === "disabled", updatedAt: new Date() })
-		.where(and(eq(user.id, id), inArray(user.role, ["manager", "viewer"])))
-		.returning({ id: user.id });
-	if (!updated) throw new ActionError("This account can’t be changed here.");
-};
+export const editStaffAccount = ({ id, role, status }: EditStaffValues, actorId: string) =>
+	db.transaction(
+		async (transaction) => {
+			// Serialize staff writes so simultaneous edits cannot revoke every owner.
+			await transaction.execute(sql`lock table ${user} in share row exclusive mode`);
+			const owners = await transaction
+				.select({ id: user.id })
+				.from(user)
+				.where(
+					and(
+						eq(user.role, "superuser"),
+						isNotNull(user.authUserId),
+						or(eq(user.banned, false), isNull(user.banned)),
+					),
+				);
+			if (!owners.some((owner) => owner.id === actorId))
+				throw new ActionError("Your account no longer has permission to manage staff.");
+			const banned = status === "disabled";
+			if ((banned || role !== "superuser") && !owners.some((owner) => owner.id !== id))
+				throw new ActionError("At least one active superuser must remain.");
+
+			const [updated] = await transaction
+				.update(user)
+				.set({ role, banned, updatedAt: new Date() })
+				.where(
+					and(eq(user.id, id), inArray(user.role, role === "superuser" ? ["superuser"] : roles)),
+				)
+				.returning({ id: user.id });
+			if (!updated) throw new ActionError("This account can’t be changed here.");
+		},
+		{ isolationLevel: "read committed" },
+	);

@@ -38,6 +38,6 @@ export const addStaffAccount = createServerFn({ method: "POST" })
 export const writeStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(async ({ data }) => {
-		await requireStaff("manageTeam");
-		return mutate(editStaffSchema, data, editStaffAccount);
+		const staff = await requireStaff("manageTeam");
+		return mutate(editStaffSchema, data, (values) => editStaffAccount(values, staff.id));
 	});

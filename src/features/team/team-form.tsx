@@ -72,7 +72,10 @@ export const NewStaffForm = () => {
 const EditableAccess = ({ account }: { account: StaffAccount }) => (
 	<>
 		<input type="hidden" name="id" value={account.id} />
-		<RoleField selected={account.role} options={["manager", "viewer"]} />
+		<RoleField
+			selected={account.role}
+			options={account.role === "superuser" ? roles : ["manager", "viewer"]}
+		/>
 		<SelectField
 			name="status"
 			label="Account access"
@@ -90,13 +93,9 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 	return (
 		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
 			<FormSection title="Account access">
-				{account.role === "superuser" ? (
-					<p className="text-sm">{roleDescriptions.superuser}</p>
-				) : (
-					<AdminForm onSave={(data) => save({ data })} onSuccess={() => navigate({ to: "/team" })}>
-						<EditableAccess account={account} />
-					</AdminForm>
-				)}
+				<AdminForm onSave={(data) => save({ data })} onSuccess={() => navigate({ to: "/team" })}>
+					<EditableAccess account={account} />
+				</AdminForm>
 			</FormSection>
 			<RoleGuide />
 		</div>

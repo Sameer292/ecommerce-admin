@@ -14,7 +14,7 @@ export const staffAccountSchema = z.object({
 });
 
 export const editStaffSchema = staffIdSchema.extend({
-	role: z.enum(["manager", "viewer"]),
+	role: z.enum(roles),
 	status: z.enum(["active", "disabled"]),
 });
 

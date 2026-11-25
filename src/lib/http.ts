@@ -14,7 +14,8 @@ export const axiosFetch: CustomFetch = async (input, init) => {
 			...Object.fromEntries(request.headers),
 			"Content-Type": request.headers.get("content-type") ?? false,
 		},
-		data: request.body,
+		// Chromium requires HTTP/2 for streaming uploads.
+		data: request.body ? await request.blob() : undefined,
 		signal: request.signal,
 		adapter: "fetch",
 		responseType: "stream",
