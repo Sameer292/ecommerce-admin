@@ -57,6 +57,7 @@ export const AdjustStockForm = (props: AdjustmentFormProps) => {
 				onSave={(data) => submit({ data })}
 				onSuccess={() => router.invalidate()}
 				submitLabel="Record adjustment"
+				successMessage="Stock adjustment recorded."
 			>
 				<AdjustmentFields {...props} />
 			</AdminForm>

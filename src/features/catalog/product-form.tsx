@@ -115,6 +115,7 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 			onSave={editable ? (data) => save({ data }) : undefined}
 			onSuccess={() => navigate({ href: returnHref })}
 			submitLabel={product ? "Save product" : "Create product"}
+			successMessage={product ? "Product saved." : "Product created."}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
 			{product && <input type="hidden" name="version" value={version} />}

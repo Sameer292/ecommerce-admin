@@ -36,6 +36,7 @@ export const DeleteRecord = ({ id, record, onDelete, onSuccess }: DeleteRecordPr
 				onSave={onDelete}
 				onSuccess={onSuccess}
 				submitLabel={`Delete ${record}`}
+				successMessage="Record deleted."
 				destructive
 			>
 				<input type="hidden" name="id" value={id} />

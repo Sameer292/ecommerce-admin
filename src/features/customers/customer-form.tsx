@@ -52,6 +52,7 @@ export const CustomerForm = ({
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
 				submitLabel={customer ? "Save customer" : "Create customer"}
+				successMessage={customer ? "Customer saved." : "Customer created."}
 			>
 				<input type="hidden" name="id" value={customer?.id ?? ""} />
 				{customer && <input type="hidden" name="version" value={version} />}

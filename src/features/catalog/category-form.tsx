@@ -48,6 +48,7 @@ export const CategoryForm = ({
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
 				submitLabel={category ? "Save category" : "Create category"}
+				successMessage={category ? "Category saved." : "Category created."}
 			>
 				<input type="hidden" name="id" value={category?.id ?? ""} />
 				{category && <input type="hidden" name="version" value={version} />}

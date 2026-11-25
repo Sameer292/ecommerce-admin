@@ -4,6 +4,7 @@ import { Outlet, useHydrated } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ToastProvider } from "@/components/ui/toast";
 import type { readWorkspace } from "@/features/auth/session.functions";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
@@ -68,6 +69,8 @@ const AdminLayout = (workspace: Workspace) => (
 
 export const AdminShell = (workspace: Workspace) => (
 	<UnsavedChangesProvider>
-		<AdminLayout {...workspace} />
+		<ToastProvider>
+			<AdminLayout {...workspace} />
+		</ToastProvider>
 	</UnsavedChangesProvider>
 );
