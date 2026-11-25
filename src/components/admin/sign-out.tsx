@@ -4,15 +4,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { signOutStaff } from "@/features/auth/auth.functions";
+import { useUnsavedChanges } from "./unsaved-changes";
 
 const useSignOut = () => {
 	const endSession = useServerFn(signOutStaff);
+	const { confirmDiscard, discardChanges } = useUnsavedChanges();
 	const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
 	const signOut = async () => {
+		if (status === "pending" || !confirmDiscard()) return;
 		setStatus("pending");
 		try {
 			const result = await endSession();
 			if (!result.success) return setStatus("error");
+			discardChanges();
 			window.location.assign("/login");
 		} catch {
 			setStatus("error");

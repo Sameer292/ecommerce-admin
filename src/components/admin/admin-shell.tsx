@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import type { readWorkspace } from "@/features/auth/session.functions";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
+import { UnsavedChangesProvider } from "./unsaved-changes";
 
 type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
 
@@ -41,7 +42,7 @@ const TopBar = (workspace: Workspace) => (
 	</header>
 );
 
-export const AdminShell = (workspace: Workspace) => (
+const AdminLayout = (workspace: Workspace) => (
 	<div className="min-h-svh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
 		<a
 			href="#main-content"
@@ -63,4 +64,10 @@ export const AdminShell = (workspace: Workspace) => (
 			</main>
 		</div>
 	</div>
+);
+
+export const AdminShell = (workspace: Workspace) => (
+	<UnsavedChangesProvider>
+		<AdminLayout {...workspace} />
+	</UnsavedChangesProvider>
 );
