@@ -1,3 +1,4 @@
+import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
@@ -91,10 +92,18 @@ export const Route = createFileRoute("/_admin/orders/$orderId")({
 	validateSearch: orderDetailSearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1, activity: 1 })] },
 	loaderDeps: ({ search }) => orderDetailSearchSchema.parse(search),
-	loader: ({ context: { queryClient }, deps, params }) =>
-		queryClient.fetchQuery({
+	loader: async ({ context: { queryClient }, deps, params, location }) => {
+		const data = await queryClient.fetchQuery({
 			queryKey: ["order", params.orderId, deps],
 			queryFn: ({ signal }) => readOrder({ data: { ...deps, id: params.orderId }, signal }),
-		}),
+		});
+		redirectInvalidPages(
+			location.pathname,
+			{ ...location.search, ...deps },
+			data.items.total,
+			data.activity.total,
+		);
+		return data;
+	},
 	component: OrderPage,
 });

@@ -2,7 +2,7 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format";
-import { pageLimit, pageOffset, pageSize } from "@/lib/pagination";
+import { lastPage, pageOffset, pageSize } from "@/lib/pagination";
 
 type PageControlsProps = { total: number; page: number; onPage: (page: number) => void };
 
@@ -10,8 +10,13 @@ const PageButtons = ({
 	page,
 	onPage,
 	last,
-}: Omit<PageControlsProps, "total"> & { last: boolean }) => (
-	<div className="flex items-center gap-2">
+}: Omit<PageControlsProps, "total"> & { last: number }) => (
+	<div className="flex flex-wrap items-center gap-2">
+		{page > 1 && (
+			<Button variant="outline" onClick={() => onPage(1)}>
+				First page
+			</Button>
+		)}
 		<Button
 			variant="outline"
 			aria-label="Previous page"
@@ -20,11 +25,13 @@ const PageButtons = ({
 		>
 			<HugeiconsIcon icon={ArrowLeft01Icon} />
 		</Button>
-		<span>Page {formatCount(page)}</span>
+		<span>
+			Page {formatCount(page)} of {formatCount(last)}
+		</span>
 		<Button
 			variant="outline"
 			aria-label="Next page"
-			disabled={last}
+			disabled={page >= last}
 			onClick={() => onPage(page + 1)}
 		>
 			<HugeiconsIcon icon={ArrowRight01Icon} />
@@ -47,7 +54,7 @@ export const PageControls = ({ total, page, onPage }: PageControlsProps) => {
 		>
 			<span>{count}</span>
 			{(total > pageSize || page > 1) && (
-				<PageButtons page={page} onPage={onPage} last={end >= total || page >= pageLimit} />
+				<PageButtons page={page} onPage={onPage} last={lastPage(total)} />
 			)}
 		</nav>
 	);

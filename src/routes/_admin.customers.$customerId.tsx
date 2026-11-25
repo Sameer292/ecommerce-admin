@@ -1,3 +1,4 @@
+import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { useListReturn } from "@/components/admin/record-link";
 import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
@@ -79,10 +80,13 @@ export const Route = createFileRoute("/_admin/customers/$customerId")({
 	validateSearch: orderHistorySearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => orderHistorySearchSchema.parse(search),
-	loader: ({ context: { queryClient }, deps, params }) =>
-		queryClient.fetchQuery({
+	loader: async ({ context: { queryClient }, deps, params, location }) => {
+		const data = await queryClient.fetchQuery({
 			queryKey: ["customer", params.customerId, deps],
 			queryFn: ({ signal }) => readCustomer({ data: { id: params.customerId, ...deps }, signal }),
-		}),
+		});
+		redirectInvalidPages(location.pathname, { ...location.search, ...deps }, data.orders.total);
+		return data;
+	},
 	component: CustomerPage,
 });

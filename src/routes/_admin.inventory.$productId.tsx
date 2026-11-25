@@ -1,3 +1,4 @@
+import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
@@ -52,10 +53,13 @@ export const Route = createFileRoute("/_admin/inventory/$productId")({
 	validateSearch: stockHistorySearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => stockHistorySearchSchema.parse(search),
-	loader: ({ context: { queryClient }, deps, params }) =>
-		queryClient.fetchQuery({
+	loader: async ({ context: { queryClient }, deps, params, location }) => {
+		const data = await queryClient.fetchQuery({
 			queryKey: ["stock", params.productId, deps],
 			queryFn: ({ signal }) => readStock({ data: { id: params.productId, ...deps }, signal }),
-		}),
+		});
+		redirectInvalidPages(location.pathname, { ...location.search, ...deps }, data.history.total);
+		return data;
+	},
 	component: StockPage,
 });

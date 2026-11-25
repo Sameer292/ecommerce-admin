@@ -25,7 +25,7 @@ test("product hover and click share data, while filters, IDs, invalidation and r
 			const version = ++calls;
 			onRequest();
 			await block;
-			return { version };
+			return { version, total: 40 };
 		},
 		readProduct: async () => ({ version: ++calls }),
 	}));
@@ -126,6 +126,15 @@ test("product hover and click share data, while filters, IDs, invalidation and r
 		release();
 		await Promise.all([hover, click]);
 		assert.equal(calls, 9, "click must share an unfinished hover request");
+		await router.navigate({
+			to: "/products",
+			search: { page: 999, q: "shirt", sort: "price.desc" },
+		});
+		assert.deepEqual(
+			{ ...router.state.location.search },
+			productSearchSchema.parse({ page: 2, q: "shirt", sort: "price.desc" }),
+			"an out-of-range page must redirect through the real loader and retain filters and sorting",
+		);
 		router.options.context.queryClient.clear();
 		second.options.context.queryClient.clear();
 	} finally {

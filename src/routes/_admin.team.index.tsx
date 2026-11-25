@@ -1,3 +1,4 @@
+import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { pageSearchDefaults } from "@/lib/pagination";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { NewRecord } from "@/components/admin/new-record";
@@ -24,10 +25,13 @@ export const Route = createFileRoute("/_admin/team/")({
 	validateSearch: teamSearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ context: { queryClient }, deps }) =>
-		queryClient.fetchQuery({
+	loader: async ({ context: { queryClient }, deps, location }) => {
+		const data = await queryClient.fetchQuery({
 			queryKey: ["team", deps],
 			queryFn: ({ signal }) => readTeam({ data: deps, signal }),
-		}),
+		});
+		redirectInvalidPages(location.pathname, { ...location.search, ...deps }, data.total);
+		return data;
+	},
 	component: TeamPage,
 });
