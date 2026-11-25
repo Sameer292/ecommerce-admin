@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
 import { formatCount, formatDate, formatMoney } from "@/lib/format";
@@ -9,13 +9,13 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 	<div className="flex items-center gap-3">
 		<ProductPhoto imageUrl={product.imageUrl} />
 		<div className="flex min-w-0 flex-col">
-			<Link
+			<RecordLink
 				to="/products/$productId"
 				params={{ productId: product.id }}
 				className="font-medium hover:underline truncate"
 			>
 				{product.name}
-			</Link>
+			</RecordLink>
 			<span className="text-xs whitespace-nowrap text-muted-foreground">{product.sku}</span>
 		</div>
 	</div>

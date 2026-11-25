@@ -1,3 +1,4 @@
+import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminForm } from "@/components/admin/admin-form";
@@ -102,11 +103,12 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 
 export const ProductForm = ({ product, categories, currency, editable }: ProductFormProps) => {
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/products");
 	const save = useServerFn(writeProduct);
 	return (
 		<AdminForm
 			onSave={editable ? (data) => save({ data }) : undefined}
-			onSuccess={() => navigate({ to: "/products" })}
+			onSuccess={() => navigate({ href: returnHref })}
 			submitLabel={product ? "Save product" : "Create product"}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />

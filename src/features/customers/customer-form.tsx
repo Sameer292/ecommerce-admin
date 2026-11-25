@@ -1,3 +1,4 @@
+import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminForm } from "@/components/admin/admin-form";
@@ -42,11 +43,12 @@ export const CustomerForm = ({
 }) => {
 	const save = useServerFn(writeCustomer);
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/customers");
 	return (
 		<div className="max-w-2xl">
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
-				onSuccess={() => navigate({ to: "/customers" })}
+				onSuccess={() => navigate({ href: returnHref })}
 				submitLabel={customer ? "Save customer" : "Create customer"}
 			>
 				<input type="hidden" name="id" value={customer?.id ?? ""} />

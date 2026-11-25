@@ -1,5 +1,5 @@
 import { listSorting } from "@/components/admin/table-sorting";
-import { Link } from "@tanstack/react-router";
+import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
@@ -14,13 +14,13 @@ const teamColumns: Column<StaffAccount>[] = [
 		label: "Name",
 		sort: "name.asc",
 		cell: (row) => (
-			<Link
+			<RecordLink
 				to="/team/$staffId"
 				params={{ staffId: row.id }}
 				className="font-medium hover:underline"
 			>
 				{row.name}
-			</Link>
+			</RecordLink>
 		),
 	},
 	{

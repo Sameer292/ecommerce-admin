@@ -1,3 +1,4 @@
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { NewStaffForm } from "@/features/team/team-form";
@@ -14,4 +15,7 @@ const NewStaffPage = () => (
 	</>
 );
 
-export const Route = createFileRoute("/_admin/team/new")({ component: NewStaffPage });
+export const Route = createFileRoute("/_admin/team/new")({
+	validateSearch: listReturnSearchSchema,
+	component: NewStaffPage,
+});

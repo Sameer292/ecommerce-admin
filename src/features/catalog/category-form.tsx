@@ -1,3 +1,4 @@
+import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminForm } from "@/components/admin/admin-form";
@@ -37,12 +38,13 @@ export const CategoryForm = ({
 	editable: boolean;
 }) => {
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/categories");
 	const save = useServerFn(writeCategory);
 	return (
 		<div className="max-w-2xl">
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
-				onSuccess={() => navigate({ to: "/categories" })}
+				onSuccess={() => navigate({ href: returnHref })}
 				submitLabel={category ? "Save category" : "Create category"}
 			>
 				<input type="hidden" name="id" value={category?.id ?? ""} />

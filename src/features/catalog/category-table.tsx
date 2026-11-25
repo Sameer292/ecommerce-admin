@@ -1,3 +1,4 @@
+import { RecordLink } from "@/components/admin/record-link";
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
@@ -11,14 +12,14 @@ const categoryColumns: Column<CategoryListRow>[] = [
 		sort: "name.asc",
 
 		cell: (row) => (
-			<Link
+			<RecordLink
 				to="/categories/$categoryId"
 				params={{ categoryId: row.id }}
 				className="inline-flex items-center gap-4 truncate font-medium hover:underline"
 			>
 				<CategoryIcon icon={row.icon} />
 				{row.name}
-			</Link>
+			</RecordLink>
 		),
 	},
 	{

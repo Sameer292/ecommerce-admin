@@ -1,3 +1,4 @@
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
@@ -23,7 +24,9 @@ const OrderItemsTable = () => {
 			sorting={{
 				value: search.sort ?? "id.asc",
 				onChange: (sort) =>
-					navigate({ search: orderDetailSearchSchema.parse({ ...search, page: 1, sort }) }),
+					navigate({
+						search: { ...search, ...orderDetailSearchSchema.parse({ ...search, page: 1, sort }) },
+					}),
 			}}
 		/>
 	);
@@ -44,7 +47,10 @@ const OrderActivityTable = () => {
 				value: search.activitySort ?? "date.desc",
 				onChange: (activitySort) =>
 					navigate({
-						search: orderDetailSearchSchema.parse({ ...search, activity: 1, activitySort }),
+						search: {
+							...search,
+							...orderDetailSearchSchema.parse({ ...search, activity: 1, activitySort }),
+						},
 					}),
 			}}
 		/>
@@ -82,9 +88,9 @@ const OrderPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/orders/$orderId")({
-	validateSearch: orderDetailSearchSchema,
+	validateSearch: orderDetailSearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1, activity: 1 })] },
-	loaderDeps: ({ search }) => search,
+	loaderDeps: ({ search }) => orderDetailSearchSchema.parse(search),
 	loader: ({ context: { queryClient }, deps, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["order", params.orderId, deps],

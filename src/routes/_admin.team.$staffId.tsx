@@ -1,3 +1,4 @@
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { StaffAccessForm } from "@/features/team/team-form";
@@ -19,6 +20,7 @@ const StaffPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/team/$staffId")({
+	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["staff-account", params.staffId],

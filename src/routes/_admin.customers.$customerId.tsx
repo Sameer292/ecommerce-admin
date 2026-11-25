@@ -1,3 +1,5 @@
+import { useListReturn } from "@/components/admin/record-link";
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
@@ -29,7 +31,9 @@ const CustomerOrders = () => {
 				sorting={{
 					value: sort ?? "date.desc",
 					onChange: (sort) =>
-						navigate({ search: orderHistorySearchSchema.parse({ page: 1, sort }) }),
+						navigate({
+							search: { ...search, ...orderHistorySearchSchema.parse({ page: 1, sort }) },
+						}),
 				}}
 			/>
 			<PageControls
@@ -45,6 +49,7 @@ const CustomerPage = () => {
 	const { customer } = Route.useLoaderData();
 	const { staff } = Route.useRouteContext();
 	const canEdit = can(staff.role, "manageCommerce");
+	const returnHref = useListReturn("/customers");
 	const remove = useServerFn(removeCustomer);
 	const navigate = Route.useNavigate();
 	return (
@@ -60,7 +65,7 @@ const CustomerPage = () => {
 						id={customer.id}
 						record="customer"
 						onDelete={(data) => remove({ data })}
-						onSuccess={() => navigate({ to: "/customers" })}
+						onSuccess={() => navigate({ href: returnHref })}
 					/>
 				)}
 			</DetailHeading>
@@ -71,9 +76,9 @@ const CustomerPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/customers/$customerId")({
-	validateSearch: orderHistorySearchSchema,
+	validateSearch: orderHistorySearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
-	loaderDeps: ({ search }) => search,
+	loaderDeps: ({ search }) => orderHistorySearchSchema.parse(search),
 	loader: ({ context: { queryClient }, deps, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["customer", params.customerId, deps],

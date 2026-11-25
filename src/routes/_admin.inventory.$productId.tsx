@@ -1,3 +1,4 @@
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
@@ -18,7 +19,8 @@ const StockHistoryTable = () => {
 			onPage={(page) => navigate({ search: { ...search, page } })}
 			sorting={{
 				value: search.sort ?? "date.desc",
-				onChange: (sort) => navigate({ search: stockHistorySearchSchema.parse({ page: 1, sort }) }),
+				onChange: (sort) =>
+					navigate({ search: { ...search, ...stockHistorySearchSchema.parse({ page: 1, sort }) } }),
 			}}
 		/>
 	);
@@ -47,9 +49,9 @@ const StockPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/inventory/$productId")({
-	validateSearch: stockHistorySearchSchema,
+	validateSearch: stockHistorySearchSchema.extend(listReturnSearchSchema.shape),
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
-	loaderDeps: ({ search }) => search,
+	loaderDeps: ({ search }) => stockHistorySearchSchema.parse(search),
 	loader: ({ context: { queryClient }, deps, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["stock", params.productId, deps],

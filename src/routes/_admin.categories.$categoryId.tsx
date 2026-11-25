@@ -1,3 +1,5 @@
+import { useListReturn } from "@/components/admin/record-link";
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
@@ -11,6 +13,7 @@ const CategoryPage = () => {
 	const { staff } = Route.useRouteContext();
 	const editable = can(staff.role, "manageCommerce");
 	const navigate = Route.useNavigate();
+	const returnHref = useListReturn("/categories");
 	const remove = useServerFn(removeCategory);
 
 	return (
@@ -26,7 +29,7 @@ const CategoryPage = () => {
 						id={category.id}
 						record="category"
 						onDelete={(data) => remove({ data })}
-						onSuccess={() => navigate({ to: "/categories" })}
+						onSuccess={() => navigate({ href: returnHref })}
 					/>
 				)}
 			</DetailHeading>
@@ -36,6 +39,7 @@ const CategoryPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/categories/$categoryId")({
+	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["category", params.categoryId],

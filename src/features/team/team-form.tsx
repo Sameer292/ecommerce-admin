@@ -1,3 +1,4 @@
+import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminForm } from "@/components/admin/admin-form";
@@ -52,13 +53,14 @@ const RoleGuide = () => (
 
 export const NewStaffForm = () => {
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/team");
 	const save = useServerFn(addStaffAccount);
 	return (
 		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
 			<FormSection title="Account details">
 				<AdminForm
 					onSave={(data) => save({ data })}
-					onSuccess={() => navigate({ to: "/team" })}
+					onSuccess={() => navigate({ href: returnHref })}
 					submitLabel="Create account"
 				>
 					<NewStaffFields />
@@ -89,11 +91,15 @@ const EditableAccess = ({ account }: { account: StaffAccount }) => (
 
 export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/team");
 	const save = useServerFn(writeStaffAccount);
 	return (
 		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
 			<FormSection title="Account access">
-				<AdminForm onSave={(data) => save({ data })} onSuccess={() => navigate({ to: "/team" })}>
+				<AdminForm
+					onSave={(data) => save({ data })}
+					onSuccess={() => navigate({ href: returnHref })}
+				>
 					<EditableAccess account={account} />
 				</AdminForm>
 			</FormSection>

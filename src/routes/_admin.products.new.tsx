@@ -1,3 +1,4 @@
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
@@ -21,6 +22,7 @@ const NewProductPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/products/new")({
+	validateSearch: listReturnSearchSchema,
 	beforeLoad: ({ context }) => {
 		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/products" });
 	},

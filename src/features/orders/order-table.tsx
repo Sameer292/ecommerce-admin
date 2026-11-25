@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -6,9 +6,13 @@ import { OrderStatusBadge, PaymentStatusBadge } from "./order-labels";
 import type { OrderRow } from "./order.types";
 
 const OrderNumber = ({ id, number }: Pick<OrderRow, "id" | "number">) => (
-	<Link to="/orders/$orderId" params={{ orderId: id }} className="font-medium hover:underline">
+	<RecordLink
+		to="/orders/$orderId"
+		params={{ orderId: id }}
+		className="font-medium hover:underline"
+	>
 		#{number}
-	</Link>
+	</RecordLink>
 );
 
 const columns = (currency: string, zone: string): Column<OrderRow>[] => [

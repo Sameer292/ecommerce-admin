@@ -1,3 +1,5 @@
+import { useListReturn } from "@/components/admin/record-link";
+import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
@@ -9,6 +11,7 @@ import { readProduct, removeProduct } from "@/features/catalog/products.function
 
 const ProductActions = ({ id, editable }: { id: string; editable: boolean }) => {
 	const navigate = useNavigate();
+	const returnHref = useListReturn("/products");
 	const remove = useServerFn(removeProduct);
 	return (
 		<div className="flex flex-wrap gap-2">
@@ -24,7 +27,7 @@ const ProductActions = ({ id, editable }: { id: string; editable: boolean }) => 
 					id={id}
 					record="product"
 					onDelete={(data) => remove({ data })}
-					onSuccess={() => navigate({ to: "/products" })}
+					onSuccess={() => navigate({ href: returnHref })}
 				/>
 			)}
 		</div>
@@ -57,6 +60,7 @@ const ProductPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/products/$productId")({
+	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
 		queryClient.fetchQuery({
 			queryKey: ["product", params.productId],
