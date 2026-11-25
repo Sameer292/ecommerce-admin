@@ -35,13 +35,13 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	// {
 	// 	label: "Threshold",
 	// 	sort: "threshold.asc",
-	// 	className: "tabular-nums text-center",
+	// 	className: "text-right tabular-nums",
 	// 	cell: (row) => formatCount(row.lowStockThreshold),
 	// },
 	{
 		label: "On hand",
 		sort: "stock.desc",
-		className: "tabular-nums font-medium text-center",
+		className: "text-right font-medium tabular-nums",
 		cell: (row) => formatCount(row.stock),
 	},
 ];

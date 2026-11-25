@@ -76,7 +76,7 @@ const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 		label: "Change",
 		sort: "change.desc",
 		compact: true,
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
 	},
 	{

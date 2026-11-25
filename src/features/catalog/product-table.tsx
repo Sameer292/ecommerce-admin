@@ -12,6 +12,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 			<RecordLink
 				to="/products/$productId"
 				params={{ productId: product.id }}
+				title={product.name}
 				className="font-medium hover:underline truncate"
 			>
 				{product.name}
@@ -24,6 +25,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 const productColumns = (currency: string, zone: string): Column<ProductListRow>[] => [
 	{
 		label: "Product",
+		className: "min-w-40",
 		sort: "name.asc",
 		cell: (product) => <ProductName product={product} />,
 	},
@@ -39,13 +41,13 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Price",
 		sort: "price.asc",
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
 		sort: "stock.desc",
-		className: "tabular-nums text-center",
+		className: "text-right tabular-nums",
 		cell: (product) => formatCount(product.stock),
 	},
 	{

@@ -51,7 +51,7 @@ const TableContents = <Row extends { id: string }>({
 }: Omit<DataTableProps<Row>, "empty" | "emptyDescription">) => (
 	<Table scrollLabel={label}>
 		<TableCaption className="sr-only">{label}</TableCaption>
-		<TableHeader className="bg-muted/35">
+		<TableHeader className="sticky top-0 z-10 bg-muted">
 			<TableRow>
 				{columns.map(({ label, compact, className, sort }) => (
 					<SortableTableHead

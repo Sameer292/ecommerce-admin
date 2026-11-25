@@ -10,12 +10,16 @@ const Table = ({
 	const container = useRef<HTMLElement>(null);
 	const table = useRef<HTMLTableElement>(null);
 	const hintId = useId();
-	const [overflow, setOverflow] = useState(false);
+	const [overflow, setOverflow] = useState({ horizontal: false, vertical: false });
 	useEffect(() => {
 		const region = container.current;
 		const content = table.current;
 		if (!scrollLabel || !region || !content) return;
-		const update = () => setOverflow(region.scrollWidth > region.clientWidth);
+		const update = () =>
+			setOverflow({
+				horizontal: region.scrollWidth > region.clientWidth,
+				vertical: region.scrollHeight > region.clientHeight,
+			});
 		const resize = new ResizeObserver(update);
 		resize.observe(region);
 		resize.observe(content);
@@ -27,10 +31,13 @@ const Table = ({
 			<section
 				data-slot="table-container"
 				ref={container}
-				className="relative w-full overflow-x-auto focus-visible:outline-inset focus-visible:outline-ring"
-				aria-label={overflow ? scrollLabel : undefined}
-				aria-describedby={overflow ? hintId : undefined}
-				tabIndex={overflow ? 0 : undefined}
+				className={cn(
+					"relative w-full overflow-x-auto focus-visible:outline-inset focus-visible:outline-ring",
+					scrollLabel && "max-h-[70svh]",
+				)}
+				aria-label={overflow.horizontal || overflow.vertical ? scrollLabel : undefined}
+				aria-describedby={overflow.horizontal ? hintId : undefined}
+				tabIndex={overflow.horizontal || overflow.vertical ? 0 : undefined}
 			>
 				<table
 					ref={table}
@@ -39,7 +46,7 @@ const Table = ({
 					{...props}
 				/>
 			</section>
-			{overflow && (
+			{overflow.horizontal && (
 				<p id={hintId} className="border-t px-3 py-1.5 text-xs text-muted-foreground">
 					Scroll horizontally to see more columns.
 				</p>
