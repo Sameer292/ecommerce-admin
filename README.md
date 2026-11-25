@@ -76,3 +76,5 @@ Run `TEST_DATABASE=1 bun test tests/database.test.ts` with the configured databa
 Run `TEST_QUERY_DATABASE_URL=postgresql://... bun test tests/commerce-queries.test.ts` against an empty disposable database on local Supabase to check search results, spending totals, and query plans with 100,000 orders and 10,000 customers. This test applies the migrations and writes fixtures; discard the test database afterward.
 
 Run `TEST_TEAM_DATABASE_URL=postgresql://... bun test tests/team-access.test.ts` against an empty disposable database on local Supabase to check staff revocation and last-superuser protection under concurrent edits. This test applies the migrations and writes staff fixtures.
+
+Run `TEST_PAYMENT_DATABASE_URL=postgresql://... bun test tests/payment.test.ts` against an empty disposable local database to check that payment retries preserve the recorded timestamp and reject conflicting timestamps.
