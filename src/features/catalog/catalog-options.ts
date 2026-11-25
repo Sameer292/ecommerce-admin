@@ -150,7 +150,7 @@ export const productStatusLabels = {
 export const stockFilters = ["in", "out", "low"] as const;
 
 export const stockFilterLabels = {
-	in: "In stock",
+	in: "Above threshold",
 	out: "Out of stock",
 	low: "Low stock",
 } as const;
