@@ -60,8 +60,8 @@ export const listOrders = async (search: OrderSearch, customerId?: string) => {
 	const [rows, total] = await Promise.all([
 		orderRows(where)
 			.orderBy(...orderBySort(orderSortColumns, search.sort ?? "date.desc", orders.id))
-			.limit(pageSize)
-			.offset(pageOffset(search.page)),
+			.limit(search.perPage ?? pageSize)
+			.offset(pageOffset(search.page, search.perPage)),
 		db.$count(orders, where),
 	]);
 	return { rows, total };

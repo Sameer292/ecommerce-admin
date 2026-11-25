@@ -3,7 +3,7 @@ import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { formatDate, formatMoney } from "@/lib/format";
 import { customerSearchSchema } from "./customer-validation";
 import type { CustomerRow, CustomerSearch } from "./customer.types";
@@ -63,8 +63,13 @@ export const CustomerList = ({
 			placeholder="Search customers"
 			readSearch={(form) => customerSearchSchema.parse(Object.fromEntries(form))}
 			onSearch={onSearch}
-			onClear={search.q ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined}
+			onClear={
+				search.q
+					? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
+					: undefined
+			}
 		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", customerSearchSchema, onSearch)}
 			rows={rows}
@@ -72,10 +77,6 @@ export const CustomerList = ({
 			label="Customers"
 			empty={search.q || search.page > 1 ? "No matching customers" : "No customers yet"}
 		/>
-		<PageControls
-			total={total}
-			page={search.page}
-			onPage={(page) => onSearch({ ...search, page })}
-		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
 	</div>
 );

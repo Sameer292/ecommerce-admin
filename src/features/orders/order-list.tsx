@@ -1,7 +1,7 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { ListControls } from "@/components/admin/list-controls";
 import type { ListPage } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { orderStatusLabels, orderStatuses } from "./order-options";
 import { OrderTable } from "./order-table";
@@ -22,7 +22,9 @@ const OrderFilters = ({ search, onSearch }: Pick<OrderListProps, "search" | "onS
 		readSearch={(form) => orderSearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
 		onClear={
-			search.q || search.status ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
+			search.q || search.status
+				? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
+				: undefined
 		}
 	>
 		<NativeSelect name="status" aria-label="Order status" defaultValue={search.status ?? ""}>
@@ -39,6 +41,7 @@ const OrderFilters = ({ search, onSearch }: Pick<OrderListProps, "search" | "onS
 export const OrderList = ({ rows, total, search, currency, zone, onSearch }: OrderListProps) => (
 	<div className="flex flex-col gap-4">
 		<OrderFilters search={search} onSearch={onSearch} />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<OrderTable
 			sorting={listSorting(search, "date.desc", orderSearchSchema, onSearch)}
 			rows={rows}
@@ -46,10 +49,6 @@ export const OrderList = ({ rows, total, search, currency, zone, onSearch }: Ord
 			zone={zone}
 			empty={search.q || search.status || search.page > 1 ? "No matching orders" : "No orders yet"}
 		/>
-		<PageControls
-			total={total}
-			page={search.page}
-			onPage={(page) => onSearch({ ...search, page })}
-		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
 	</div>
 );

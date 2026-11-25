@@ -69,8 +69,8 @@ export const listProducts = async (
 			.leftJoin(categories, eq(products.categoryId, categories.id))
 			.where(where)
 			.orderBy(...orderBySort(productSortColumns, search.sort ?? "name.asc", products.id))
-			.limit(pageSize)
-			.offset(pageOffset(search.page)),
+			.limit(search.perPage ?? pageSize)
+			.offset(pageOffset(search.page, search.perPage)),
 		db.$count(products, where),
 	]);
 	return { rows, total };

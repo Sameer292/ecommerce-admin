@@ -3,7 +3,7 @@ import { pageSearchDefaults } from "@/lib/pagination";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { ListControls } from "@/components/admin/list-controls";
 import { NewRecord } from "@/components/admin/new-record";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { listSorting } from "@/components/admin/table-sorting";
 import { PageHeading } from "@/components/admin/page-heading";
 import { can } from "@/features/auth/permissions";
@@ -24,14 +24,15 @@ const CategoryList = () => {
 				placeholder="Search categories"
 				readSearch={(form) => categorySearchSchema.parse(Object.fromEntries(form))}
 				onSearch={update}
-				onClear={q ? () => update({ q: "", page: 1, sort }) : undefined}
+				onClear={q ? () => update({ q: "", page: 1, sort, perPage: search.perPage }) : undefined}
 			/>
+			<ListPagination total={total} search={search} onSearch={update} />
 			<CategoryTable
 				sorting={listSorting(search, "name.asc", categorySearchSchema, update)}
 				rows={rows}
 				filtered={Boolean(q || page > 1)}
 			/>
-			<PageControls page={page} total={total} onPage={(page) => update({ ...search, page })} />
+			<ListPagination total={total} search={search} onSearch={update} bottom />
 		</div>
 	);
 };

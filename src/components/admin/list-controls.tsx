@@ -72,7 +72,7 @@ export const ListControls = <Search extends ListSearch>({
 		const signature = filterKey(next);
 		if (search.page === 1 && signature === (sent.current.at(-1) ?? applied)) return;
 		sent.current.push(signature);
-		onSearch({ ...next, sort: search.sort });
+		onSearch({ ...next, sort: search.sort, perPage: search.perPage });
 	};
 	return <ListForm key={key} query={search.q} onSearch={apply} onClear={onClear} {...props} />;
 };

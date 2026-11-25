@@ -71,7 +71,7 @@ export const ProductFilters = ({
 			onSearch={onSearch}
 			onClear={
 				hasProductFilters(search)
-					? () => onSearch({ q: "", page: 1, sort: search.sort })
+					? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
 					: undefined
 			}
 		>

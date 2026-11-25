@@ -3,7 +3,7 @@ import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { stockFilterLabels, stockFilters } from "@/features/catalog/catalog-options";
 import type { ProductListRow } from "@/features/catalog/catalog.types";
@@ -61,7 +61,9 @@ const InventoryFilters = ({
 		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
 		onClear={
-			search.q || search.stock ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
+			search.q || search.stock
+				? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
+				: undefined
 		}
 	>
 		<NativeSelect name="stock" aria-label="Stock filter" defaultValue={search.stock ?? ""}>
@@ -78,6 +80,7 @@ const InventoryFilters = ({
 export const InventoryList = ({ rows, total, search, onSearch }: InventoryListProps) => (
 	<div className="flex flex-col gap-4">
 		<InventoryFilters search={search} onSearch={onSearch} />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", inventorySearchSchema, onSearch)}
 			rows={rows}
@@ -86,10 +89,6 @@ export const InventoryList = ({ rows, total, search, onSearch }: InventoryListPr
 			empty="No matching inventory"
 			emptyDescription="Check your filters or add products to your catalog."
 		/>
-		<PageControls
-			total={total}
-			page={search.page}
-			onPage={(page) => onSearch({ ...search, page })}
-		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
 	</div>
 );

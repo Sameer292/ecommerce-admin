@@ -32,7 +32,7 @@ const staffAccount = ({
 
 const searchColumns = { name: alphabetical(user.name), email: alphabetical(user.email) };
 
-export const listTeam = async ({ q, page, sort }: StaffSearch) => {
+export const listTeam = async ({ q, page, sort, perPage }: StaffSearch) => {
 	const pattern = searchPattern(q);
 	const where = and(
 		inArray(user.role, roles),
@@ -44,8 +44,8 @@ export const listTeam = async ({ q, page, sort }: StaffSearch) => {
 			.from(user)
 			.where(where)
 			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", user.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(perPage ?? pageSize)
+			.offset(pageOffset(page, perPage)),
 		db.$count(user, where),
 	]);
 	return { rows: rows.map(staffAccount), total };

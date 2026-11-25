@@ -13,7 +13,7 @@ const categorySortColumns = {
 	count: productCount,
 };
 
-export const listCategories = async ({ page, q, sort }: CategorySearch) => {
+export const listCategories = async ({ page, q, sort, perPage }: CategorySearch) => {
 	const where = q ? ilike(categories.name, searchPattern(q)) : undefined;
 	const [rows, total] = await Promise.all([
 		db
@@ -30,8 +30,8 @@ export const listCategories = async ({ page, q, sort }: CategorySearch) => {
 			.from(categories)
 			.where(where)
 			.orderBy(...orderBySort(categorySortColumns, sort ?? "name.asc", categories.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(perPage ?? pageSize)
+			.offset(pageOffset(page, perPage)),
 		db.$count(categories, where),
 	]);
 	return { rows, total };
