@@ -12,7 +12,7 @@ import { addStaffAccount, writeStaffAccount } from "./team.functions";
 import type { StaffAccount } from "./team.types";
 
 const RoleField = ({ selected, options }: { selected: Role; options: readonly Role[] }) => (
-	<SelectField name="role" label="Role" defaultValue={selected}>
+	<SelectField name="role" required label="Role" defaultValue={selected}>
 		{options.map((value) => (
 			<NativeSelectOption key={value} value={value}>
 				{roleLabels[value]}
@@ -83,6 +83,7 @@ const EditableAccess = ({ account, version }: { account: StaffAccount; version: 
 		/>
 		<SelectField
 			name="status"
+			required
 			label="Account access"
 			defaultValue={account.banned ? "disabled" : "active"}
 		>

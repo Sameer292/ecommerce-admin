@@ -23,10 +23,12 @@ export const FormField = ({
 	label,
 	hint,
 	name,
+	required,
 	render,
 	readOnlyValue,
 }: FieldInfo & {
 	name?: string;
+	required?: boolean;
 	render: (props: ControlProps) => ReactNode;
 	readOnlyValue?: ReactNode;
 }) => {
@@ -47,7 +49,14 @@ export const FormField = ({
 	const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ");
 	return (
 		<Field data-invalid={error ? true : undefined}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<FieldLabel htmlFor={id}>
+				{label}
+				{required && (
+					<span aria-hidden className="text-xs text-muted-foreground">
+						Required
+					</span>
+				)}
+			</FieldLabel>
 			{render({
 				id,
 				"aria-invalid": error ? true : undefined,
@@ -64,6 +73,7 @@ export const TextField = ({ label, hint, ...props }: FieldInfo & ComponentProps<
 		label={label}
 		hint={hint}
 		name={props.name}
+		required={props.required}
 		readOnlyValue={props.value ?? props.defaultValue}
 		render={(field) => <Input {...props} {...field} />}
 	/>
@@ -89,6 +99,7 @@ export const SelectField = ({
 			label={label}
 			hint={hint}
 			name={props.name}
+			required={props.required}
 			readOnlyValue={display}
 			render={(field) => (
 				<NativeSelect {...props} {...field} className="w-full">
@@ -106,6 +117,7 @@ export const NotesField = ({
 	<FormField
 		label={label}
 		name={props.name}
+		required={props.required}
 		readOnlyValue={props.value ?? props.defaultValue}
 		render={(field) => <Textarea {...props} {...field} />}
 	/>

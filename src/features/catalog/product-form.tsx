@@ -85,7 +85,7 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 			required
 			defaultValue={product ? moneyInput(product.priceMinor, currency) : undefined}
 		/>
-		<SelectField name="status" label="Status" defaultValue={product?.status ?? "draft"}>
+		<SelectField name="status" required label="Status" defaultValue={product?.status ?? "draft"}>
 			{productStatuses.map((status) => (
 				<NativeSelectOption key={status} value={status}>
 					{productStatusLabels[status]}

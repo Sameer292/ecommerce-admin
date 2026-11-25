@@ -12,7 +12,7 @@ const FulfillmentFields = ({ order }: { order: Order }) => (
 	<>
 		<input type="hidden" name="id" value={order.id} />
 		<input type="hidden" name="version" value={order.updatedAt.toISOString()} />
-		<SelectField name="status" label="Fulfillment status" defaultValue={order.status}>
+		<SelectField name="status" required label="Fulfillment status" defaultValue={order.status}>
 			{[order.status, ...orderTransitions[order.status]].map((status) => (
 				<NativeSelectOption key={status} value={status}>
 					{orderStatusLabels[status]}

@@ -58,3 +58,9 @@ test("read-only fields show values and selected labels as text", () => {
 	assert.match(markup, /Draft label/);
 	assert.doesNotMatch(markup, /<(input|select)/);
 });
+
+test("shared fields visually identify required inputs and retain native validation", () => {
+	const markup = renderToStaticMarkup(<TextField name="name" label="Name" required />);
+	assert.match(markup, />Required<\/span>/);
+	assert.match(markup, /<input[^>]* required=""/);
+});
