@@ -565,6 +565,27 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			await connection`select stock, reserved_stock from commerce_admin.products where sku = 'RESERVE-CHAIR'`;
 		assert.equal(pendingChair.stock, 2);
 		assert.equal(pendingChair.reserved_stock, 2);
+
+		const { acknowledgeReplenishment, readReplenishmentAlerts } = await import(
+			"../src/features/inventory/replenishment.server"
+		);
+		const beforeAck = (await readReplenishmentAlerts(1, true)).rows.find(
+			({ sku }) => sku === "RESERVE-DESK",
+		);
+		assert.ok(beforeAck);
+		await acknowledgeReplenishment(beforeAck.id, "stock-operator");
+		assert.ok(!(await readReplenishmentAlerts(1, true)).rows.some(({ id }) => id === beforeAck.id));
+		assert.ok(
+			(await readReplenishmentAlerts(1)).rows.find(({ id }) => id === beforeAck.id)?.acknowledgedAt,
+		);
+		await connection`update commerce_admin.products set stock = 10 where sku = 'RESERVE-DESK'`;
+		assert.ok(!(await readReplenishmentAlerts(1)).rows.some(({ sku }) => sku === "RESERVE-DESK"));
+		await connection`update commerce_admin.products set stock = 1 where sku = 'RESERVE-DESK'`;
+		const reopened = (await readReplenishmentAlerts(1, true)).rows.find(
+			({ sku }) => sku === "RESERVE-DESK",
+		);
+		assert.ok(reopened);
+		assert.notEqual(reopened.id, beforeAck.id);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

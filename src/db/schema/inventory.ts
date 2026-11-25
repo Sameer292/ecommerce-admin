@@ -7,6 +7,7 @@ import {
 	primaryKey,
 	text,
 	timestamp,
+	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
@@ -68,3 +69,23 @@ export const stockMovements = commerce.table("stock_movements", {
 	digest: text().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const replenishmentAlerts = commerce.table(
+	"replenishment_alerts",
+	{
+		id: uuid().defaultRandom().primaryKey(),
+		productId: uuid("product_id")
+			.notNull()
+			.references(() => products.id, { onDelete: "cascade" }),
+		openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
+		acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+		acknowledgedBy: text("acknowledged_by").references(() => user.id, { onDelete: "set null" }),
+		resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+	},
+	(table) => [
+		uniqueIndex("replenishment_alerts_open_product")
+			.on(table.productId)
+			.where(sql`${table.resolvedAt} IS NULL`),
+		index().on(table.openedAt, table.id).where(sql`${table.resolvedAt} IS NULL`),
+	],
+);

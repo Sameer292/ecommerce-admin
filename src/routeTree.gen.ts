@@ -25,6 +25,7 @@ import { Route as AdminCustomersCustomerIdRouteImport } from './routes/_admin.cu
 import { Route as AdminCustomersNewRouteImport } from './routes/_admin.customers.new'
 import { Route as AdminInventoryIndexRouteImport } from './routes/_admin.inventory.index'
 import { Route as AdminInventoryProductIdRouteImport } from './routes/_admin.inventory.$productId'
+import { Route as AdminInventoryReplenishmentRouteImport } from './routes/_admin.inventory.replenishment'
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/_admin.orders.$orderId'
 import { Route as AdminOrdersPrintRouteImport } from './routes/_admin.orders.print'
@@ -40,6 +41,7 @@ import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
 import { Route as ApiStoreInventoryRouteImport } from './routes/api/store/inventory'
 import { Route as ApiStoreNotificationsRouteImport } from './routes/api/store/notifications'
 import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
+import { Route as ApiStoreInventoryAlertsRouteImport } from './routes/api/store/inventory/alerts'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -122,6 +124,12 @@ const AdminInventoryProductIdRoute = AdminInventoryProductIdRouteImport.update({
   path: '/inventory/$productId',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInventoryReplenishmentRoute =
+  AdminInventoryReplenishmentRouteImport.update({
+    id: '/inventory/replenishment',
+    path: '/inventory/replenishment',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -198,6 +206,11 @@ const ApiStoreOrdersRoute = ApiStoreOrdersRouteImport.update({
   path: '/api/store/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStoreInventoryAlertsRoute = ApiStoreInventoryAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => ApiStoreInventoryRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
@@ -212,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/customers/new': typeof AdminCustomersNewRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
+  '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
   '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -221,7 +235,7 @@ export interface FileRoutesByFullPath {
   '/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
-  '/api/store/inventory': typeof ApiStoreInventoryRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories/': typeof AdminCategoriesIndexRoute
@@ -230,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/orders/': typeof AdminOrdersIndexRoute
   '/products/': typeof AdminProductsIndexRoute
   '/team/': typeof AdminTeamIndexRoute
+  '/api/store/inventory/alerts': typeof ApiStoreInventoryAlertsRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -243,6 +258,7 @@ export interface FileRoutesByTo {
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/customers/new': typeof AdminCustomersNewRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
+  '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
   '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -252,7 +268,7 @@ export interface FileRoutesByTo {
   '/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
-  '/api/store/inventory': typeof ApiStoreInventoryRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories': typeof AdminCategoriesIndexRoute
@@ -261,6 +277,7 @@ export interface FileRoutesByTo {
   '/orders': typeof AdminOrdersIndexRoute
   '/products': typeof AdminProductsIndexRoute
   '/team': typeof AdminTeamIndexRoute
+  '/api/store/inventory/alerts': typeof ApiStoreInventoryAlertsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -277,6 +294,7 @@ export interface FileRoutesById {
   '/_admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/_admin/customers/new': typeof AdminCustomersNewRoute
   '/_admin/inventory/$productId': typeof AdminInventoryProductIdRoute
+  '/_admin/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/_admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/_admin/orders/print': typeof AdminOrdersPrintRoute
   '/_admin/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -286,7 +304,7 @@ export interface FileRoutesById {
   '/_admin/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
-  '/api/store/inventory': typeof ApiStoreInventoryRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/_admin/categories/': typeof AdminCategoriesIndexRoute
@@ -295,6 +313,7 @@ export interface FileRoutesById {
   '/_admin/orders/': typeof AdminOrdersIndexRoute
   '/_admin/products/': typeof AdminProductsIndexRoute
   '/_admin/team/': typeof AdminTeamIndexRoute
+  '/api/store/inventory/alerts': typeof ApiStoreInventoryAlertsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -311,6 +330,7 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/new'
     | '/inventory/$productId'
+    | '/inventory/replenishment'
     | '/orders/$orderId'
     | '/orders/print'
     | '/orders/synchronization'
@@ -329,6 +349,7 @@ export interface FileRouteTypes {
     | '/orders/'
     | '/products/'
     | '/team/'
+    | '/api/store/inventory/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -342,6 +363,7 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/new'
     | '/inventory/$productId'
+    | '/inventory/replenishment'
     | '/orders/$orderId'
     | '/orders/print'
     | '/orders/synchronization'
@@ -360,6 +382,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/products'
     | '/team'
+    | '/api/store/inventory/alerts'
   id:
     | '__root__'
     | '/_admin'
@@ -375,6 +398,7 @@ export interface FileRouteTypes {
     | '/_admin/customers/$customerId'
     | '/_admin/customers/new'
     | '/_admin/inventory/$productId'
+    | '/_admin/inventory/replenishment'
     | '/_admin/orders/$orderId'
     | '/_admin/orders/print'
     | '/_admin/orders/synchronization'
@@ -393,6 +417,7 @@ export interface FileRouteTypes {
     | '/_admin/orders/'
     | '/_admin/products/'
     | '/_admin/team/'
+    | '/api/store/inventory/alerts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -401,7 +426,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
-  ApiStoreInventoryRoute: typeof ApiStoreInventoryRoute
+  ApiStoreInventoryRoute: typeof ApiStoreInventoryRouteWithChildren
   ApiStoreNotificationsRoute: typeof ApiStoreNotificationsRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
 }
@@ -520,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryProductIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/inventory/replenishment': {
+      id: '/_admin/inventory/replenishment'
+      path: '/inventory/replenishment'
+      fullPath: '/inventory/replenishment'
+      preLoaderRoute: typeof AdminInventoryReplenishmentRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/orders/': {
       id: '/_admin/orders/'
       path: '/orders'
@@ -625,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoreOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/store/inventory/alerts': {
+      id: '/api/store/inventory/alerts'
+      path: '/alerts'
+      fullPath: '/api/store/inventory/alerts'
+      preLoaderRoute: typeof ApiStoreInventoryAlertsRouteImport
+      parentRoute: typeof ApiStoreInventoryRoute
+    }
   }
 }
 
@@ -655,6 +694,7 @@ interface AdminRouteChildren {
   AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
   AdminCustomersNewRoute: typeof AdminCustomersNewRoute
   AdminInventoryProductIdRoute: typeof AdminInventoryProductIdRoute
+  AdminInventoryReplenishmentRoute: typeof AdminInventoryReplenishmentRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminOrdersPrintRoute: typeof AdminOrdersPrintRoute
   AdminOrdersSynchronizationRoute: typeof AdminOrdersSynchronizationRoute
@@ -678,6 +718,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
   AdminCustomersNewRoute: AdminCustomersNewRoute,
   AdminInventoryProductIdRoute: AdminInventoryProductIdRoute,
+  AdminInventoryReplenishmentRoute: AdminInventoryReplenishmentRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminOrdersPrintRoute: AdminOrdersPrintRoute,
   AdminOrdersSynchronizationRoute: AdminOrdersSynchronizationRoute,
@@ -692,13 +733,24 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ApiStoreInventoryRouteChildren {
+  ApiStoreInventoryAlertsRoute: typeof ApiStoreInventoryAlertsRoute
+}
+
+const ApiStoreInventoryRouteChildren: ApiStoreInventoryRouteChildren = {
+  ApiStoreInventoryAlertsRoute: ApiStoreInventoryAlertsRoute,
+}
+
+const ApiStoreInventoryRouteWithChildren =
+  ApiStoreInventoryRoute._addFileChildren(ApiStoreInventoryRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
-  ApiStoreInventoryRoute: ApiStoreInventoryRoute,
+  ApiStoreInventoryRoute: ApiStoreInventoryRouteWithChildren,
   ApiStoreNotificationsRoute: ApiStoreNotificationsRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,
 }

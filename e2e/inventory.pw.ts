@@ -19,3 +19,20 @@ test("previews a physical count before it can be recorded", async ({ page }) => 
 	await page.getByRole("spinbutton", { name: "Quantity" }).fill("20");
 	await expect(page.getByText(/On hand \d+ → 20 units/)).toBeVisible();
 });
+
+test("lets a manager acknowledge a replenishment alert", async ({ page }) => {
+	await signIn(page, "/inventory");
+	await page.getByRole("link", { name: "Replenishment alerts" }).click();
+	await expect(page.getByRole("heading", { name: "Replenishment alerts" })).toBeVisible();
+	const row = page
+		.getByRole("row")
+		.filter({ has: page.getByRole("button", { name: "Acknowledge", exact: true }) })
+		.first();
+	const name = await row.getByRole("link").textContent();
+	await row.getByRole("button", { name: "Acknowledge", exact: true }).click();
+	await expect(
+		page
+			.getByRole("row")
+			.filter({ has: page.getByRole("link", { name: name ?? "", exact: true }) }),
+	).toContainText("Acknowledged");
+});

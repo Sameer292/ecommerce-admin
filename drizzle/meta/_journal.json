@@ -169,6 +169,13 @@
       "when": 1795646913932,
       "tag": "0023_storefront_stock_reservations",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795647067297,
+      "tag": "0024_replenishment_alerts",
+      "breakpoints": true
     }
   ]
 }
