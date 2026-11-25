@@ -25,24 +25,36 @@ export const findActiveStaff = async (authUserId: string) => {
 	return { id, email, name, role };
 };
 
-const fetchStaff = async () => {
+const fetchStaffIdentity = async () => {
 	const auth = getSupabaseAuth();
 	const { data, error } = await auth.getUser();
 	if (error || !data.user) return null;
 	const staff = await findActiveStaff(data.user.id);
-	if (!staff) await auth.signOut({ scope: "local" });
-	return staff;
+	if (!staff) {
+		await auth.signOut({ scope: "local" });
+		return null;
+	}
+	const requireMfa =
+		staff.role === "superuser" || data.user.factors?.some((factor) => factor.status === "verified");
+	const claims = requireMfa ? await auth.getClaims() : null;
+	const assured = !requireMfa || (!claims?.error && claims?.data?.claims.aal === "aal2");
+	return { staff, assured };
 };
 
-const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaff>>();
+const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaffIdentity>>();
 
-export const getStaff = () => {
+export const getStaffIdentity = () => {
 	const request = getRequest();
 	const cached = requestStaff.get(request);
 	if (cached) return cached;
-	const staff = fetchStaff();
+	const staff = fetchStaffIdentity();
 	requestStaff.set(request, staff);
 	return staff;
+};
+
+export const getStaff = async () => {
+	const identity = await getStaffIdentity();
+	return identity?.assured ? identity.staff : null;
 };
 
 export const requireStaff = async (permission: Permission = "read") => {

@@ -1,38 +1,21 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { StoreMark } from "@/components/admin/store-mark";
-import { ThemeToggle } from "@/components/admin/theme-toggle";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { AuthLayout } from "@/features/auth/auth-layout";
 import { LoginForm } from "@/features/auth/login-form";
 import { loginReturn } from "@/features/auth/login-return";
-import { readStaff } from "@/features/auth/session.functions";
+import { readSignInStep } from "@/features/auth/session.functions";
 
 const LoginPage = () => (
-	<main className="grid min-h-svh place-items-center px-4 py-16">
-		<div className="absolute top-4 right-4">
-			<ThemeToggle />
-		</div>
-		<div className="flex w-full max-w-sm flex-col gap-6">
-			<div className="flex items-center justify-center gap-2.5">
-				<StoreMark />
-				<span className="font-heading text-lg font-semibold tracking-tight">Store admin</span>
-			</div>
-			<Card size="sm" className="gap-6 p-5 sm:p-6">
-				<CardHeader className="px-0">
-					<h1 className="font-heading text-2xl font-semibold">Sign in</h1>
-					<CardDescription>Use your staff account to access the store.</CardDescription>
-				</CardHeader>
-				<CardContent className="px-0">
-					<LoginForm returnTo={Route.useSearch().returnTo} />
-				</CardContent>
-			</Card>
-		</div>
-	</main>
+	<AuthLayout title="Sign in" description="Use your staff account to access the store.">
+		<LoginForm returnTo={Route.useSearch().returnTo} />
+	</AuthLayout>
 );
 
 export const Route = createFileRoute("/login")({
 	validateSearch: (search): { returnTo?: string } => ({ returnTo: loginReturn(search.returnTo) }),
 	beforeLoad: async ({ search }) => {
-		if (await readStaff()) throw redirect({ href: search.returnTo ?? "/" });
+		const step = await readSignInStep();
+		if (step === "ready") throw redirect({ href: search.returnTo ?? "/" });
+		if (step === "mfa") throw redirect({ to: "/verify", search });
 	},
 	component: LoginPage,
 });

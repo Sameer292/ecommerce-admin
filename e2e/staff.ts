@@ -1,6 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
-export const signIn = async (page: Page, destination = "/", role: "ADMIN" | "VIEWER" = "ADMIN") => {
+export const signIn = async (
+	page: Page,
+	destination = "/",
+	role: "ADMIN" | "VIEWER" | "OWNER" = "ADMIN",
+) => {
 	const email = process.env[`E2E_${role}_EMAIL`];
 	const password = process.env[`E2E_${role}_PASSWORD`];
 	if (!email || !password)

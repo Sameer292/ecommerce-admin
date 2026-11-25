@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
 import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
@@ -51,6 +52,11 @@ const AdminRoute = AdminRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -222,6 +228,7 @@ const ApiStoreInventoryAlertsRoute = ApiStoreInventoryAlertsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/login': typeof LoginRoute
+  '/verify': typeof VerifyRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
   '/settings': typeof AdminSettingsRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/verify': typeof VerifyRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
   '/settings': typeof AdminSettingsRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/verify': typeof VerifyRoute
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
   '/_admin/audit': typeof AdminAuditRoute
   '/_admin/settings': typeof AdminSettingsRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/verify'
     | '/access-denied'
     | '/audit'
     | '/settings'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/verify'
     | '/access-denied'
     | '/audit'
     | '/settings'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_admin'
     | '/login'
+    | '/verify'
     | '/_admin/access-denied'
     | '/_admin/audit'
     | '/_admin/settings'
@@ -436,6 +448,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
+  VerifyRoute: typeof VerifyRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_admin/': {
@@ -768,6 +788,7 @@ const ApiStoreInventoryRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
+  VerifyRoute: VerifyRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,

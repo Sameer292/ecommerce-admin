@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getStoreSettings } from "@/features/settings/settings.server";
-import { getStaff } from "./session.server";
+import { getStaff, getStaffIdentity } from "./session.server";
 
-export const readStaff = createServerFn().handler(() => getStaff());
+export const readSignInStep = createServerFn().handler(async () => {
+	const identity = await getStaffIdentity();
+	return !identity ? "signin" : identity.assured ? "ready" : "mfa";
+});
 
 export const readWorkspace = createServerFn().handler(async () => {
 	const staff = await getStaff();
