@@ -87,6 +87,7 @@ export const getAnalytics = async (range: OverviewRange, timeZone: string, now =
 	return {
 		metrics: {
 			sales: totals.sales,
+			paidOrders: totals.paidOrders,
 			refunds: totals.refunds,
 			net: {
 				current: totals.sales.current - totals.refunds.current,

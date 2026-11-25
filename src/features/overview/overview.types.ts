@@ -8,6 +8,7 @@ export type DailySales = { date: string; sales: number; refunds: number; paidOrd
 export type RevenuePoint = Pick<DailySales, "date" | "sales">;
 export type DashboardMetrics = {
 	sales: Comparison;
+	paidOrders: Comparison;
 	refunds: Comparison;
 	net: Comparison;
 	orders: Comparison;

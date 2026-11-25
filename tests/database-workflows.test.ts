@@ -398,6 +398,8 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const { getAnalytics } = await import("../src/features/overview/analytics.server");
 		const { metrics } = await getAnalytics(7, "UTC", new Date("2025-02-13T12:00:00Z"));
 		assert.deepEqual(metrics.sales, { previous: 1500, current: 0 });
+		assert.deepEqual(metrics.paidOrders, { previous: 1, current: 0 });
+		assert.deepEqual(metrics.average, { previous: 1500, current: 0 });
 		assert.deepEqual(metrics.refunds, { previous: 0, current: 1500 });
 		assert.deepEqual(metrics.net, { previous: 1500, current: -1500 });
 	} finally {
