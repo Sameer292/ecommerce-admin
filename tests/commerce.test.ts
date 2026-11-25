@@ -43,8 +43,26 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		7,
 	);
 	assert.equal(trend.length, 7);
-	assert.deepEqual(trend[6], { date: "2026-03-08", sales: 200 });
-	assert.deepEqual(trend[0], { date: "2026-03-02", sales: 0 });
+	assert.deepEqual(trend[6], {
+		date: "2026-03-08",
+		through: "2026-03-08",
+		sales: 200,
+		partial: true,
+	});
+	assert.deepEqual(trend[0], {
+		date: "2026-03-02",
+		through: "2026-03-02",
+		sales: 0,
+		partial: false,
+	});
+	const weekly = buildTrend(new Map(), reportWindow(90, "America/New_York", now), 90);
+	assert.equal(weekly.length, 13);
+	assert.deepEqual(weekly[12], {
+		date: "2026-03-03",
+		through: "2026-03-08",
+		sales: 0,
+		partial: true,
+	});
 });
 
 test("integration accepts integer minor units and normalizes snapshots", () => {

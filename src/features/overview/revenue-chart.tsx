@@ -20,6 +20,11 @@ type PlotProps = Pick<RevenueProps, "points" | "currency"> & {
 	onSelect: (index: number) => void;
 };
 
+const periodLabel = ({ date, through, partial }: RevenuePoint) => {
+	const period = date === through ? reportDate(date) : `${reportDate(date)}–${reportDate(through)}`;
+	return partial ? `${period} (partial)` : period;
+};
+
 const scale = (points: RevenuePoint[]) => {
 	const max = Math.max(4, ...points.map((point) => point.sales));
 	const step = 10 ** Math.floor(Math.log10(max));
@@ -85,8 +90,8 @@ const RevenuePlot = ({ points, currency, selected, onSelect }: PlotProps) => {
 						min={0}
 						max={points.length - 1}
 						value={selected}
-						aria-label="Chart date"
-						aria-valuetext={`${reportDate(point.date)}, ${formatMoney(point.sales, currency)}`}
+						aria-label="Chart period"
+						aria-valuetext={`${periodLabel(point)}, ${formatMoney(point.sales, currency)}`}
 						className="absolute inset-0 size-full touch-pan-y cursor-pointer opacity-0"
 						onChange={(event) => onSelect(Number(event.currentTarget.value))}
 						onPointerDown={(event) => {
@@ -102,7 +107,7 @@ const RevenuePlot = ({ points, currency, selected, onSelect }: PlotProps) => {
 			</div>
 			<div aria-hidden className="ml-18 flex justify-between text-xs text-muted-foreground">
 				<span>{reportDate(points[0].date)}</span>
-				<span>{reportDate(points[points.length - 1].date)}</span>
+				<span>{reportDate(points[points.length - 1].through)}</span>
 			</div>
 		</div>
 	);
@@ -115,18 +120,18 @@ const RevenueData = ({ points, currency }: Pick<RevenueProps, "points" | "curren
 			<TableCaption className="sr-only">Paid sales over time</TableCaption>
 			<TableHeader>
 				<TableRow>
-					<TableHead scope="col">Date</TableHead>
+					<TableHead scope="col">Period</TableHead>
 					<TableHead scope="col" className="text-right">
 						Paid sales
 					</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{points.map(({ date, sales }) => (
-					<TableRow key={date}>
-						<TableCell>{reportDate(date)}</TableCell>
+				{points.map((point) => (
+					<TableRow key={point.date}>
+						<TableCell>{periodLabel(point)}</TableCell>
 						<TableCell className="text-right tabular-nums">
-							{formatMoney(sales, currency)}
+							{formatMoney(point.sales, currency)}
 						</TableCell>
 					</TableRow>
 				))}
@@ -150,7 +155,7 @@ export const RevenueChart = ({ points, currency, range }: RevenueProps) => {
 				</div>
 				{point && (
 					<p className="shrink-0 text-sm text-muted-foreground">
-						{reportDate(point.date)} ·{" "}
+						{periodLabel(point)} ·{" "}
 						<strong className="text-foreground">{formatMoney(point.sales, currency)}</strong>
 					</p>
 				)}

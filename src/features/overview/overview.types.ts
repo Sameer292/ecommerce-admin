@@ -11,7 +11,10 @@ export type DateWindow = {
 };
 export type Comparison = { current: number; previous: number };
 export type DailySales = { date: string; sales: number; refunds: number; paidOrders: number };
-export type RevenuePoint = Pick<DailySales, "date" | "sales">;
+export type RevenuePoint = Pick<DailySales, "date" | "sales"> & {
+	through: string;
+	partial: boolean;
+};
 export type DashboardMetrics = {
 	sales: Comparison;
 	paidOrders: Comparison;

@@ -44,10 +44,18 @@ export const buildTrend = (
 	const interval = range === 90 ? 7 : 1;
 	return Array.from({ length: Math.ceil(days / interval) }, (_, index) => {
 		const offset = index * interval;
+		const end = Math.min(offset + interval, days);
+		const date = addDays(window.currentFrom, offset);
+		const through = addDays(window.currentFrom, end - 1);
 		let sales = 0;
-		for (let day = offset; day < Math.min(offset + interval, days); day++) {
+		for (let day = offset; day < end; day++) {
 			sales += revenue.get(addDays(window.currentFrom, day)) ?? 0;
 		}
-		return { date: addDays(window.currentFrom, offset), sales };
+		return {
+			date,
+			through,
+			sales,
+			partial: end - offset < interval || (date <= window.today && window.today <= through),
+		};
 	});
 };
