@@ -35,7 +35,7 @@ const MobileNav = (workspace: Workspace) => {
 const TopBar = (workspace: Workspace) => {
 	const section = useLocation({ select: ({ pathname }) => navigationSection(pathname) });
 	return (
-		<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7">
+		<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7 print:hidden">
 			<div className="flex min-w-0 items-center gap-2">
 				<div className="-ml-2 lg:hidden">
 					<MobileNav {...workspace} />
@@ -48,14 +48,14 @@ const TopBar = (workspace: Workspace) => {
 };
 
 const AdminLayout = (workspace: Workspace) => (
-	<div className="min-h-svh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
+	<div className="min-h-svh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] print:block">
 		<a
 			href="#main-content"
 			className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:m-2 focus:rounded-md focus:bg-card focus:p-3"
 		>
 			Skip to content
 		</a>
-		<aside className="sticky top-0 hidden h-svh overflow-y-auto border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
+		<aside className="sticky top-0 hidden h-svh overflow-y-auto border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex lg:flex-col print:hidden">
 			<Sidebar {...workspace} />
 		</aside>
 		<div className="min-w-0">
@@ -63,7 +63,7 @@ const AdminLayout = (workspace: Workspace) => (
 			<main
 				id="main-content"
 				tabIndex={-1}
-				className="mx-auto flex w-full max-w-350 flex-col gap-6 p-4 outline-none sm:p-7 lg:gap-8 lg:p-9"
+				className="mx-auto flex w-full max-w-350 flex-col gap-6 p-4 outline-none sm:p-7 lg:gap-8 lg:p-9 print:max-w-none print:p-0"
 			>
 				<Outlet />
 			</main>

@@ -7,12 +7,20 @@ import { formDataSchema, idSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import {
 	findOrder,
+	findOrderDocuments,
 	listOrderActivity,
 	listOrderItems,
 	listPaymentEvents,
 	saveOrder,
+	startBatchFulfillment,
 } from "./order-detail.server";
-import { orderDetailSearchSchema, orderFormSchema, orderSearchSchema } from "./order-validation";
+import {
+	orderDetailSearchSchema,
+	orderBatchSchema,
+	orderDocumentSearchSchema,
+	orderFormSchema,
+	orderSearchSchema,
+} from "./order-validation";
 import { listOrders } from "./orders.server";
 import { orderReturnSchema } from "./return-validation";
 import { listOrderReturns, writeReturn } from "./order-returns.server";
@@ -26,6 +34,21 @@ export const readOrders = createServerFn()
 		const { timeZone } = await getStoreSettings();
 		return listOrders(data, undefined, timeZone);
 	});
+
+export const readOrderDocuments = createServerFn()
+	.validator(orderDocumentSearchSchema)
+	.handler(async ({ data }) => {
+		await requireStaff();
+		return findOrderDocuments(data.ids);
+	});
+
+export const writeOrderBatch = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(orderBatchSchema, data, ({ ids }) => startBatchFulfillment(ids, staff.id)),
+		),
+	);
 
 export const readOrder = createServerFn()
 	.validator(idSchema.extend(orderDetailSearchSchema.shape))

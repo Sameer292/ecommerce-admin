@@ -76,7 +76,7 @@ Prepaid orders need recorded payment before dispatch. Import cash-on-delivery or
 
 Managers can correct the recipient or shipping address while an order is pending or processing. Enter a reason. Fulfillment activity records the staff member, changed fields, and reason.
 
-Record each package from the Shipments section while an order is processing. Enter the carrier and the units included. Once all lines are dispatched, the order moves to Shipped. The original tracking field remains available for earlier orders.
+Record each package from the Shipments section while an order is processing. Enter the carrier and the units included. Once all lines are dispatched, the order moves to Shipped. The original tracking field remains available for earlier orders. Select up to 25 records in Orders to print packing slips or invoices in one batch, or move eligible pending orders to Processing.
 
 A return moves from requested to approved and received. Staff can restock sellable units when receiving the return. Record the provider refund through the payment endpoint. Send the amount in `amountMinor` and a stable `externalId` for partial refunds. For a return refund, also send its `returnId`. An omitted refund amount records the remaining paid balance. The response includes `paymentStatus`, which remains paid until the entire balance is refunded.
 

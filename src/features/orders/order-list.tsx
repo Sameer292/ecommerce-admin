@@ -1,3 +1,10 @@
+import { useState } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { AdminForm } from "@/components/admin/admin-form";
+import { Button } from "@/components/ui/button";
+import { writeOrderBatch } from "./orders.functions";
+import { OrderPrintActions } from "./order-print-actions";
 import { ClearFilters } from "@/components/admin/data-table";
 import { listSorting } from "@/components/admin/table-sorting";
 import { SelectField, TextField } from "@/components/admin/form-fields";
@@ -20,6 +27,7 @@ type OrderListProps = ListPage<OrderRow> & {
 	search: OrderSearch;
 	currency: string;
 	zone: string;
+	editable: boolean;
 	onSearch: (search: OrderSearch) => void;
 };
 
@@ -116,22 +124,74 @@ const OrderFilters = ({
 	</ListControls>
 );
 
-export const OrderList = ({ rows, total, search, currency, zone, onSearch }: OrderListProps) => (
-	<div className="flex flex-col gap-4">
-		<OrderFilters search={search} onSearch={onSearch} currency={currency} zone={zone} />
-		<ListPagination total={total} search={search} onSearch={onSearch} />
-		<OrderTable
-			sorting={listSorting(search, "date.desc", orderSearchSchema, onSearch)}
-			rows={rows}
-			currency={currency}
-			zone={zone}
-			emptyAction={
-				hasOrderFilters(search) ? (
-					<ClearFilters onClear={() => onSearch(clearOrders(search))} />
-				) : undefined
-			}
-			empty={hasOrderFilters(search) || search.page > 1 ? "No matching orders" : "No orders yet"}
-		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
-	</div>
-);
+export const OrderList = ({
+	rows,
+	total,
+	search,
+	currency,
+	zone,
+	editable,
+	onSearch,
+}: OrderListProps) => {
+	const [ids, setIds] = useState<string[]>([]);
+	const router = useRouter();
+	const startBatch = useServerFn(writeOrderBatch);
+	const toggle = (id: string) =>
+		setIds((current) =>
+			current.includes(id) ? current.filter((value) => value !== id) : [...current, id],
+		);
+	return (
+		<div className="flex flex-col gap-4">
+			<OrderFilters search={search} onSearch={onSearch} currency={currency} zone={zone} />
+			{ids.length > 0 && (
+				<div className="flex flex-wrap items-center gap-2">
+					<span role="status" className="text-sm font-medium">
+						{ids.length} selected
+					</span>
+					<OrderPrintActions ids={ids} />
+					<Button variant="ghost" onClick={() => setIds([])}>
+						Clear selection
+					</Button>
+				</div>
+			)}
+			{editable && ids.length > 0 && (
+				<details className="rounded-lg border bg-card p-3">
+					<summary className="cursor-pointer text-sm font-medium">
+						Start fulfillment for selected orders
+					</summary>
+					<div className="mt-3">
+						<AdminForm
+							onSave={(data) => startBatch({ data })}
+							onSuccess={async () => {
+								setIds([]);
+								await router.invalidate();
+							}}
+							submitLabel="Move to Processing"
+							successMessage="Fulfillment started."
+						>
+							<input type="hidden" name="ids" value={JSON.stringify(ids)} />
+							<p className="text-sm text-muted-foreground">
+								Moves eligible pending orders to Processing. Record each package when it ships.
+							</p>
+						</AdminForm>
+					</div>
+				</details>
+			)}
+			<ListPagination total={total} search={search} onSearch={onSearch} />
+			<OrderTable
+				sorting={listSorting(search, "date.desc", orderSearchSchema, onSearch)}
+				rows={rows}
+				selection={{ ids, toggle }}
+				currency={currency}
+				zone={zone}
+				emptyAction={
+					hasOrderFilters(search) ? (
+						<ClearFilters onClear={() => onSearch(clearOrders(search))} />
+					) : undefined
+				}
+				empty={hasOrderFilters(search) || search.page > 1 ? "No matching orders" : "No orders yet"}
+			/>
+			<ListPagination total={total} search={search} onSearch={onSearch} bottom />
+		</div>
+	);
+};

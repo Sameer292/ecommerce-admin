@@ -1,5 +1,5 @@
-import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { setAuditActor } from "@/db/audit-actor.server";
+import { and, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { inStaffAudit, setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
@@ -22,6 +22,59 @@ export const findOrder = async (id: string) => {
 	const [order] = await db.select(orderFields).from(orders).where(eq(orders.id, id));
 	return order ? { order } : undefined;
 };
+
+export const findOrderDocuments = async (ids: string[]) => {
+	if (!ids.length) return [];
+	const [details, items] = await Promise.all([
+		db.select(orderFields).from(orders).where(inArray(orders.id, ids)),
+		db
+			.select()
+			.from(orderItems)
+			.where(inArray(orderItems.orderId, ids))
+			.orderBy(orderItems.name, orderItems.id),
+	]);
+	const indexed = new Map(details.map((order) => [order.id, order]));
+	return ids.flatMap((id) => {
+		const order = indexed.get(id);
+		return order ? [{ order, items: items.filter((item) => item.orderId === id) }] : [];
+	});
+};
+
+export const startBatchFulfillment = (ids: string[], staffId: string) =>
+	inStaffAudit(staffId, async (transaction) => {
+		const selected = await transaction
+			.select({
+				id: orders.id,
+				status: orders.status,
+				paymentStatus: orders.paymentStatus,
+			})
+			.from(orders)
+			.where(inArray(orders.id, ids))
+			.orderBy(orders.id)
+			.for("update");
+		if (
+			selected.length !== ids.length ||
+			selected.some(
+				({ status, paymentStatus }) => status !== "pending" || paymentStatus === "refunded",
+			)
+		)
+			throw new ActionError("Choose pending orders without a full refund to start fulfillment.");
+		await transaction
+			.update(orders)
+			.set({
+				status: "processing",
+				updatedAt: sql`greatest(now(), ${orders.updatedAt} + interval '1 millisecond')`,
+			})
+			.where(inArray(orders.id, ids));
+		await transaction.insert(orderEvents).values(
+			ids.map<typeof orderEvents.$inferInsert>((orderId) => ({
+				orderId,
+				staffId,
+				previousStatus: "pending",
+				status: "processing",
+			})),
+		);
+	});
 
 const itemSortColumns = {
 	id: orderItems.id,

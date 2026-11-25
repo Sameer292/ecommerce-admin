@@ -1,4 +1,5 @@
 import {
+	array as ZArray,
 	enum as ZEnum,
 	int as ZInt,
 	iso as ZIso,
@@ -48,6 +49,33 @@ export const orderDetailSearchSchema = ZObject({
 	payments: pageSearchSchema.shape.page,
 	sort: sortSchema("name", "quantity", "price", "total"),
 	activitySort: sortSchema("date", "staff"),
+});
+
+export const orderDocumentSearchSchema = ZObject({
+	ids: ZArray(ZUuid())
+		.max(25)
+		.transform((ids) => [...new Set(ids)])
+		.catch([])
+		.default([]),
+	kind: ZEnum(["packing", "invoice"]).catch("packing").default("packing"),
+});
+
+export const orderBatchSchema = ZObject({
+	ids: ZString()
+		.max(1_000)
+		.transform((value) => {
+			try {
+				return JSON.parse(value) as unknown;
+			} catch {
+				return null;
+			}
+		})
+		.pipe(
+			ZArray(ZUuid())
+				.min(1)
+				.max(25)
+				.transform((ids) => [...new Set(ids)]),
+		),
 });
 
 export const orderFormSchema = ZObject({

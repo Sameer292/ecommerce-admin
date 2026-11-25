@@ -9,6 +9,7 @@ import { OrderStatusBadge } from "@/features/orders/order-labels";
 import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
+import { OrderPrintActions } from "@/features/orders/order-print-actions";
 import { OrderShipments } from "@/features/orders/order-shipments";
 import { OrderReturns } from "@/features/orders/order-returns";
 import { formatDate } from "@/lib/format";
@@ -76,6 +77,7 @@ const OrderPage = () => {
 				backLabel="Orders"
 			>
 				<OrderStatusBadge status={order.status} />
+				<OrderPrintActions ids={[order.id]} />
 			</DetailHeading>
 			<div className="grid items-start gap-4 lg:grid-cols-2">
 				<FulfillmentForm

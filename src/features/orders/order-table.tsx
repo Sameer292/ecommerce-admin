@@ -68,6 +68,7 @@ export const OrderTable = ({
 	empty = "No orders yet",
 	emptyAction,
 	sorting,
+	selection,
 }: {
 	rows: OrderRow[];
 	currency: string;
@@ -75,11 +76,32 @@ export const OrderTable = ({
 	empty?: string;
 	emptyAction?: ReactNode;
 	sorting?: TableSorting;
+	selection?: { ids: string[]; toggle: (id: string) => void };
 }) => (
 	<DataTable
 		sorting={sorting}
 		rows={rows}
-		columns={columns(currency, zone)}
+		columns={
+			selection
+				? [
+						{
+							label: "Select",
+							compact: true,
+							className: "w-10 px-2",
+							cell: (row) => (
+								<input
+									type="checkbox"
+									aria-label={`Select order ${row.number}`}
+									checked={selection.ids.includes(row.id)}
+									disabled={selection.ids.length >= 25 && !selection.ids.includes(row.id)}
+									onChange={() => selection.toggle(row.id)}
+								/>
+							),
+						},
+						...columns(currency, zone),
+					]
+				: columns(currency, zone)
+		}
 		label="Orders"
 		empty={empty}
 		emptyAction={emptyAction}

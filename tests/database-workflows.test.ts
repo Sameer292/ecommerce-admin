@@ -327,6 +327,29 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(!JSON.stringify(updates).includes("Private content"));
 		const payments = await listAudit({ page: 1, q: "payment_events" });
 		assert.ok(payments.rows.some(({ recordLabel }) => recordLabel === "WEB-SPLIT"));
+
+		const { findOrderDocuments, startBatchFulfillment } = await import(
+			"../src/features/orders/order-detail.server"
+		);
+		const batch = await Promise.all([
+			importOrder({ ...input, number: "WEB-BATCH-1" }),
+			importOrder({ ...input, number: "WEB-BATCH-2" }),
+		]);
+		const ids = batch.map(({ id }) => id);
+		await assert.rejects(
+			startBatchFulfillment([ids[0], split.id], "stock-operator"),
+			/Choose pending orders/,
+		);
+		assert.equal((await findOrder(ids[0]))?.order.status, "pending");
+		await startBatchFulfillment(ids, "stock-operator");
+		const documents = await findOrderDocuments([...ids].reverse());
+		assert.deepEqual(
+			documents.map(({ order }) => order.number),
+			["WEB-BATCH-2", "WEB-BATCH-1"],
+		);
+		assert.ok(
+			documents.every(({ order, items }) => order.status === "processing" && items.length === 1),
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
