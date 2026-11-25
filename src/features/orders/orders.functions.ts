@@ -3,7 +3,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
-import { findOrder, listOrderActivity, listOrderItems, saveOrder } from "./order-detail.server";
+import {
+	findOrder,
+	listOrderActivity,
+	listOrderItems,
+	listPaymentEvents,
+	saveOrder,
+} from "./order-detail.server";
 import { orderDetailSearchSchema, orderFormSchema, orderSearchSchema } from "./order-validation";
 import { listOrders } from "./orders.server";
 
@@ -18,13 +24,14 @@ export const readOrder = createServerFn()
 	.validator(idSchema.extend(orderDetailSearchSchema.shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [detail, items, activity] = await Promise.all([
+		const [detail, items, activity, payments] = await Promise.all([
 			findOrder(data.id),
 			listOrderItems(data.id, data.page, data.sort),
 			listOrderActivity(data.id, data.activity, data.activitySort),
+			listPaymentEvents(data.id, data.payments),
 		]);
 		if (!detail) throw notFound();
-		return { ...detail, items, activity };
+		return { ...detail, items, activity, payments };
 	});
 
 export const writeOrder = createServerFn({ method: "POST" })

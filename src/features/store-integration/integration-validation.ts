@@ -33,9 +33,24 @@ const customer = ZObject({
 	phone: ZString().trim().max(40).default(""),
 });
 
+const externalId = ZString().trim().min(1).max(120);
+const paymentDetails = ZObject({
+	number: orderNumber,
+	externalId: externalId.optional(),
+	source: ZString().trim().min(1).max(80).optional(),
+	method: ZString().trim().min(1).max(80).optional(),
+	amountMinor: amount.optional(),
+});
+
 export const paymentUpdateSchema = ZDiscriminatedUnion("status", [
-	ZObject({ number: orderNumber, status: ZLiteral("paid"), paidAt: timestamp }),
-	ZObject({ number: orderNumber, status: ZLiteral("refunded") }),
+	paymentDetails.extend({ status: ZLiteral("paid"), paidAt: timestamp }),
+	paymentDetails.extend({ status: ZLiteral("refunded"), refundedAt: timestamp.optional() }),
+	paymentDetails.extend({
+		status: ZLiteral("failed"),
+		failedAt: timestamp,
+		externalId,
+		amountMinor: amount,
+	}),
 ]);
 
 export const importOrderSchema = ZObject({

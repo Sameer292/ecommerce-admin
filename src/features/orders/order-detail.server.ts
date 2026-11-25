@@ -1,8 +1,8 @@
-import { and, eq, getTableColumns, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
-import { orderEvents, orderItems, orders } from "@/db/schema/orders";
+import { orderEvents, orderItems, orders, paymentEvents } from "@/db/schema/orders";
 import { pageOffset, pageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
@@ -58,6 +58,21 @@ export const listOrderActivity = async (id: string, page: number, sort: Sort = "
 		db.$count(orderEvents, where),
 	]);
 	return { rows: rows.map(({ event, staffName }) => ({ ...event, staffName })), total };
+};
+
+export const listPaymentEvents = async (id: string, page: number) => {
+	const where = eq(paymentEvents.orderId, id);
+	const [rows, total] = await Promise.all([
+		db
+			.select()
+			.from(paymentEvents)
+			.where(where)
+			.orderBy(desc(paymentEvents.recordedAt), desc(paymentEvents.id))
+			.limit(pageSize)
+			.offset(pageOffset(page)),
+		db.$count(paymentEvents, where),
+	]);
+	return { rows, total };
 };
 
 export const saveOrder = ({ id, version, ...values }: OrderValues, staffId: string) =>

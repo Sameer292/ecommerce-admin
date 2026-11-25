@@ -24,7 +24,25 @@ test("paid retries must match the recorded payment instant", {
 			values ('PAY-01', ${customer.id}, 1000, 1000, '2026-01-01T00:00:00Z') returning id
 		`;
 		const { updatePayment } = await import("../src/features/store-integration/payment.server");
-		const paid = { number: "PAY-01", status: "paid" } as const;
+		const failure = {
+			number: "PAY-01",
+			status: "failed",
+			failedAt: new Date("2026-01-01T00:15:00Z"),
+			source: "processor",
+			method: "card",
+			externalId: "failed-attempt-1",
+			amountMinor: 1000,
+		} as const;
+		assert.deepEqual(await updatePayment(failure), order);
+		assert.deepEqual(await updatePayment(failure), order);
+		await assert.rejects(updatePayment({ ...failure, amountMinor: 1500 }), { status: 409 });
+		const paid = {
+			number: "PAY-01",
+			status: "paid",
+			source: "processor",
+			method: "card",
+			externalId: "paid-attempt-1",
+		} as const;
 		assert.deepEqual(
 			await updatePayment({ ...paid, paidAt: new Date("2026-01-01T01:00:00Z") }),
 			order,
@@ -37,6 +55,27 @@ test("paid retries must match the recorded payment instant", {
 			status: 409,
 			message: "Payment timestamp does not match the recorded payment.",
 		});
+		await assert.rejects(
+			updatePayment({ ...paid, paidAt: new Date("2026-01-01T01:00:00Z"), method: "bank transfer" }),
+			{ status: 409 },
+		);
+		const refund = {
+			number: paid.number,
+			status: "refunded",
+			refundedAt: new Date("2026-01-01T03:00:00Z"),
+			externalId: "refund-1",
+		} as const;
+		await updatePayment(refund);
+		await updatePayment(refund);
+		const { listPaymentEvents } = await import("../src/features/orders/order-detail.server");
+		const { rows, total } = await listPaymentEvents(order.id, 1);
+		assert.equal(total, 3);
+		assert.deepEqual(
+			rows.map(({ status }) => status),
+			["refunded", "paid", "failed"],
+		);
+		assert.equal(rows[1].method, "card");
+		assert.equal(rows[1].externalId, "paid-attempt-1");
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

@@ -8,6 +8,8 @@ export const orderStatuses = [
 	"cancelled",
 ] as const;
 export const paymentStatuses = ["pending", "paid", "refunded"] as const;
+export const paymentEventStatuses = ["paid", "failed", "refunded"] as const;
+export const paymentEventLabels = { paid: "Paid", failed: "Failed", refunded: "Refunded" } as const;
 
 export const orderStatusLabels = {
 	pending: "Pending",

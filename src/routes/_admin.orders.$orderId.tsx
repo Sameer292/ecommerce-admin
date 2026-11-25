@@ -4,7 +4,7 @@ import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
 import { FulfillmentForm } from "@/features/orders/order-forms";
-import { OrderHistory, OrderLines } from "@/features/orders/order-history";
+import { OrderHistory, OrderLines, PaymentHistory } from "@/features/orders/order-history";
 import { OrderStatusBadge } from "@/features/orders/order-labels";
 import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
@@ -59,8 +59,10 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order } = Route.useLoaderData();
+	const { order, payments } = Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
 	return (
 		<>
 			<DetailHeading
@@ -84,13 +86,20 @@ const OrderPage = () => {
 			</div>
 			<OrderItemsTable />
 			<OrderActivityTable />
+			<PaymentHistory
+				{...payments}
+				page={search.payments}
+				onPage={(payments) => navigate({ search: { ...search, payments } })}
+				currency={store.currency}
+				zone={store.timeZone}
+			/>
 		</>
 	);
 };
 
 export const Route = createFileRoute("/_admin/orders/$orderId")({
 	validateSearch: orderDetailSearchSchema.extend(listReturnSearchSchema.shape),
-	search: { middlewares: [stripSearchParams({ page: 1, activity: 1 })] },
+	search: { middlewares: [stripSearchParams({ page: 1, activity: 1, payments: 1 })] },
 	loaderDeps: ({ search }) => orderDetailSearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
 		const data = await queryClient.fetchQuery({
@@ -102,6 +111,7 @@ export const Route = createFileRoute("/_admin/orders/$orderId")({
 			{ ...location.search, ...deps },
 			data.items.total,
 			data.activity.total,
+			data.payments.total,
 		);
 		return data;
 	},

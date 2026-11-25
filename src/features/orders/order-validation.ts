@@ -17,6 +17,7 @@ export const orderSearchSchema = pageSearchSchema.extend({
 export const orderDetailSearchSchema = ZObject({
 	page: pageSearchSchema.shape.page,
 	activity: pageSearchSchema.shape.page,
+	payments: pageSearchSchema.shape.page,
 	sort: sortSchema("name", "quantity", "price", "total"),
 	activitySort: sortSchema("date", "staff"),
 });

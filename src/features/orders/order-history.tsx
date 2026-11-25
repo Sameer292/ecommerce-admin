@@ -3,8 +3,8 @@ import type { Column, ListPage, TableSorting } from "@/components/admin/list.typ
 import { PageControls } from "@/components/admin/page-controls";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { formatCount, formatDateTime, formatMoney } from "@/lib/format";
-import { orderStatusLabels } from "./order-options";
-import type { OrderActivity, OrderItem } from "./order.types";
+import { orderStatusLabels, paymentEventLabels } from "./order-options";
+import type { OrderActivity, OrderItem, PaymentEvent } from "./order.types";
 
 const ItemName = ({ name, sku, productId }: Pick<OrderItem, "name" | "sku" | "productId">) => (
 	<div className="flex flex-col items-start gap-1">
@@ -124,6 +124,51 @@ export const OrderHistory = ({
 			columns={activityColumns(zone)}
 			label="Status activity"
 			empty="No status changes yet"
+			compactEmpty
+		/>
+		<PageControls total={total} page={page} onPage={onPage} />
+	</section>
+);
+
+const paymentColumns = (currency: string, zone: string): Column<PaymentEvent>[] => [
+	{
+		label: "Date and time",
+		cell: ({ occurredAt }) =>
+			occurredAt ? (
+				<time dateTime={occurredAt.toISOString()}>{formatDateTime(occurredAt, zone)}</time>
+			) : (
+				"Date unavailable"
+			),
+	},
+	{ label: "Event", cell: ({ status }) => paymentEventLabels[status] },
+	{
+		label: "Amount",
+		className: "text-right tabular-nums",
+		cell: ({ amountMinor }) => formatMoney(amountMinor, currency),
+	},
+	{ label: "Source", cell: ({ source }) => source },
+	{ label: "Method", cell: ({ method }) => method ?? "—" },
+	{ label: "Reference", className: "wrap-anywhere", cell: ({ externalId }) => externalId ?? "—" },
+];
+
+export const PaymentHistory = ({
+	rows,
+	total,
+	page,
+	onPage,
+	currency,
+	zone,
+}: Omit<OrderSectionProps<PaymentEvent>, "sorting"> & { currency: string; zone: string }) => (
+	<section aria-labelledby="order-payments-title" className="flex min-w-0 flex-col gap-3">
+		<h2 id="order-payments-title" className="font-heading text-xl font-semibold">
+			Payment history
+		</h2>
+		<p className="text-sm text-muted-foreground">Times shown in {zone}.</p>
+		<DataTable
+			rows={rows}
+			columns={paymentColumns(currency, zone)}
+			label="Payment history"
+			empty="No payment events yet"
 			compactEmpty
 		/>
 		<PageControls total={total} page={page} onPage={onPage} />
