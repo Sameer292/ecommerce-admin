@@ -12,12 +12,18 @@ import { RevenueChart } from "@/features/overview/revenue-chart";
 
 const OverviewHeading = () => {
 	const { staff } = Route.useRouteContext();
-	const { range } = Route.useSearch();
+	const search = Route.useSearch();
+	const { window } = Route.useLoaderData();
 	const navigate = Route.useNavigate();
 	return (
 		<PageHeading title="Overview" description="Monitor sales, orders, and stock across your store.">
 			<div className="flex flex-wrap gap-2">
-				<RangeSelect range={range} onChange={(range) => navigate({ search: { range } })} />
+				<RangeSelect
+					key={`${search.from}/${search.through}`}
+					search={search}
+					window={window}
+					onChange={(search) => navigate({ search })}
+				/>
 				{can(staff.role, "manageCommerce") && <NewRecord to="/products/new" label="Add product" />}
 			</div>
 		</PageHeading>
@@ -27,7 +33,6 @@ const OverviewHeading = () => {
 const OverviewPage = () => {
 	const { metrics, trend, orders, stock, window } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
-	const { range } = Route.useSearch();
 	return (
 		<>
 			<OverviewHeading />
@@ -37,7 +42,11 @@ const OverviewPage = () => {
 				<StockWatch stock={stock} />
 				<RecentOrders rows={orders} currency={store.currency} zone={store.timeZone} />
 			</div>
-			<RevenueChart key={range} points={trend} currency={store.currency} range={range} />
+			<RevenueChart
+				key={`${window.currentFrom}/${window.to}`}
+				points={trend}
+				currency={store.currency}
+			/>
 		</>
 	);
 };

@@ -1,4 +1,4 @@
-import type { DateWindow, OverviewRange, RevenuePoint } from "./overview.types";
+import type { DateWindow, ReportRange, RevenuePoint } from "./overview.types";
 
 const toDateKey = (date: Date, timeZone: string) => {
 	const formatter = new Intl.DateTimeFormat("en-US", {
@@ -19,15 +19,24 @@ export const addDays = (dateKey: string, days: number) => {
 	return date.toISOString().slice(0, 10);
 };
 
+export const daysBetween = (from: string, to: string) =>
+	(Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000;
+
 export const reportWindow = (
-	range: OverviewRange,
+	range: ReportRange,
 	timeZone: string,
 	now = new Date(),
 ): DateWindow => {
 	const today = toDateKey(now, timeZone);
-	const to = addDays(today, 1);
-	const days = range;
-	return { from: addDays(to, -days * 2), currentFrom: addDays(to, -days), to, timeZone, today };
+	const to = addDays(typeof range === "number" ? today : range.through, 1);
+	const currentFrom = typeof range === "number" ? addDays(to, -range) : range.from;
+	return {
+		from: addDays(currentFrom, -daysBetween(currentFrom, to)),
+		currentFrom,
+		to,
+		timeZone,
+		today,
+	};
 };
 
 export const reportDate = (dateKey: string) =>
@@ -35,13 +44,9 @@ export const reportDate = (dateKey: string) =>
 		new Date(`${dateKey}T00:00:00Z`),
 	);
 
-export const buildTrend = (
-	revenue: Map<string, number>,
-	window: DateWindow,
-	range: OverviewRange,
-): RevenuePoint[] => {
-	const days = range;
-	const interval = range === 90 ? 7 : 1;
+export const buildTrend = (revenue: Map<string, number>, window: DateWindow): RevenuePoint[] => {
+	const days = daysBetween(window.currentFrom, window.to);
+	const interval = days > 30 ? 7 : 1;
 	return Array.from({ length: Math.ceil(days / interval) }, (_, index) => {
 		const offset = index * interval;
 		const end = Math.min(offset + interval, days);

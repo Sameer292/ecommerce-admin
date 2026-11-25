@@ -12,9 +12,9 @@ import {
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { reportDate } from "./report-dates";
-import type { OverviewRange, RevenuePoint } from "./overview.types";
+import type { RevenuePoint } from "./overview.types";
 
-type RevenueProps = { points: RevenuePoint[]; currency: string; range: OverviewRange };
+type RevenueProps = { points: RevenuePoint[]; currency: string };
 type PlotProps = Pick<RevenueProps, "points" | "currency"> & {
 	selected: number;
 	onSelect: (index: number) => void;
@@ -140,7 +140,7 @@ const RevenueData = ({ points, currency }: Pick<RevenueProps, "points" | "curren
 	</details>
 );
 
-export const RevenueChart = ({ points, currency, range }: RevenueProps) => {
+export const RevenueChart = ({ points, currency }: RevenueProps) => {
 	const [selection, select] = useState(0);
 	const selected = Math.min(selection, points.length - 1);
 	const point = points[selected];
@@ -150,7 +150,9 @@ export const RevenueChart = ({ points, currency, range }: RevenueProps) => {
 				<div className="flex flex-col gap-1">
 					<h2 className="font-heading text-lg font-semibold">Sales over time</h2>
 					<CardDescription>
-						{range === 90 ? "Paid sales by 7-day period" : "Paid sales by day"}
+						{points.some(({ date, through }) => date !== through)
+							? "Paid sales by 7-day period"
+							: "Paid sales by day"}
 					</CardDescription>
 				</div>
 				{point && (

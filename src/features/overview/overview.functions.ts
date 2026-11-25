@@ -7,7 +7,7 @@ import { lowStock } from "@/features/catalog/products.server";
 import { recentOrders } from "@/features/orders/orders.server";
 import { getStoreSettings } from "@/features/settings/settings.server";
 import { getAnalytics } from "./analytics.server";
-import { overviewSearchSchema } from "./overview-validation";
+import { overviewSearchSchema, resolveReportRange } from "./overview-validation";
 
 const watchStock = () =>
 	db
@@ -29,9 +29,15 @@ export const readOverview = createServerFn()
 		await requireStaff();
 		const { timeZone } = await getStoreSettings();
 		const [analytics, orders, stock] = await Promise.all([
-			getAnalytics(data.range, timeZone),
+			getAnalytics(resolveReportRange(data), timeZone),
 			recentOrders(),
 			watchStock(),
 		]);
-		return { ...analytics, orders, stock };
+		return {
+			metrics: analytics.metrics,
+			trend: analytics.trend,
+			window: analytics.window,
+			orders,
+			stock,
+		};
 	});

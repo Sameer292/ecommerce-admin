@@ -34,6 +34,7 @@ import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.n
 import { Route as AdminTeamIndexRouteImport } from './routes/_admin.team.index'
 import { Route as AdminTeamStaffIdRouteImport } from './routes/_admin.team.$staffId'
 import { Route as AdminTeamNewRouteImport } from './routes/_admin.team.new'
+import { Route as ApiReportsSalesRouteImport } from './routes/api/reports/sales'
 import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
 import { Route as ApiStoreNotificationsRouteImport } from './routes/api/store/notifications'
 import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
@@ -164,6 +165,11 @@ const AdminTeamNewRoute = AdminTeamNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AdminTeamRoute,
 } as any)
+const ApiReportsSalesRoute = ApiReportsSalesRouteImport.update({
+  id: '/api/reports/sales',
+  path: '/api/reports/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStoreCatalogRoute = ApiStoreCatalogRouteImport.update({
   id: '/api/store/catalog',
   path: '/api/store/catalog',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
+  '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
+  '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/_admin/products/new': typeof AdminProductsNewRoute
   '/_admin/team/$staffId': typeof AdminTeamStaffIdRoute
   '/_admin/team/new': typeof AdminTeamNewRoute
+  '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
+    | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/notifications'
     | '/api/store/orders'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
+    | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/notifications'
     | '/api/store/orders'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/_admin/products/new'
     | '/_admin/team/$staffId'
     | '/_admin/team/new'
+    | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/notifications'
     | '/api/store/orders'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
   ApiStoreNotificationsRoute: typeof ApiStoreNotificationsRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamNewRouteImport
       parentRoute: typeof AdminTeamRoute
     }
+    '/api/reports/sales': {
+      id: '/api/reports/sales'
+      path: '/api/reports/sales'
+      fullPath: '/api/reports/sales'
+      preLoaderRoute: typeof ApiReportsSalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/store/catalog': {
       id: '/api/store/catalog'
       path: '/api/store/catalog'
@@ -634,6 +654,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
   ApiStoreNotificationsRoute: ApiStoreNotificationsRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,

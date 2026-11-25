@@ -6,6 +6,7 @@ import {
 	fulfillmentPaymentProblem,
 } from "../src/features/orders/order-options";
 import { buildTrend, reportWindow } from "../src/features/overview/report-dates";
+import { customReportRangeSchema } from "../src/features/overview/overview-validation";
 import { importOrderSchema } from "../src/features/store-integration/integration-validation";
 import { formatDateTime } from "../src/lib/format";
 
@@ -40,7 +41,6 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 			["2026-03-09", 800],
 		]),
 		window,
-		7,
 	);
 	assert.equal(trend.length, 7);
 	assert.deepEqual(trend[6], {
@@ -55,7 +55,7 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		sales: 0,
 		partial: false,
 	});
-	const weekly = buildTrend(new Map(), reportWindow(90, "America/New_York", now), 90);
+	const weekly = buildTrend(new Map(), reportWindow(90, "America/New_York", now));
 	assert.equal(weekly.length, 13);
 	assert.deepEqual(weekly[12], {
 		date: "2026-03-03",
@@ -63,6 +63,23 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		sales: 0,
 		partial: true,
 	});
+});
+
+test("custom reports compare equal inclusive calendar ranges", () => {
+	const range = customReportRangeSchema.parse({ from: "2026-03-07", through: "2026-03-09" });
+	const window = reportWindow(range, "America/New_York", new Date("2026-03-20T12:00:00Z"));
+	assert.equal(window.currentFrom, "2026-03-07");
+	assert.equal(window.from, "2026-03-04");
+	assert.equal(window.to, "2026-03-10");
+	assert.equal(buildTrend(new Map(), window).length, 3);
+	assert.equal(
+		customReportRangeSchema.safeParse({ from: range.through, through: range.from }).success,
+		false,
+	);
+	assert.equal(
+		customReportRangeSchema.safeParse({ from: "2025-01-01", through: range.from }).success,
+		false,
+	);
 });
 
 test("integration accepts integer minor units and normalizes snapshots", () => {

@@ -11,7 +11,6 @@ test("the revenue plot has one keyboard control and a readable data table", () =
 				{ date: "2026-01-08", through: "2026-01-13", sales: 2500, partial: true },
 			]}
 			currency="USD"
-			range={90}
 		/>,
 	);
 	assert.equal(markup.match(/type="range"/g)?.length, 1);
