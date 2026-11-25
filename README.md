@@ -82,3 +82,5 @@ Run `TEST_TEAM_DATABASE_URL=postgresql://... bun test tests/team-access.test.ts`
 Run `TEST_PAYMENT_DATABASE_URL=postgresql://... bun test tests/payment.test.ts` against an empty disposable local database to check that payment retries preserve the recorded timestamp and reject conflicting timestamps.
 
 Run `TEST_EDIT_DATABASE_URL=postgresql://... bun test tests/edit-conflicts.test.ts` against an empty disposable local database to verify that competing saves cannot overwrite category, product, customer, settings, or staff edits.
+
+Run `TEST_WORKFLOW_DATABASE_URL=postgresql://... bun test tests/database-workflows.test.ts` against an empty disposable database to check concurrent stock changes, order retries, write rollback, and payment transitions. A standalone PostgreSQL instance needs the cluster roles `anon` and `authenticated` for the Supabase permissions migration. CI runs this suite alongside the payment, edit-conflict, and staff-access suites, each with a fresh database.

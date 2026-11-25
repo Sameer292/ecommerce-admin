@@ -32,3 +32,55 @@ jobs:
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - file: database-workflows
+            variable: TEST_WORKFLOW_DATABASE_URL
+          - file: edit-conflicts
+            variable: TEST_EDIT_DATABASE_URL
+          - file: payment
+            variable: TEST_PAYMENT_DATABASE_URL
+          - file: team-access
+            variable: TEST_TEAM_DATABASE_URL
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      SUPABASE_URL: http://127.0.0.1:54321
+      SUPABASE_PUBLISHABLE_KEY: integration-test-publishable
+      SUPABASE_SECRET_KEY: integration-test-secret
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - name: Create Supabase roles in the disposable database
+        run: docker exec "$POSTGRES_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon; CREATE ROLE authenticated;'
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+      - name: Run database workflow
+        run: env "$TEST_VARIABLE=$DATABASE_URL" bun test "tests/$TEST_FILE.test.ts"
+        env:
+          TEST_VARIABLE: ${{ matrix.variable }}
+          TEST_FILE: ${{ matrix.file }}
