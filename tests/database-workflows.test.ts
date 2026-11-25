@@ -70,6 +70,22 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(duplicates[0].id, duplicates[1].id);
 		assert.equal(duplicates.filter(({ created }) => created).length, 1);
 		assert.equal((await connection`select id from commerce_admin.order_items`).length, 1);
+		const { findStoreOrderStatus } = await import(
+			"../src/features/store-integration/orders.server"
+		);
+		await connection`update commerce_admin.orders set status = 'shipped', tracking_number = 'TRACK-1' where number = ${input.number}`;
+		const status = await findStoreOrderStatus(input.number);
+		assert.ok(status);
+		assert.deepEqual(Object.keys(status).sort(), [
+			"number",
+			"paymentStatus",
+			"status",
+			"trackingNumber",
+			"updatedAt",
+		]);
+		assert.equal(status.status, "shipped");
+		assert.equal(status.trackingNumber, "TRACK-1");
+		assert.equal(await findStoreOrderStatus("UNKNOWN"), undefined);
 		await assert.rejects(importOrder({ ...input, shippingMinor: 500 }), { status: 409 });
 		await assert.rejects(
 			importOrder({

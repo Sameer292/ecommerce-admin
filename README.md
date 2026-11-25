@@ -47,6 +47,7 @@ The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separa
 | Endpoint | Behavior |
 | --- | --- |
 | `GET /api/store/catalog` | Lists active products with current stock, prices, and categories. Accepts `page`, `q`, and a `category` UUID. |
+| `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, tracking number, and an ISO update timestamp. Returns 404 until the order is imported. |
 | `POST /api/store/orders` | Imports an order snapshot, creates or links its customer by email, and returns the order ID. An identical retry returns the existing ID. A different payload for the same order number returns HTTP 409. |
 | `PATCH /api/store/orders` | Records a payment transition. Send the order `number`, `status` of `paid` or `refunded`, and `paidAt` when marking paid. Record the payment or refund with your provider first. |
 
@@ -66,6 +67,8 @@ Example order import body
 ```
 
 Import accepts an optional `paidAt` for already-paid orders. Other optional amounts are `taxMinor` and `discountMinor`. The storefront owns checkout, payment processing, and stock reservation. Recording an order or refund only updates its administrative records. The inventory screen records stock adjustments with a reason, actor, and timestamp.
+
+Fetch fulfillment status from the storefront backend when showing an order to its buyer. The storefront authenticates the buyer and checks ownership before looking up the order number. The admin endpoint uses the integration token and returns operational status without buyer details.
 
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 

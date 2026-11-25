@@ -17,6 +17,7 @@ const orderNumber = ZString()
 	.min(1)
 	.max(80)
 	.regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/);
+export const orderStatusQuerySchema = ZObject({ number: orderNumber });
 const sku = ZString().trim().min(1).max(80).toUpperCase();
 
 const line = ZObject({
