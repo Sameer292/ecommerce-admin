@@ -31,11 +31,11 @@ const OverviewPage = () => {
 		<>
 			<OverviewHeading />
 			<MetricCards metrics={metrics} currency={store.currency} />
-			<div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
-				<RevenueChart key={range} points={trend} currency={store.currency} range={range} />
+			<div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]">
 				<StockWatch stock={stock} />
+				<RecentOrders rows={orders} currency={store.currency} zone={store.timeZone} />
 			</div>
-			<RecentOrders rows={orders} currency={store.currency} zone={store.timeZone} />
+			<RevenueChart key={range} points={trend} currency={store.currency} range={range} />
 		</>
 	);
 };
