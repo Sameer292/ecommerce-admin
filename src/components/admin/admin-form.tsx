@@ -17,6 +17,7 @@ type FormProps = {
 	submitLabel?: string;
 	successMessage?: string;
 	cancelHref?: string;
+	cancelAction?: ReactNode;
 	stickyActions?: boolean;
 	requireChanges?: boolean;
 	destructive?: boolean;
@@ -79,6 +80,7 @@ export const AdminForm = ({
 	submitLabel = "Save changes",
 	successMessage,
 	cancelHref,
+	cancelAction,
 	stickyActions,
 	requireChanges,
 	destructive,
@@ -137,6 +139,7 @@ export const AdminForm = ({
 						"sticky bottom-0 z-20 border-t bg-background p-2 sm:static sm:border-0 sm:bg-transparent sm:p-0",
 				)}
 			>
+				{cancelAction}
 				{cancelHref && (
 					<Link
 						to={cancelHref}

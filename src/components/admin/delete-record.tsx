@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -21,6 +22,10 @@ type DeleteRecordProps = {
 	onSuccess: () => unknown;
 };
 
+const CancelDelete = () => (
+	<DialogClose render={<Button type="button" variant="outline" size="lg" />}>Cancel</DialogClose>
+);
+
 export const DeleteRecord = ({
 	id,
 	record,
@@ -34,19 +39,24 @@ export const DeleteRecord = ({
 			<HugeiconsIcon icon={Delete02Icon} data-icon="inline-start" />
 			Delete
 		</DialogTrigger>
-		<DialogContent>
+		<DialogContent showCloseButton={false}>
 			<DialogHeader>
 				<DialogTitle>Delete {name}?</DialogTitle>
 				<DialogDescription>
 					{blockedReason ?? `This permanently removes the ${record} from your store.`}
 				</DialogDescription>
 			</DialogHeader>
-			{!blockedReason && (
+			{blockedReason ? (
+				<div className="flex justify-end">
+					<CancelDelete />
+				</div>
+			) : (
 				<AdminForm
 					onSave={onDelete}
 					onSuccess={onSuccess}
 					submitLabel={`Delete ${record}`}
 					successMessage={`${name} deleted.`}
+					cancelAction={<CancelDelete />}
 					destructive
 				>
 					<input type="hidden" name="id" value={id} />
