@@ -40,7 +40,7 @@ const PlotBar = ({ point, selected, onSelect, max, currency }: BarProps) => (
 		onFocus={() => onSelect(point.date)}
 		onPointerEnter={() => onSelect(point.date)}
 		onClick={() => onSelect(point.date)}
-		className="flex min-w-0 flex-1 items-end justify-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		className="flex min-w-0 flex-1 items-end justify-center rounded-sm px-px outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-0.75"
 	>
 		<span
 			aria-hidden
@@ -59,7 +59,7 @@ const RevenuePlot = ({ points, currency, selected, onSelect }: PlotProps) => {
 		<div className="flex flex-col gap-3">
 			<div className="relative h-44 pt-1 sm:h-52">
 				<ChartGrid ticks={ticks} currency={currency} />
-				<div className="relative ml-18 flex h-full gap-[2px] sm:gap-1.5">
+				<div className="relative ml-18 flex h-full">
 					{points.map((point) => (
 						<PlotBar
 							key={point.date}
