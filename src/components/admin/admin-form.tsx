@@ -1,11 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useHydrated } from "@tanstack/react-router";
+import { Link, useHydrated, useLocation } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FieldError, FieldSet } from "@/components/ui/field";
 import { useToastManager } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { loginReturn } from "@/features/auth/login-return";
 import type { MutationFailure, MutationResult } from "@/server/mutation.types";
 import { FieldValidation, ReadOnlyFields } from "./form-fields";
 import { useUnsavedChanges } from "./unsaved-changes";
@@ -94,6 +95,7 @@ export const AdminForm = ({
 		onSaved: () => setDirty(false),
 	});
 	const hydrated = useHydrated();
+	const href = useLocation({ select: (location) => location.href });
 	const { isFormDirty, register } = useUnsavedChanges();
 	const registerForm = useCallback(
 		(form: HTMLFormElement | null) => {
@@ -131,7 +133,22 @@ export const AdminForm = ({
 			<FieldSet disabled={!hydrated || pending} className="min-w-0">
 				<FieldValidation value={failure?.fieldErrors}>{children}</FieldValidation>
 			</FieldSet>
-			{failure && <FieldError>{failure.error}</FieldError>}
+			{failure && (
+				<FieldError>
+					{failure.error}
+					{failure.reauthenticate && (
+						<Link
+							to="/login"
+							search={{ returnTo: loginReturn(href) }}
+							target="_blank"
+							rel="noopener"
+							className="ml-2 underline underline-offset-4"
+						>
+							Sign in in a new tab
+						</Link>
+					)}
+				</FieldError>
+			)}
 			<div
 				className={cn(
 					"flex flex-wrap items-center justify-end gap-2",

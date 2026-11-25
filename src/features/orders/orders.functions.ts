@@ -1,6 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import { findOrder, listOrderActivity, listOrderItems, saveOrder } from "./order-detail.server";
@@ -29,7 +29,8 @@ export const readOrder = createServerFn()
 
 export const writeOrder = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		const staff = await requireStaff("manageCommerce");
-		return mutate(orderFormSchema, data, (values) => saveOrder(values, staff.id));
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(orderFormSchema, data, (values) => saveOrder(values, staff.id)),
+		),
+	);

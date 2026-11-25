@@ -10,7 +10,7 @@ import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { UnsavedChangesProvider } from "./unsaved-changes";
 
-type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
+type Workspace = NonNullable<Awaited<ReturnType<typeof readWorkspace>>>;
 
 const MobileNav = (workspace: Workspace) => {
 	const [open, setOpen] = useState(false);

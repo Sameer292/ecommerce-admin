@@ -1,6 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { findProduct, listProducts } from "@/features/catalog/products.server";
 import { mutate } from "@/server/mutation.server";
@@ -32,9 +32,10 @@ export const readStock = createServerFn()
 
 export const writeStock = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		const staff = await requireStaff("manageCommerce");
-		return mutate(adjustmentSchema, data, (value) => adjustStock({ ...value, staffId: staff.id }), {
-			23503: "This product no longer exists.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(adjustmentSchema, data, (value) => adjustStock({ ...value, staffId: staff.id }), {
+				23503: "This product no longer exists.",
+			}),
+		),
+	);

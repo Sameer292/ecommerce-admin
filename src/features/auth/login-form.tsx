@@ -29,7 +29,7 @@ const LoginFields = () => (
 	</FieldGroup>
 );
 
-const useSignIn = () => {
+const useSignIn = (returnTo?: string) => {
 	const signIn = useServerFn(signInStaff);
 	const [pending, setPending] = useState(false);
 	const [failure, setFailure] = useState<MutationFailure>();
@@ -44,7 +44,7 @@ const useSignIn = () => {
 		setFailure(undefined);
 		try {
 			const result = await signIn({ data: new FormData(event.currentTarget) });
-			if (result.success) return window.location.assign("/");
+			if (result.success) return window.location.assign(returnTo ?? "/");
 			setFailure(result);
 		} catch {
 			setFailure({ success: false, error: "Couldn’t connect. Try again." });
@@ -54,8 +54,8 @@ const useSignIn = () => {
 	return { failure, form, pending, submit };
 };
 
-export const LoginForm = () => {
-	const { failure, form, pending, submit } = useSignIn();
+export const LoginForm = ({ returnTo }: { returnTo?: string }) => {
+	const { failure, form, pending, submit } = useSignIn(returnTo);
 	const hydrated = useHydrated();
 	return (
 		<form ref={form} method="post" className="flex flex-col gap-5" onSubmit={submit}>

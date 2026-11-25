@@ -3,8 +3,10 @@ import { getRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { user } from "@/db/schema/auth";
+import type { MutationResult } from "@/server/mutation.types";
 import type { Permission } from "./auth.types";
 import { can, isRole } from "./permissions";
+import { loginReturn } from "./login-return";
 import { getSupabaseAuth } from "./supabase.server";
 
 export const findActiveStaff = async (authUserId: string) => {
@@ -45,7 +47,31 @@ export const getStaff = () => {
 
 export const requireStaff = async (permission: Permission = "read") => {
 	const staff = await getStaff();
-	if (!staff) throw redirect({ to: "/login" });
+	if (!staff) {
+		const referrer = getRequest().headers.get("referer") ?? "";
+		const referer = URL.canParse(referrer) ? new URL(referrer) : undefined;
+		const returnTo = referer ? loginReturn(referer.pathname + referer.search) : undefined;
+		throw redirect({ to: "/login", search: { returnTo } });
+	}
 	if (!can(staff.role, permission)) throw new Response("Forbidden", { status: 403 });
 	return staff;
+};
+
+export const withStaffMutation = async (
+	permission: Permission,
+	action: (staff: NonNullable<Awaited<ReturnType<typeof getStaff>>>) => Promise<MutationResult>,
+): Promise<MutationResult> => {
+	const staff = await getStaff();
+	if (!staff)
+		return {
+			success: false,
+			error: "Your session expired. Sign in and try saving again.",
+			reauthenticate: true,
+		};
+	if (!can(staff.role, permission))
+		return {
+			success: false,
+			error: "Your staff role does not have permission to make this change.",
+		};
+	return action(staff);
 };
