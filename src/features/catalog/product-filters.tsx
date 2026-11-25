@@ -9,7 +9,6 @@ type ProductFilterProps = {
 	search: ProductSearch;
 	categories: CategoryOption[];
 	currency: string;
-	priceCeiling: number;
 	onSearch: (search: ProductSearch) => void;
 };
 
@@ -55,19 +54,12 @@ const CategoryFilter = ({
 	</NativeSelect>
 );
 
-export const ProductFilters = ({
-	search,
-	categories,
-	currency,
-	priceCeiling,
-	onSearch,
-}: ProductFilterProps) => {
-	const ceiling = Math.max(priceCeiling, search.minPriceMinor ?? 0, search.maxPriceMinor ?? 0);
+export const ProductFilters = ({ search, categories, currency, onSearch }: ProductFilterProps) => {
 	return (
 		<ListControls
 			search={search}
 			placeholder="Search products"
-			readSearch={(form) => readProductFilters(form, ceiling)}
+			readSearch={(form) => readProductFilters(form, currency)}
 			onSearch={onSearch}
 			onClear={
 				hasProductFilters(search)
@@ -77,7 +69,7 @@ export const ProductFilters = ({
 		>
 			<ProductStatusFilter status={search.status} />
 			<CategoryFilter category={search.category} categories={categories} />
-			<PriceRangeFilter key={ceiling} search={search} currency={currency} ceiling={ceiling} />
+			<PriceRangeFilter search={search} currency={currency} />
 		</ListControls>
 	);
 };

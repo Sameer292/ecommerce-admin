@@ -8,17 +8,17 @@ import {
 
 const rangeForm = (minimum: string, maximum: string) => {
 	const form = new FormData();
-	form.append("priceRange", minimum);
-	form.append("priceRange", maximum);
+	form.set("minPrice", minimum);
+	form.set("maxPrice", maximum);
 	return form;
 };
 
-test("combines slider prices in minor units with the other filters", () => {
-	const form = rangeForm("0", "7525");
+test("converts exact price bounds to minor units and combines them with the other filters", () => {
+	const form = rangeForm("", "75.25");
 	form.set("q", " bag ");
 	form.set("status", "active");
 	form.set("category", "e0000001-0000-4000-8000-000000000001");
-	assert.deepEqual(readProductFilters(form, 20000), {
+	assert.deepEqual(readProductFilters(form, "USD"), {
 		page: 1,
 		q: "bag",
 		status: "active",
@@ -28,13 +28,13 @@ test("combines slider prices in minor units with the other filters", () => {
 	});
 });
 
-test("a slider endpoint leaves that bound open and malformed values cannot apply", () => {
-	assert.equal(readProductFilters(rangeForm("200", "750"), 750)?.minPriceMinor, 200);
-	assert.equal(readProductFilters(rangeForm("200", "750"), 750)?.maxPriceMinor, undefined);
-	assert.equal(readProductFilters(rangeForm("0", "0"), 750)?.maxPriceMinor, 0);
-	assert.equal(readProductFilters(rangeForm("0", "750.1"), 750), null);
-	assert.equal(readProductFilters(rangeForm("0", "751"), 750), null);
-	assert.equal(readProductFilters(rangeForm("900", "750"), 900), null);
+test("blank bounds stay open and malformed or reversed prices cannot apply", () => {
+	assert.equal(readProductFilters(rangeForm("2.00", ""), "USD")?.minPriceMinor, 200);
+	assert.equal(readProductFilters(rangeForm("2.00", ""), "USD")?.maxPriceMinor, undefined);
+	assert.equal(readProductFilters(rangeForm("0", "0"), "USD")?.maxPriceMinor, 0);
+	assert.equal(readProductFilters(rangeForm("0", "750.001"), "USD"), null);
+	assert.equal(readProductFilters(rangeForm("0", "750.1"), "JPY"), null);
+	assert.equal(readProductFilters(rangeForm("9", "7.5"), "USD"), null);
 });
 
 test("normalizes reversed bounds from existing links", () => {

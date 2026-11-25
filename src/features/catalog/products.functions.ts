@@ -8,7 +8,6 @@ import { productFormSchema, productSearchSchema } from "./catalog-validation";
 import {
 	deleteProduct,
 	findProduct,
-	highestProductPrice,
 	listProducts,
 	productHasHistory,
 	saveProduct,
@@ -18,12 +17,8 @@ export const readProducts = createServerFn()
 	.validator(productSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [page, categories, priceCeiling] = await Promise.all([
-			listProducts(data),
-			categoryOptions(),
-			highestProductPrice(),
-		]);
-		return { ...page, categories, priceCeiling };
+		const [page, categories] = await Promise.all([listProducts(data), categoryOptions()]);
+		return { ...page, categories };
 	});
 
 export const readNewProduct = createServerFn().handler(async () => {
