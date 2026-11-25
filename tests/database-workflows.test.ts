@@ -303,6 +303,30 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			"refunded",
 		);
 		assert.equal(await refundedAmount(split.id), 3000);
+
+		const current = await findOrder(split.id);
+		assert.ok(current);
+		await saveOrder(
+			{
+				id: split.id,
+				status: current.order.status,
+				version: current.order.updatedAt.toISOString(),
+				trackingNumber: "Updated tracking",
+				notes: "Private content should stay out of the audit log",
+			},
+			"stock-operator",
+		);
+		const { listAudit } = await import("../src/features/audit/audit.server");
+		const updates = await listAudit({ page: 1, q: "tracking number" });
+		const logged = updates.rows.find(
+			(row) => row.actor === "Operator" && row.fields.includes("notes"),
+		);
+		assert.ok(logged);
+		assert.equal(logged.recordLabel, "WEB-SPLIT");
+		assert.deepEqual(logged.fields, ["notes", "tracking_number"]);
+		assert.ok(!JSON.stringify(updates).includes("Private content"));
+		const payments = await listAudit({ page: 1, q: "payment_events" });
+		assert.ok(payments.rows.some(({ recordLabel }) => recordLabel === "WEB-SPLIT"));
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

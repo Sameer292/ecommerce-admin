@@ -25,8 +25,8 @@ export const readCategory = createServerFn()
 export const writeCategory = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", () =>
-			mutate(categoryFormSchema, data, saveCategory, {
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(categoryFormSchema, data, (values) => saveCategory(values, staff.id), {
 				23505: "A category already uses this slug.",
 			}),
 		),
@@ -35,8 +35,8 @@ export const writeCategory = createServerFn({ method: "POST" })
 export const removeCategory = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", () =>
-			mutate(idSchema, data, ({ id }) => deleteCategory(id), {
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(idSchema, data, ({ id }) => deleteCategory(id, staff.id), {
 				23503: "Move its products to another category before deleting this category.",
 			}),
 		),

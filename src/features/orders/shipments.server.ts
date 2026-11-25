@@ -1,4 +1,5 @@
 import { desc, eq, sql } from "drizzle-orm";
+import { setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { orderEvents, orderItems, orders, orderShipments, shipmentItems } from "@/db/schema/orders";
 import { ActionError } from "@/server/mutation.server";
@@ -118,6 +119,7 @@ export const saveShipment = ({ version, lines, ...shipment }: ShipmentValues, st
 			throw new ActionError("One or more quantities exceed the units available to dispatch.");
 		}
 
+		await setAuditActor(transaction, staffId);
 		await transaction.insert(orderShipments).values({ ...shipment, staffId });
 		await transaction
 			.insert(shipmentItems)

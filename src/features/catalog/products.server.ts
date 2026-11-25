@@ -1,4 +1,5 @@
 import { and, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
+import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -93,19 +94,27 @@ export const productHasHistory = async (id: string) => {
 	return orders.length > 0 || stock.length > 0;
 };
 
-export const saveProduct = async ({ id, price, version, ...values }: ProductValues) => {
+export const saveProduct = async (
+	{ id, price, version, ...values }: ProductValues,
+	staffId?: string,
+) => {
 	const currency = await getStoreCurrency();
 	const priceMinor = parseMoneyInput(price, currency);
 	if (priceMinor === null) throw new ActionError(`Enter a valid ${currency} price.`, "price");
 
-	if (!id) return db.insert(products).values({ ...values, priceMinor });
-	const [updated] = await db
-		.update(products)
-		.set({ ...values, priceMinor, updatedAt: new Date(), version: sql`${products.version} + 1` })
-		.where(and(eq(products.id, id), eq(products.version, version ?? -1)))
-		.returning({ id: products.id });
-	if (!updated)
-		throw new ActionError("This product changed or was removed. Refresh before saving.");
+	return inStaffAudit(staffId, async (transaction) => {
+		if (!id) return transaction.insert(products).values({ ...values, priceMinor });
+		const [updated] = await transaction
+			.update(products)
+			.set({ ...values, priceMinor, updatedAt: new Date(), version: sql`${products.version} + 1` })
+			.where(and(eq(products.id, id), eq(products.version, version ?? -1)))
+			.returning({ id: products.id });
+		if (!updated)
+			throw new ActionError("This product changed or was removed. Refresh before saving.");
+	});
 };
 
-export const deleteProduct = (id: string) => db.delete(products).where(eq(products.id, id));
+export const deleteProduct = (id: string, staffId?: string) =>
+	inStaffAudit(staffId, async (transaction) =>
+		transaction.delete(products).where(eq(products.id, id)),
+	);

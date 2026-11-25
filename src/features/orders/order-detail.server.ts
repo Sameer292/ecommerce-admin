@@ -1,4 +1,5 @@
 import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
@@ -128,26 +129,24 @@ export const saveOrder = (
 		const fields = [];
 		if (delivery.shippingName !== current.shippingName) fields.push("Recipient");
 		if (delivery.shippingAddress !== current.shippingAddress) fields.push("Shipping address");
-		if (fields.length && !canCorrectDelivery(current.status))
+		const deliveryChanged = fields.length > 0;
+		if (deliveryChanged && !canCorrectDelivery(current.status))
 			throw new ActionError("Delivery details can only change before dispatch.");
 		if (
-			(fields.length || collection !== current.cashOnDelivery) &&
+			(deliveryChanged || collection !== current.cashOnDelivery) &&
 			(await hasOrderShipment(transaction, id))
 		)
 			throw new ActionError(
 				"Delivery details and payment collection are locked after the first package dispatch.",
 			);
-		if (fields.length && !deliveryReason)
+		if (deliveryChanged && !deliveryReason)
 			throw new ActionError("Enter a reason for the delivery correction.", "deliveryReason");
-		if (
-			!fields.length &&
-			values.status === current.status &&
-			values.notes === current.notes &&
-			values.trackingNumber === current.trackingNumber &&
-			collection === current.cashOnDelivery
-		)
-			return;
+		if (values.notes !== current.notes) fields.push("Internal notes");
+		if (values.trackingNumber !== current.trackingNumber) fields.push("Tracking number");
+		if (collection !== current.cashOnDelivery) fields.push("Payment collection");
+		if (!fields.length && values.status === current.status) return;
 		const updatedAt = new Date(Math.max(Date.now(), current.updatedAt.getTime() + 1));
+		await setAuditActor(transaction, staffId);
 		await transaction
 			.update(orders)
 			.set({ ...values, ...delivery, cashOnDelivery: collection, updatedAt })
@@ -159,7 +158,7 @@ export const saveOrder = (
 				previousStatus: current.status,
 				status: values.status,
 				fields,
-				reason: fields.length ? deliveryReason : undefined,
+				reason: deliveryChanged ? deliveryReason : undefined,
 			});
 		}
 	});

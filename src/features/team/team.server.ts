@@ -1,4 +1,5 @@
 import { and, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
@@ -86,6 +87,7 @@ export const editStaffAccount = ({ id, role, status, version }: EditStaffValues,
 			if (!target) throw new ActionError("This account can’t be changed here.");
 			if (target.version !== version)
 				throw new ActionError("This account changed. Refresh before saving.");
+			await setAuditActor(transaction, actorId);
 			await transaction
 				.update(user)
 				.set({ role, banned, updatedAt: new Date(), version: version + 1 })

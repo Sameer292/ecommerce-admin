@@ -21,7 +21,7 @@ The workspace covers catalog, order fulfillment, inventory, customers, and staff
 | Manager | Manage products, categories, stock, order fulfillment, and customers |
 | Viewer | Read the dashboard, commerce data, and store preferences |
 
-Staff sign in with email and password and can change their own password. Superusers can create accounts and manage staff access from Team. They can disable or demote a superuser as long as at least one active, linked superuser remains. The app checks staff access on each protected request, so disabling an account blocks its dashboard access immediately. A Supabase user needs a linked staff record to enter the dashboard. Share initial passwords through a secure channel.
+Staff sign in with email and password and can change their own password. Superusers can create accounts and manage staff access from Team. They can disable or demote a superuser as long as at least one active, linked superuser remains. The app checks staff access on each protected request, so disabling an account blocks its dashboard access immediately. A Supabase user needs a linked staff record to enter the dashboard. Share initial passwords through a secure channel. Superusers can search Audit history for catalog, order, payment, and staff changes. Audit entries capture field names and attribution without storing note, address, or credential values.
 
 ## Per-client settings and deployment
 

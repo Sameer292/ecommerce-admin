@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
+import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/_admin.team'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -52,6 +53,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
   id: '/access-denied',
   path: '/access-denied',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/login': typeof LoginRoute
   '/access-denied': typeof AdminAccessDeniedRoute
+  '/audit': typeof AdminAuditRoute
   '/settings': typeof AdminSettingsRoute
   '/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/access-denied': typeof AdminAccessDeniedRoute
+  '/audit': typeof AdminAuditRoute
   '/settings': typeof AdminSettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AdminIndexRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/_admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
+  '/_admin/audit': typeof AdminAuditRoute
   '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/access-denied'
+    | '/audit'
     | '/settings'
     | '/team'
     | '/api/health'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/access-denied'
+    | '/audit'
     | '/settings'
     | '/api/health'
     | '/'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_admin'
     | '/login'
     | '/_admin/access-denied'
+    | '/_admin/audit'
     | '/_admin/settings'
     | '/_admin/team'
     | '/api/health'
@@ -358,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/access-denied'
       fullPath: '/access-denied'
       preLoaderRoute: typeof AdminAccessDeniedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/audit': {
+      id: '/_admin/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/settings': {
@@ -528,6 +547,7 @@ const AdminTeamRouteWithChildren = AdminTeamRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAccessDeniedRoute: typeof AdminAccessDeniedRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTeamRoute: typeof AdminTeamRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
@@ -548,6 +568,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAccessDeniedRoute: AdminAccessDeniedRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTeamRoute: AdminTeamRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
