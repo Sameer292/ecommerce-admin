@@ -86,6 +86,12 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(status.status, "shipped");
 		assert.equal(status.trackingNumber, "TRACK-1");
 		assert.equal(await findStoreOrderStatus("UNKNOWN"), undefined);
+		await connection`update commerce_admin.customers set name = 'New Name', phone = '+1 555 0100' where email = ${input.customer.email}`;
+		const { findOrder } = await import("../src/features/orders/order-detail.server");
+		const detail = await findOrder(duplicates[0].id);
+		assert.equal(detail?.order.buyerName, "Buyer");
+		assert.equal(detail.order.buyerEmail, "buyer@example.test");
+		assert.equal(detail.order.buyerPhone, "");
 		await assert.rejects(importOrder({ ...input, shippingMinor: 500 }), { status: 409 });
 		await assert.rejects(
 			importOrder({

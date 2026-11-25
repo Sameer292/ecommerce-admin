@@ -35,22 +35,22 @@ export const OrderPayment = ({ order, currency }: { order: Order; currency: stri
 	</FormSection>
 );
 
-type OrderContactProps = {
-	order: Order;
-	customer: { id: string; name: string; email: string };
-};
-
-export const OrderContact = ({ order, customer }: OrderContactProps) => (
+export const OrderContact = ({ order }: { order: Order }) => (
 	<FormSection title="Customer and delivery">
 		<div className="flex flex-col gap-1 text-sm">
+			<p className="font-medium">Buyer on this order</p>
+			<p>{order.buyerName || "Name unavailable"}</p>
+			{order.buyerEmail && (
+				<p className="wrap-anywhere text-muted-foreground">{order.buyerEmail}</p>
+			)}
+			{order.buyerPhone && <p className="text-muted-foreground">{order.buyerPhone}</p>}
 			<Link
 				to="/customers/$customerId"
-				params={{ customerId: customer.id }}
-				className="font-medium hover:underline"
+				params={{ customerId: order.customerId }}
+				className="mt-1 self-start underline underline-offset-3"
 			>
-				{customer.name}
+				Current customer profile
 			</Link>
-			<p className="wrap-anywhere text-muted-foreground">{customer.email}</p>
 		</div>
 		<Separator />
 		<div className="flex flex-col gap-1 text-sm">

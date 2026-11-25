@@ -2,7 +2,6 @@ import { and, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
-import { customers } from "@/db/schema/customers";
 import { orderEvents, orderItems, orders } from "@/db/schema/orders";
 import { pageOffset, pageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
@@ -13,15 +12,8 @@ import type { OrderValues } from "./order.types";
 const { importDigest: _, ...orderFields } = getTableColumns(orders);
 
 export const findOrder = async (id: string) => {
-	const [row] = await db
-		.select({
-			order: orderFields,
-			customer: { id: customers.id, name: customers.name, email: customers.email },
-		})
-		.from(orders)
-		.innerJoin(customers, eq(orders.customerId, customers.id))
-		.where(eq(orders.id, id));
-	return row;
+	const [order] = await db.select(orderFields).from(orders).where(eq(orders.id, id));
+	return order ? { order } : undefined;
 };
 
 const itemSortColumns = {

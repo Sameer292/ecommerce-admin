@@ -18,6 +18,9 @@ export const orders = commerce.table(
 		customerId: uuid("customer_id")
 			.notNull()
 			.references(() => customers.id, { onDelete: "restrict" }),
+		buyerName: text("buyer_name").notNull().default(""),
+		buyerEmail: text("buyer_email").notNull().default(""),
+		buyerPhone: text("buyer_phone").notNull().default(""),
 		status: orderStatus().notNull().default("pending"),
 		paymentStatus: paymentStatus("payment_status").notNull().default("pending"),
 		paidAt: timestamp("paid_at", { withTimezone: true }),

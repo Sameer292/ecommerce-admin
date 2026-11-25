@@ -61,6 +61,9 @@ const insertOrder = async (transaction: Transaction, input: ImportOrder, importD
 		.values({
 			number,
 			customerId,
+			buyerName: input.customer.name,
+			buyerEmail: input.customer.email,
+			buyerPhone: input.customer.phone,
 			importDigest,
 			createdAt,
 			shippingName,

@@ -78,6 +78,13 @@
       "when": 1795643871367,
       "tag": "0010_store_currency",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795644203766,
+      "tag": "0011_order_buyer_snapshot",
+      "breakpoints": true
     }
   ]
 }

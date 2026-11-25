@@ -59,7 +59,7 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order, customer } = Route.useLoaderData();
+	const { order } = Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
 	return (
 		<>
@@ -78,7 +78,7 @@ const OrderPage = () => {
 					editable={can(staff.role, "manageCommerce")}
 				/>
 				<div className="flex min-w-0 flex-col gap-4">
-					<OrderContact order={order} customer={customer} />
+					<OrderContact order={order} />
 					<OrderPayment order={order} currency={store.currency} />
 				</div>
 			</div>
