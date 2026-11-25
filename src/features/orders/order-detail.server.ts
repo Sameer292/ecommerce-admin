@@ -6,7 +6,11 @@ import { orderEvents, orderItems, orders, paymentEvents } from "@/db/schema/orde
 import { pageOffset, pageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
-import { canTransitionOrder } from "./order-options";
+import {
+	canChangePaymentCollection,
+	canTransitionOrder,
+	fulfillmentPaymentProblem,
+} from "./order-options";
 import type { OrderValues } from "./order.types";
 
 const { importDigest: _, ...orderFields } = getTableColumns(orders);
@@ -75,7 +79,10 @@ export const listPaymentEvents = async (id: string, page: number) => {
 	return { rows, total };
 };
 
-export const saveOrder = ({ id, version, ...values }: OrderValues, staffId: string) =>
+export const saveOrder = (
+	{ id, version, cashOnDelivery, ...values }: OrderValues,
+	staffId: string,
+) =>
 	db.transaction(async (transaction) => {
 		const [current] = await transaction
 			.select()
@@ -87,10 +94,27 @@ export const saveOrder = ({ id, version, ...values }: OrderValues, staffId: stri
 			throw new ActionError("This order changed. Refresh before saving.");
 		if (!canTransitionOrder(current.status, values.status))
 			throw new ActionError("This status change is unavailable.");
+		const collection = cashOnDelivery ?? current.cashOnDelivery;
+		if (
+			collection !== current.cashOnDelivery &&
+			!canChangePaymentCollection(current.status, current.paymentStatus)
+		) {
+			throw new ActionError(
+				"Payment collection can only change before dispatch while the order is unpaid.",
+				"cashOnDelivery",
+			);
+		}
+		const problem = fulfillmentPaymentProblem(
+			current.status,
+			values.status,
+			current.paymentStatus,
+			collection,
+		);
+		if (problem) throw new ActionError(problem, "status");
 		const updatedAt = new Date(Math.max(Date.now(), current.updatedAt.getTime() + 1));
 		await transaction
 			.update(orders)
-			.set({ ...values, updatedAt })
+			.set({ ...values, cashOnDelivery: collection, updatedAt })
 			.where(and(eq(orders.id, id), eq(orders.status, current.status)));
 		if (values.status !== current.status) {
 			await transaction.insert(orderEvents).values({

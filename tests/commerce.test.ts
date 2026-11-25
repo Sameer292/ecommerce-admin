@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canTransitionOrder } from "../src/features/orders/order-options";
+import {
+	canChangePaymentCollection,
+	canTransitionOrder,
+	fulfillmentPaymentProblem,
+} from "../src/features/orders/order-options";
 import { buildTrend, reportWindow } from "../src/features/overview/report-dates";
 import { importOrderSchema } from "../src/features/store-integration/integration-validation";
 import { formatDateTime } from "../src/lib/format";
@@ -59,4 +63,21 @@ test("integration accepts integer minor units and normalizes snapshots", () => {
 			.success,
 		false,
 	);
+});
+
+test("dispatch requires payment or cash on delivery, and refunds prevent dispatch", () => {
+	assert.match(
+		fulfillmentPaymentProblem("processing", "shipped", "pending", false) ?? "",
+		/Record payment/,
+	);
+	assert.equal(fulfillmentPaymentProblem("processing", "shipped", "pending", true), undefined);
+	assert.equal(fulfillmentPaymentProblem("processing", "shipped", "paid", false), undefined);
+	assert.match(
+		fulfillmentPaymentProblem("processing", "shipped", "refunded", true) ?? "",
+		/Refunded/,
+	);
+	assert.equal(fulfillmentPaymentProblem("shipped", "delivered", "refunded", false), undefined);
+	assert.equal(fulfillmentPaymentProblem("processing", "cancelled", "refunded", false), undefined);
+	assert.ok(canChangePaymentCollection("processing", "pending"));
+	assert.equal(canChangePaymentCollection("shipped", "pending"), false);
 });

@@ -1,4 +1,4 @@
-import type { OrderStatus } from "./order.types";
+import type { OrderStatus, PaymentStatus } from "./order.types";
 
 export const orderStatuses = [
 	"pending",
@@ -35,3 +35,19 @@ export const orderTransitions = {
 
 export const canTransitionOrder = (current: OrderStatus, next: OrderStatus) =>
 	current === next || orderTransitions[current].some((status) => status === next);
+
+export const canChangePaymentCollection = (status: OrderStatus, payment: PaymentStatus) =>
+	payment === "pending" && (status === "pending" || status === "processing");
+
+export const fulfillmentPaymentProblem = (
+	current: OrderStatus,
+	next: OrderStatus,
+	payment: PaymentStatus,
+	cashOnDelivery: boolean,
+) => {
+	if (current === next || next === "cancelled" || (current === "shipped" && next === "delivered"))
+		return;
+	if (payment === "refunded") return "Refunded orders cannot be processed or dispatched.";
+	if (next === "shipped" && payment === "pending" && !cashOnDelivery)
+		return "Record payment before shipping a prepaid order.";
+};

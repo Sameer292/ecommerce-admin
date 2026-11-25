@@ -1,5 +1,6 @@
 import {
 	array as ZArray,
+	boolean as ZBoolean,
 	discriminatedUnion as ZDiscriminatedUnion,
 	email as ZEmail,
 	int as ZInt,
@@ -58,6 +59,7 @@ export const importOrderSchema = ZObject({
 	currency: ZString().regex(/^[A-Z]{3}$/),
 	createdAt: timestamp,
 	paidAt: timestamp.optional(),
+	cashOnDelivery: ZBoolean().optional(),
 	customer,
 	items: ZArray(line).min(1).max(100),
 	shippingMinor: amount.default(0),

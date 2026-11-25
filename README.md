@@ -72,6 +72,8 @@ Fetch fulfillment status from the storefront backend when showing an order to it
 
 Record events after the corresponding provider action. Send `source`, `method`, and a stable provider `externalId` for reconciliation. Identical retries are accepted and conflicting details return 409. Older full refunds appear in payment history with an unknown refund date.
 
+Prepaid orders need recorded payment before dispatch. Import cash-on-delivery orders with `cashOnDelivery: true` or set Payment collection before dispatch while the order is unpaid. Fully refunded orders can be cancelled or recorded as delivered if already in transit.
+
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 
 ## Checks

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	boolean,
 	check,
 	index,
 	integer,
@@ -37,6 +38,7 @@ export const orders = commerce.table(
 		buyerPhone: text("buyer_phone").notNull().default(""),
 		status: orderStatus().notNull().default("pending"),
 		paymentStatus: paymentStatus("payment_status").notNull().default("pending"),
+		cashOnDelivery: boolean("cash_on_delivery").notNull().default(false),
 		paidAt: timestamp("paid_at", { withTimezone: true }),
 		subtotalMinor: integer("subtotal_minor").notNull(),
 		shippingMinor: integer("shipping_minor").notNull().default(0),

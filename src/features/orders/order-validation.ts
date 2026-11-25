@@ -26,6 +26,9 @@ export const orderFormSchema = ZObject({
 	id: ZUuid(),
 	version: ZIso.datetime(),
 	status: ZEnum(orderStatuses),
+	cashOnDelivery: ZEnum(["prepaid", "cod"])
+		.transform((value) => value === "cod")
+		.optional(),
 	trackingNumber: ZString().trim().max(100),
 	notes: ZString().trim().max(2_000),
 });

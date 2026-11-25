@@ -23,6 +23,9 @@ const AmountRow = ({
 export const OrderPayment = ({ order, currency }: { order: Order; currency: string }) => (
 	<FormSection title="Payment">
 		<PaymentStatusBadge status={order.paymentStatus} />
+		<p className="text-sm text-muted-foreground">
+			Collection · {order.cashOnDelivery ? "Cash on delivery" : "Prepaid"}
+		</p>
 		<dl className="flex flex-col gap-2 text-sm">
 			<AmountRow label="Subtotal" amount={order.subtotalMinor} currency={currency} />
 			<AmountRow label="Shipping" amount={order.shippingMinor} currency={currency} />

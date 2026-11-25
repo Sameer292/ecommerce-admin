@@ -69,6 +69,7 @@ const insertOrder = async (transaction: Transaction, input: ImportOrder, importD
 			shippingName,
 			shippingAddress,
 			paymentStatus: paidAt ? "paid" : "pending",
+			cashOnDelivery: input.cashOnDelivery,
 			paidAt,
 			...totals(input),
 		})
