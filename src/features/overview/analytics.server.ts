@@ -1,7 +1,7 @@
-import { and, eq, gte, lt, sql, type SQLWrapper } from "drizzle-orm";
+import { and, gte, inArray, lt, sql, type SQLWrapper } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { customers } from "@/db/schema/customers";
-import { orders } from "@/db/schema/orders";
+import { orders, paymentEvents } from "@/db/schema/orders";
 import { buildTrend, reportWindow } from "./report-dates";
 import type { Comparison, DailySales, DateWindow, OverviewRange } from "./overview.types";
 
@@ -21,27 +21,44 @@ const compareCounts = (column: SQLWrapper, window: DateWindow) => {
 	};
 };
 
-const getPaidSales = (window: DateWindow) => {
+const getPaymentTotals = (window: DateWindow) => {
 	const localDate =
-		sql<string>`to_char(${orders.paidAt} AT TIME ZONE ${window.timeZone}, 'YYYY-MM-DD')`.as(
+		sql<string>`to_char(${paymentEvents.occurredAt} AT TIME ZONE ${window.timeZone}, 'YYYY-MM-DD')`.as(
 			"sales_date",
 		);
 	return db
 		.select({
 			date: localDate,
-			sales: sql`sum(${orders.totalMinor})`.mapWith(Number),
-			paidOrders: sql`count(*)`.mapWith(Number),
+			sales:
+				sql`coalesce(sum(${paymentEvents.amountMinor}) filter (where ${paymentEvents.status} = 'paid'), 0)`.mapWith(
+					Number,
+				),
+			refunds:
+				sql`coalesce(sum(${paymentEvents.amountMinor}) filter (where ${paymentEvents.status} = 'refunded'), 0)`.mapWith(
+					Number,
+				),
+			paidOrders: sql`count(*) filter (where ${paymentEvents.status} = 'paid')`.mapWith(Number),
 		})
-		.from(orders)
-		.where(and(eq(orders.paymentStatus, "paid"), inWindow(orders.paidAt, window)))
+		.from(paymentEvents)
+		.where(
+			and(
+				inArray(paymentEvents.status, ["paid", "refunded"]),
+				inWindow(paymentEvents.occurredAt, window),
+			),
+		)
 		.groupBy(localDate);
 };
 
 const salesComparison = (sales: DailySales[], pivot: string) => {
-	const totals = { sales: { current: 0, previous: 0 }, paidOrders: { current: 0, previous: 0 } };
+	const totals = {
+		sales: { current: 0, previous: 0 },
+		refunds: { current: 0, previous: 0 },
+		paidOrders: { current: 0, previous: 0 },
+	};
 	for (const row of sales) {
 		const interval = row.date < pivot ? "previous" : "current";
 		totals.sales[interval] += row.sales;
+		totals.refunds[interval] += row.refunds;
 		totals.paidOrders[interval] += row.paidOrders;
 	}
 	return totals;
@@ -52,10 +69,10 @@ const average = (sales: Comparison, counts: Comparison) => ({
 	previous: counts.previous ? Math.round(sales.previous / counts.previous) : 0,
 });
 
-export const getAnalytics = async (range: OverviewRange, timeZone: string) => {
-	const window = reportWindow(range, timeZone);
+export const getAnalytics = async (range: OverviewRange, timeZone: string, now = new Date()) => {
+	const window = reportWindow(range, timeZone, now);
 	const [daily, [orderCounts], [customerCounts]] = await Promise.all([
-		getPaidSales(window),
+		getPaymentTotals(window),
 		db
 			.select(compareCounts(orders.createdAt, window))
 			.from(orders)
@@ -70,6 +87,11 @@ export const getAnalytics = async (range: OverviewRange, timeZone: string) => {
 	return {
 		metrics: {
 			sales: totals.sales,
+			refunds: totals.refunds,
+			net: {
+				current: totals.sales.current - totals.refunds.current,
+				previous: totals.sales.previous - totals.refunds.previous,
+			},
 			orders: orderCounts,
 			customers: customerCounts,
 			average: average(totals.sales, totals.paidOrders),

@@ -383,6 +383,23 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(retried);
 		assert.equal(await acknowledgeNotification(retried.id, retried.claimId, "sent"), true);
 		await assert.rejects(retryOrderNotification(retried.id), /Only failed/);
+
+		await importOrder({
+			...input,
+			number: "WEB-REPORT",
+			createdAt: new Date("2025-02-01T02:00:00Z"),
+			paidAt: new Date("2025-02-02T02:00:00Z"),
+		});
+		await updatePayment({
+			number: "WEB-REPORT",
+			status: "refunded",
+			refundedAt: new Date("2025-02-10T02:00:00Z"),
+		});
+		const { getAnalytics } = await import("../src/features/overview/analytics.server");
+		const { metrics } = await getAnalytics(7, "UTC", new Date("2025-02-13T12:00:00Z"));
+		assert.deepEqual(metrics.sales, { previous: 1500, current: 0 });
+		assert.deepEqual(metrics.refunds, { previous: 0, current: 1500 });
+		assert.deepEqual(metrics.net, { previous: 1500, current: -1500 });
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

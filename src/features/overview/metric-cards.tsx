@@ -15,12 +15,20 @@ const changes = new Intl.NumberFormat("en-US", {
 	signDisplay: "exceptZero",
 });
 
-const MetricChange = ({ current, previous }: Comparison) => {
+const MetricChange = ({
+	current,
+	previous,
+	lowerIsBetter = false,
+}: Comparison & { lowerIsBetter?: boolean }) => {
 	if (previous === 0) return <p className="text-xs text-muted-foreground">No prior-period data</p>;
-	const change = (current - previous) / previous;
+	const change = (current - previous) / Math.abs(previous);
 	return (
 		<p className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-			<strong className={change >= 0 ? "text-success" : "text-destructive"}>
+			<strong
+				className={
+					(lowerIsBetter ? change <= 0 : change >= 0) ? "text-success" : "text-destructive"
+				}
+			>
 				{changes.format(change)}
 			</strong>
 			<span>vs. previous period</span>
@@ -33,9 +41,10 @@ type MetricCardProps = {
 	value: string;
 	change: Comparison;
 	icon: typeof DollarCircleIcon;
+	lowerIsBetter?: boolean;
 };
 
-const MetricCard = ({ label, value, change, icon }: MetricCardProps) => (
+const MetricCard = ({ label, value, change, icon, lowerIsBetter }: MetricCardProps) => (
 	<Card size="sm" className="min-w-0 gap-1.5 p-3 sm:gap-4 sm:p-5">
 		<CardHeader className="flex flex-row items-center justify-between gap-2 px-0">
 			<h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
@@ -47,7 +56,7 @@ const MetricCard = ({ label, value, change, icon }: MetricCardProps) => (
 			<p className="font-heading text-xl font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
 				{value}
 			</p>
-			<MetricChange {...change} />
+			<MetricChange {...change} lowerIsBetter={lowerIsBetter} />
 		</CardContent>
 	</Card>
 );
@@ -57,6 +66,19 @@ const metricCards = (metrics: DashboardMetrics, currency: string): MetricCardPro
 		label: "Paid sales",
 		value: formatMoney(metrics.sales.current, currency),
 		change: metrics.sales,
+		icon: DollarCircleIcon,
+	},
+	{
+		label: "Refunds",
+		value: formatMoney(metrics.refunds.current, currency),
+		change: metrics.refunds,
+		icon: DollarCircleIcon,
+		lowerIsBetter: true,
+	},
+	{
+		label: "Net after refunds",
+		value: formatMoney(metrics.net.current, currency),
+		change: metrics.net,
 		icon: DollarCircleIcon,
 	},
 	{
@@ -86,9 +108,14 @@ export const MetricCards = ({
 	metrics: DashboardMetrics;
 	currency: string;
 }) => (
-	<div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-		{metricCards(metrics, currency).map((metric) => (
-			<MetricCard key={metric.label} {...metric} />
-		))}
+	<div className="flex flex-col gap-2">
+		<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+			{metricCards(metrics, currency).map((metric) => (
+				<MetricCard key={metric.label} {...metric} />
+			))}
+		</div>
+		<p className="text-xs text-muted-foreground">
+			Reports exclude legacy refunds with an unknown refund date.
+		</p>
 	</div>
 );
