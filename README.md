@@ -80,6 +80,8 @@ Inventory opens one replenishment alert when an active product reaches its thres
 
 Fetch fulfillment status from the storefront backend when showing an order to its buyer. The storefront authenticates the buyer and checks ownership before looking up the order number. The admin endpoint uses the integration token and returns operational status without buyer details.
 
+Send a stable `customer.externalId` for a known storefront account. The first import can link it to an existing email. Later orders follow that ID even when the buyer uses different contact details. Each order keeps its buyer snapshot. Staff can update the current profile or merge a duplicate into the confirmed profile to keep. A new storefront identity attempting to claim an email linked to a different identity returns 409 for reconciliation.
+
 Record events after the corresponding provider action. Send `source`, `method`, and a stable provider `externalId` for reconciliation. Identical retries are accepted and conflicting details return 409. Older full refunds appear in payment history with an unknown refund date.
 
 Prepaid orders need recorded payment before dispatch. Import cash-on-delivery orders with `cashOnDelivery: true` or set Payment collection before dispatch while the order is unpaid. Fully refunded orders can be cancelled or recorded as delivered if already in transit.

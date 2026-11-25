@@ -183,6 +183,13 @@
       "when": 1795647282836,
       "tag": "0025_customer_phone_search",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795647430448,
+      "tag": "0026_customer_identities",
+      "breakpoints": true
     }
   ]
 }

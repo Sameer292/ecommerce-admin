@@ -3,7 +3,7 @@ import type { customers } from "@/db/schema/customers";
 import type { customerFormSchema, customerSearchSchema } from "./customer-validation";
 
 export type Customer = typeof customers.$inferSelect;
-export type CustomerRow = Omit<Customer, "notes" | "updatedAt" | "version"> & {
+export type CustomerRow = Pick<Customer, "id" | "name" | "email" | "phone" | "createdAt"> & {
 	totalPurchasesMinor: number;
 };
 export type CustomerValues = ZOutput<typeof customerFormSchema>;

@@ -5,12 +5,17 @@ import { formDataSchema, idSchema } from "@/lib/validation";
 import { orderSearchSchema } from "@/features/orders/order-validation";
 import { listOrders } from "@/features/orders/orders.server";
 import { mutate } from "@/server/mutation.server";
-import { customerFormSchema, customerSearchSchema } from "./customer-validation";
+import {
+	customerFormSchema,
+	customerSearchSchema,
+	mergeCustomerSchema,
+} from "./customer-validation";
 import {
 	customerOrderSummary,
 	deleteCustomer,
 	findCustomer,
 	listCustomers,
+	mergeDuplicateCustomer,
 	saveCustomer,
 } from "./customers.server";
 
@@ -51,5 +56,13 @@ export const removeCustomer = createServerFn({ method: "POST" })
 			mutate(idSchema, data, ({ id }) => deleteCustomer(id), {
 				23503: "This customer has order history and must be retained.",
 			}),
+		),
+	);
+
+export const mergeCustomer = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(mergeCustomerSchema, data, (input) => mergeDuplicateCustomer(input, staff.id)),
 		),
 	);

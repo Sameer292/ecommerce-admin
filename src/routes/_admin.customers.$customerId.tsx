@@ -1,7 +1,7 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { useListReturn } from "@/components/admin/record-link";
 import { listReturnSearchSchema } from "@/lib/list-return";
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
@@ -10,6 +10,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { can } from "@/features/auth/permissions";
 import { CustomerContact } from "@/features/customers/customer-contact";
 import { CustomerForm } from "@/features/customers/customer-form";
+import { CustomerMerge } from "@/features/customers/customer-merge";
 import { CustomerSummary } from "@/features/customers/customer-summary";
 import { readCustomer, removeCustomer } from "@/features/customers/customers.functions";
 import { OrderTable } from "@/features/orders/order-table";
@@ -56,6 +57,24 @@ const CustomerPage = () => {
 	const returnHref = useListReturn("/customers");
 	const remove = useServerFn(removeCustomer);
 	const navigate = Route.useNavigate();
+	if (customer.mergedInto)
+		return (
+			<>
+				<DetailHeading
+					title="Customer merged"
+					description="The orders and storefront identities for this profile moved to another customer."
+					back="/customers"
+					backLabel="Customers"
+				/>
+				<Link
+					to="/customers/$customerId"
+					params={{ customerId: customer.mergedInto }}
+					className="w-fit font-medium underline"
+				>
+					Open the customer profile that was kept
+				</Link>
+			</>
+		);
 	return (
 		<>
 			<DetailHeading
@@ -84,6 +103,7 @@ const CustomerPage = () => {
 			<CustomerForm key={customer.id} customer={customer} editable={canEdit} />
 			<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
 			<CustomerOrders />
+			{canEdit && <CustomerMerge customer={customer} />}
 		</>
 	);
 };

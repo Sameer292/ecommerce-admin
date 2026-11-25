@@ -1,12 +1,15 @@
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import type { output as ZOutput } from "zod";
+import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
-import { customers } from "@/db/schema/customers";
+import { customerIdentities, customers } from "@/db/schema/customers";
 import { orders, paymentEvents } from "@/db/schema/orders";
 import { openOrder, recentOpenCustomerOrders } from "@/features/orders/orders.server";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
+import type { mergeCustomerSchema } from "./customer-validation";
 
 const paidOrdersTotal = db
 	.select({ customerId: orders.customerId, total: sql`sum(${orders.totalMinor})`.as("total") })
@@ -30,13 +33,14 @@ export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) 
 	const pattern = searchPattern(q);
 	const digits = /^[+0-9().\s-]+$/.test(q) ? q.replace(/[^0-9]/g, "") : "";
 	const normalizedPhone = sql`regexp_replace(${customers.phone}, '[^0-9]', '', 'g')`;
-	const where = q
+	const matching = q
 		? or(
 				ilike(customers.name, pattern),
 				ilike(customers.email, pattern),
 				digits ? ilike(normalizedPhone, searchPattern(digits)) : undefined,
 			)
 		: undefined;
+	const where = and(isNull(customers.mergedInto), matching);
 	const [rows, total] = await Promise.all([
 		db
 			.select({
@@ -103,10 +107,64 @@ export const saveCustomer = async ({ id, version, ...values }: CustomerValues) =
 	const [updated] = await db
 		.update(customers)
 		.set({ ...values, updatedAt: new Date(), version: sql`${customers.version} + 1` })
-		.where(and(eq(customers.id, id), eq(customers.version, version ?? -1)))
+		.where(
+			and(eq(customers.id, id), eq(customers.version, version ?? -1), isNull(customers.mergedInto)),
+		)
 		.returning({ id: customers.id });
 	if (!updated)
 		throw new ActionError("This customer changed or was removed. Refresh before saving.");
 };
 
-export const deleteCustomer = (id: string) => db.delete(customers).where(eq(customers.id, id));
+export const deleteCustomer = (id: string) =>
+	db.delete(customers).where(and(eq(customers.id, id), isNull(customers.mergedInto)));
+
+export const mergeDuplicateCustomer = (
+	{ id, version, targetEmail, reason }: ZOutput<typeof mergeCustomerSchema>,
+	staffId: string,
+) =>
+	inStaffAudit(staffId, async (transaction) => {
+		const [match] = await transaction
+			.select({ id: customers.id })
+			.from(customers)
+			.where(eq(customers.email, targetEmail));
+		if (!match || match.id === id)
+			throw new ActionError("Enter the email of a different customer to keep.", "targetEmail");
+		const locked = await transaction
+			.select()
+			.from(customers)
+			.where(inArray(customers.id, [id, match.id]))
+			.orderBy(customers.id)
+			.for("update");
+		const source = locked.find((entry) => entry.id === id);
+		const target = locked.find((entry) => entry.id === match.id);
+		if (!target || target.mergedInto || target.email !== targetEmail)
+			throw new ActionError(
+				"The customer to keep changed. Enter their current email.",
+				"targetEmail",
+			);
+		if (!source || source.mergedInto || source.version !== version)
+			throw new ActionError("This customer changed. Refresh before merging.");
+		await transaction
+			.update(orders)
+			.set({ customerId: target.id })
+			.where(eq(orders.customerId, id));
+		await transaction
+			.update(customerIdentities)
+			.set({ customerId: target.id })
+			.where(eq(customerIdentities.customerId, id));
+		await transaction
+			.update(customers)
+			.set({ mergedInto: target.id })
+			.where(eq(customers.mergedInto, id));
+		await transaction
+			.update(customers)
+			.set({
+				mergedInto: target.id,
+				mergedAt: sql`now()`,
+				mergedBy: staffId,
+				mergeReason: reason,
+				version: sql`${customers.version} + 1`,
+				updatedAt: sql`now()`,
+			})
+			.where(eq(customers.id, id));
+	});

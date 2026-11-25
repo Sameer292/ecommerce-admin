@@ -1,7 +1,7 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { products } from "@/db/schema/catalog";
-import { customers } from "@/db/schema/customers";
+import { customerIdentities, customers } from "@/db/schema/customers";
 import { orderItems, orders, paymentEvents } from "@/db/schema/orders";
 import { maxMinorAmount } from "@/lib/money";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
@@ -18,13 +18,72 @@ const totals = ({ items, shippingMinor, taxMinor, discountMinor }: ImportOrder) 
 	return { totalMinor, subtotalMinor, shippingMinor, taxMinor, discountMinor };
 };
 
-const claimCustomer = async (transaction: Transaction, customer: ImportOrder["customer"]) => {
-	const [entry] = await transaction
+const lockPrimaryCustomer = async (transaction: Transaction, id: string) => {
+	while (true) {
+		const [active] = await transaction
+			.select({ id: customers.id })
+			.from(customers)
+			.where(and(eq(customers.id, id), isNull(customers.mergedInto)))
+			.for("update");
+		if (active) return active.id;
+		const [merged] = await transaction
+			.select({ target: customers.mergedInto })
+			.from(customers)
+			.where(eq(customers.id, id));
+		if (!merged)
+			throw new IntegrationError(409, "The customer changed during import. Retry the request.");
+		if (merged.target) id = merged.target;
+	}
+};
+
+const claimCustomer = async (
+	transaction: Transaction,
+	{ externalId, ...customer }: ImportOrder["customer"],
+) => {
+	if (externalId) {
+		const [linked] = await transaction
+			.select({ id: customerIdentities.customerId })
+			.from(customerIdentities)
+			.where(eq(customerIdentities.externalId, externalId));
+		if (linked) return lockPrimaryCustomer(transaction, linked.id);
+	}
+	const [inserted] = await transaction
 		.insert(customers)
 		.values(customer)
-		.onConflictDoUpdate({ target: customers.email, set: { email: customer.email } })
+		.onConflictDoNothing({ target: customers.email })
 		.returning({ id: customers.id });
-	return entry.id;
+	const [matched] = inserted
+		? [inserted]
+		: await transaction
+				.select({ id: customers.id })
+				.from(customers)
+				.where(eq(customers.email, customer.email));
+	if (!matched)
+		throw new IntegrationError(409, "The customer changed during import. Retry the request.");
+	const customerId = await lockPrimaryCustomer(transaction, matched.id);
+	if (!externalId) return customerId;
+	const [currentIdentity] = await transaction
+		.select({ id: customerIdentities.externalId })
+		.from(customerIdentities)
+		.where(eq(customerIdentities.customerId, customerId))
+		.limit(1);
+	if (currentIdentity?.id === externalId) return customerId;
+	if (currentIdentity)
+		throw new IntegrationError(
+			409,
+			"This email is linked to a different storefront identity. Reconcile the customer first.",
+		);
+	const [identity] = await transaction
+		.insert(customerIdentities)
+		.values({ externalId, customerId })
+		.onConflictDoNothing()
+		.returning({ id: customerIdentities.externalId });
+	if (!identity)
+		throw new IntegrationError(
+			409,
+			"The customer identity changed during import. Retry the request.",
+		);
+	return customerId;
 };
 
 const saveItems = async (

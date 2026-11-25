@@ -608,6 +608,63 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(emptySummary.count, 0);
 		assert.equal(emptySummary.first, null);
 		assert.equal(emptySummary.average, null);
+
+		const primary = {
+			name: "Primary account",
+			email: "primary-identity@example.test",
+			phone: "",
+			externalId: "store-account-1",
+		};
+		const duplicate = {
+			name: "Duplicate account",
+			email: "duplicate-identity@example.test",
+			phone: "",
+			externalId: "store-account-2",
+		};
+		const firstOrder = await importOrder({ ...input, number: "IDENTITY-1", customer: primary });
+		const nextOrder = await importOrder({
+			...input,
+			number: "IDENTITY-2",
+			customer: { ...primary, email: "new-buyer-email@example.test" },
+		});
+		await assert.rejects(
+			importOrder({
+				...input,
+				number: "IDENTITY-CONFLICT",
+				customer: { ...primary, externalId: "different-account" },
+			}),
+			{ status: 409 },
+		);
+		const duplicateOrder = await importOrder({
+			...input,
+			number: "IDENTITY-3",
+			customer: duplicate,
+		});
+		const ordersByIdentity =
+			await connection`select id, customer_id, buyer_email from commerce_admin.orders where id in (${firstOrder.id}, ${nextOrder.id}, ${duplicateOrder.id})`;
+		const firstIdentity = ordersByIdentity.find(({ id }) => id === firstOrder.id);
+		const nextIdentity = ordersByIdentity.find(({ id }) => id === nextOrder.id);
+		const source = ordersByIdentity.find(({ id }) => id === duplicateOrder.id);
+		assert.ok(firstIdentity && nextIdentity && source);
+		assert.equal(firstIdentity.customer_id, nextIdentity.customer_id);
+		assert.equal(nextIdentity.buyer_email, "new-buyer-email@example.test");
+		const { mergeDuplicateCustomer } = await import("../src/features/customers/customers.server");
+		await mergeDuplicateCustomer(
+			{
+				id: source.customer_id,
+				targetEmail: primary.email,
+				version: 0,
+				reason: "Matched customer profiles",
+				confirm: "on",
+			},
+			"stock-operator",
+		);
+		const afterMerge = await importOrder({ ...input, number: "IDENTITY-4", customer: duplicate });
+		const relinked =
+			await connection`select customer_id from commerce_admin.orders where id in (${duplicateOrder.id}, ${afterMerge.id})`;
+		assert.equal(relinked.length, 2);
+		assert.ok(relinked.every(({ customer_id }) => customer_id === firstIdentity.customer_id));
+		assert.equal((await listCustomers({ page: 1, q: duplicate.email })).total, 0);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
