@@ -1,7 +1,5 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
-import { NewRecord } from "@/components/admin/new-record";
 import { PageHeading } from "@/components/admin/page-heading";
-import { can } from "@/features/auth/permissions";
 import { MetricCards } from "@/features/overview/metric-cards";
 import { RecentOrders, StockWatch } from "@/features/overview/overview-panels";
 import { defaultRange, overviewSearchSchema } from "@/features/overview/overview-validation";
@@ -9,9 +7,9 @@ import { readOverview } from "@/features/overview/overview.functions";
 import { RangeSelect } from "@/features/overview/range-select";
 import { ReportPeriod } from "@/features/overview/report-period";
 import { RevenueChart } from "@/features/overview/revenue-chart";
+import { WorkQueue } from "@/features/overview/work-queue";
 
 const OverviewHeading = () => {
-	const { staff } = Route.useRouteContext();
 	const search = Route.useSearch();
 	const { window } = Route.useLoaderData();
 	const navigate = Route.useNavigate();
@@ -24,18 +22,18 @@ const OverviewHeading = () => {
 					window={window}
 					onChange={(search) => navigate({ search })}
 				/>
-				{can(staff.role, "manageCommerce") && <NewRecord to="/products/new" label="Add product" />}
 			</div>
 		</PageHeading>
 	);
 };
 
 const OverviewPage = () => {
-	const { metrics, trend, orders, stock, window } = Route.useLoaderData();
+	const { metrics, trend, orders, stock, window, work } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
 	return (
 		<>
 			<OverviewHeading />
+			<WorkQueue counts={work} />
 			<ReportPeriod window={window} />
 			<MetricCards metrics={metrics} currency={store.currency} />
 			<div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]">

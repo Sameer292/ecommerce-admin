@@ -28,6 +28,7 @@ import { Route as AdminInventoryProductIdRouteImport } from './routes/_admin.inv
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/_admin.orders.$orderId'
 import { Route as AdminOrdersPrintRouteImport } from './routes/_admin.orders.print'
+import { Route as AdminOrdersSynchronizationRouteImport } from './routes/_admin.orders.synchronization'
 import { Route as AdminProductsIndexRouteImport } from './routes/_admin.products.index'
 import { Route as AdminProductsProductIdRouteImport } from './routes/_admin.products.$productId'
 import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.new'
@@ -135,6 +136,12 @@ const AdminOrdersPrintRoute = AdminOrdersPrintRouteImport.update({
   path: '/orders/print',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOrdersSynchronizationRoute =
+  AdminOrdersSynchronizationRouteImport.update({
+    id: '/orders/synchronization',
+    path: '/orders/synchronization',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
+  '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
   '/products/$productId': typeof AdminProductsProductIdRoute
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
+  '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
   '/products/$productId': typeof AdminProductsProductIdRoute
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   '/_admin/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/_admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/_admin/orders/print': typeof AdminOrdersPrintRoute
+  '/_admin/orders/synchronization': typeof AdminOrdersSynchronizationRoute
   '/_admin/products/$productId': typeof AdminProductsProductIdRoute
   '/_admin/products/new': typeof AdminProductsNewRoute
   '/_admin/team/$staffId': typeof AdminTeamStaffIdRoute
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/inventory/$productId'
     | '/orders/$orderId'
     | '/orders/print'
+    | '/orders/synchronization'
     | '/products/$productId'
     | '/products/new'
     | '/team/$staffId'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/inventory/$productId'
     | '/orders/$orderId'
     | '/orders/print'
+    | '/orders/synchronization'
     | '/products/$productId'
     | '/products/new'
     | '/team/$staffId'
@@ -354,6 +366,7 @@ export interface FileRouteTypes {
     | '/_admin/inventory/$productId'
     | '/_admin/orders/$orderId'
     | '/_admin/orders/print'
+    | '/_admin/orders/synchronization'
     | '/_admin/products/$productId'
     | '/_admin/products/new'
     | '/_admin/team/$staffId'
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersPrintRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/orders/synchronization': {
+      id: '/_admin/orders/synchronization'
+      path: '/orders/synchronization'
+      fullPath: '/orders/synchronization'
+      preLoaderRoute: typeof AdminOrdersSynchronizationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/products/': {
       id: '/_admin/products/'
       path: '/products'
@@ -617,6 +637,7 @@ interface AdminRouteChildren {
   AdminInventoryProductIdRoute: typeof AdminInventoryProductIdRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminOrdersPrintRoute: typeof AdminOrdersPrintRoute
+  AdminOrdersSynchronizationRoute: typeof AdminOrdersSynchronizationRoute
   AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
   AdminProductsNewRoute: typeof AdminProductsNewRoute
   AdminCategoriesIndexRoute: typeof AdminCategoriesIndexRoute
@@ -639,6 +660,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInventoryProductIdRoute: AdminInventoryProductIdRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminOrdersPrintRoute: AdminOrdersPrintRoute,
+  AdminOrdersSynchronizationRoute: AdminOrdersSynchronizationRoute,
   AdminProductsProductIdRoute: AdminProductsProductIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,
   AdminCategoriesIndexRoute: AdminCategoriesIndexRoute,

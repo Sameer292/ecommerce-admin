@@ -402,6 +402,43 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.deepEqual(metrics.average, { previous: 1500, current: 0 });
 		assert.deepEqual(metrics.refunds, { previous: 0, current: 1500 });
 		assert.deepEqual(metrics.net, { previous: 1500, current: -1500 });
+
+		const { orderWorkCounts } = await import("../src/features/orders/orders.server");
+		const work = await orderWorkCounts();
+		assert.equal(
+			work.fulfillment,
+			(await listOrders({ page: 1, q: "", view: "to_fulfill" })).total,
+		);
+		assert.equal(
+			work.overdue,
+			(await listOrders({ page: 1, q: "", view: "overdue_unpaid" })).total,
+		);
+		assert.equal(
+			work.tracking,
+			(await listOrders({ page: 1, q: "", shipping: "missing_tracking" })).total,
+		);
+		assert.equal(work.returns, (await listOrders({ page: 1, q: "", view: "open_returns" })).total);
+		assert.ok(work.overdue > 0);
+
+		const { countOrderSyncFailures, listOrderSyncFailures, trackOrderSync } = await import(
+			"../src/features/store-integration/order-sync.server"
+		);
+		const { IntegrationError } = await import(
+			"../src/features/store-integration/integration-request.server"
+		);
+		await assert.rejects(
+			trackOrderSync("WEB-REPORT", "payment", async () => {
+				throw new IntegrationError(409, "Test conflict");
+			}),
+			{ status: 409 },
+		);
+		assert.equal(await countOrderSyncFailures(), 1);
+		const failures = await listOrderSyncFailures(1);
+		assert.equal(failures.total, 1);
+		assert.equal(failures.rows[0].status, 409);
+		assert.ok(failures.rows[0].orderId);
+		await trackOrderSync("WEB-REPORT", "payment", async () => new Response(null, { status: 200 }));
+		assert.equal(await countOrderSyncFailures(), 0);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

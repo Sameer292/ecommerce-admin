@@ -23,3 +23,12 @@ test("exports the applied custom sales range to signed-in staff", async ({ page 
 		"current,2025-02-02",
 	]);
 });
+
+test("opens the dashboard work queues with their filters applied", async ({ page }) => {
+	await signIn(page, "/", "VIEWER");
+	await page.getByRole("link", { name: /Ready for fulfillment/ }).click();
+	await expect(page).toHaveURL(/\/orders\?view=to_fulfill/);
+	await page.goto("/");
+	await page.getByRole("link", { name: /Synchronization failures/ }).click();
+	await expect(page.getByRole("heading", { name: "Synchronization failures" })).toBeVisible();
+});

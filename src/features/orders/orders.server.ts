@@ -1,9 +1,24 @@
-import { and, desc, eq, gte, ilike, inArray, lt, lte, or, sql, type SQL } from "drizzle-orm";
+import {
+	and,
+	desc,
+	eq,
+	exists,
+	gte,
+	ilike,
+	inArray,
+	lt,
+	lte,
+	ne,
+	notExists,
+	or,
+	sql,
+	type SQL,
+} from "drizzle-orm";
 import { union } from "drizzle-orm/pg-core";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
-import { orders } from "@/db/schema/orders";
+import { orderReturns, orders, orderShipments } from "@/db/schema/orders";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import type { OrderSearch } from "./order.types";
 
@@ -35,20 +50,66 @@ export const recentOrders = () =>
 	orderRows().orderBy(desc(orders.createdAt), desc(orders.id)).limit(5);
 
 const awaitingDispatch = inArray(orders.status, ["pending", "processing"]);
+const orderPackages = db.select({ id: orderShipments.id }).from(orderShipments);
+const missingTracking = or(
+	and(
+		inArray(orders.status, ["shipped", "delivered"]),
+		eq(orders.trackingNumber, ""),
+		notExists(orderPackages.where(eq(orderShipments.orderId, orders.id))),
+	),
+	exists(
+		db
+			.select({ id: orderShipments.id })
+			.from(orderShipments)
+			.where(
+				and(
+					eq(orderShipments.orderId, orders.id),
+					eq(orderShipments.trackingNumber, ""),
+					eq(orderShipments.trackingUrl, ""),
+				),
+			),
+	),
+);
 const shippingFilters = {
 	awaiting_dispatch: awaitingDispatch,
 	in_transit: eq(orders.status, "shipped"),
 	delivered: eq(orders.status, "delivered"),
-	missing_tracking: and(eq(orders.status, "shipped"), eq(orders.trackingNumber, "")),
+	missing_tracking: missingTracking,
 };
 const viewFilters = {
 	paid_to_fulfill: and(eq(orders.paymentStatus, "paid"), awaitingDispatch),
+	to_fulfill: and(
+		awaitingDispatch,
+		ne(orders.paymentStatus, "refunded"),
+		or(eq(orders.paymentStatus, "paid"), eq(orders.cashOnDelivery, true)),
+	),
+	open_returns: exists(
+		db
+			.select({ id: orderReturns.id })
+			.from(orderReturns)
+			.where(
+				and(
+					eq(orderReturns.orderId, orders.id),
+					inArray(orderReturns.status, ["requested", "approved", "received"]),
+				),
+			),
+	),
 	overdue_unpaid: and(
 		eq(orders.paymentStatus, "pending"),
 		eq(orders.cashOnDelivery, false),
 		awaitingDispatch,
 		lt(orders.createdAt, sql`now() - interval '48 hours'`),
 	),
+};
+
+export const orderWorkCounts = async () => {
+	const [fulfillment, overdue, tracking, returns] = await Promise.all([
+		db.$count(orders, viewFilters.to_fulfill),
+		db.$count(orders, viewFilters.overdue_unpaid),
+		db.$count(orders, shippingFilters.missing_tracking),
+		db.$count(orders, viewFilters.open_returns),
+	]);
+	return { fulfillment, overdue, tracking, returns };
 };
 
 const orderFilter = (search: OrderSearch, customerId: string | undefined, timeZone: string) => {

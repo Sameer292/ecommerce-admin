@@ -18,7 +18,12 @@ export const shippingStates = [
 	"delivered",
 	"missing_tracking",
 ] as const;
-export const orderViews = ["paid_to_fulfill", "overdue_unpaid"] as const;
+export const orderViews = [
+	"paid_to_fulfill",
+	"overdue_unpaid",
+	"to_fulfill",
+	"open_returns",
+] as const;
 const dateBound = ZIso.date().optional().catch(undefined);
 const amountBound = ZInt().min(0).max(maxMinorAmount).optional().catch(undefined);
 

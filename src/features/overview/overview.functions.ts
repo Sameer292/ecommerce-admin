@@ -4,8 +4,9 @@ import { db } from "@/db/client.server";
 import { products } from "@/db/schema/catalog";
 import { requireStaff } from "@/features/auth/session.server";
 import { lowStock } from "@/features/catalog/products.server";
-import { recentOrders } from "@/features/orders/orders.server";
+import { orderWorkCounts, recentOrders } from "@/features/orders/orders.server";
 import { getStoreSettings } from "@/features/settings/settings.server";
+import { countOrderSyncFailures } from "@/features/store-integration/order-sync.server";
 import { getAnalytics } from "./analytics.server";
 import { overviewSearchSchema, resolveReportRange } from "./overview-validation";
 
@@ -28,10 +29,12 @@ export const readOverview = createServerFn()
 	.handler(async ({ data }) => {
 		await requireStaff();
 		const { timeZone } = await getStoreSettings();
-		const [analytics, orders, stock] = await Promise.all([
+		const [analytics, orders, stock, work, syncFailures] = await Promise.all([
 			getAnalytics(resolveReportRange(data), timeZone),
 			recentOrders(),
 			watchStock(),
+			orderWorkCounts(),
+			countOrderSyncFailures(),
 		]);
 		return {
 			metrics: analytics.metrics,
@@ -39,5 +42,6 @@ export const readOverview = createServerFn()
 			window: analytics.window,
 			orders,
 			stock,
+			work: { ...work, syncFailures },
 		};
 	});
