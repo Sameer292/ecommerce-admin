@@ -114,6 +114,8 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 		<AdminForm
 			onSave={editable ? (data) => save({ data }) : undefined}
 			onSuccess={() => navigate({ href: returnHref })}
+			cancelHref={returnHref}
+			stickyActions
 			submitLabel={product ? "Save product" : "Create product"}
 			successMessage={product ? "Product saved." : "Product created."}
 		>

@@ -51,6 +51,7 @@ export const CustomerForm = ({
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
+				cancelHref={returnHref}
 				submitLabel={customer ? "Save customer" : "Create customer"}
 				successMessage={customer ? "Customer saved." : "Customer created."}
 			>

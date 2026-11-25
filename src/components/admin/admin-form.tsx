@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useHydrated } from "@tanstack/react-router";
+import { Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FieldError, FieldSet } from "@/components/ui/field";
 import { useToastManager } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
 import type { MutationFailure, MutationResult } from "@/server/mutation.types";
 import { FieldValidation, ReadOnlyFields } from "./form-fields";
 import { useUnsavedChanges } from "./unsaved-changes";
@@ -15,6 +16,8 @@ type FormProps = {
 	onSuccess?: () => unknown;
 	submitLabel?: string;
 	successMessage?: string;
+	cancelHref?: string;
+	stickyActions?: boolean;
 	destructive?: boolean;
 };
 
@@ -67,6 +70,8 @@ export const AdminForm = ({
 	onSuccess,
 	submitLabel = "Save changes",
 	successMessage,
+	cancelHref,
+	stickyActions,
 	destructive,
 }: FormProps) => {
 	const { failure, pending, submit } = useSubmitForm({ onSave, onSuccess, successMessage });
@@ -88,7 +93,22 @@ export const AdminForm = ({
 				<FieldValidation value={failure?.fieldErrors}>{children}</FieldValidation>
 			</FieldSet>
 			{failure && <FieldError>{failure.error}</FieldError>}
-			<div className="flex justify-end">
+			<div
+				className={cn(
+					"flex flex-wrap items-center justify-end gap-2",
+					stickyActions &&
+						"sticky bottom-0 z-20 border-t bg-background p-2 sm:static sm:border-0 sm:bg-transparent sm:p-0",
+				)}
+			>
+				{cancelHref && (
+					<Link
+						to={cancelHref}
+						href={cancelHref}
+						className={buttonVariants({ variant: "outline", size: "lg" })}
+					>
+						Cancel
+					</Link>
+				)}
 				<Button
 					type="submit"
 					size="lg"

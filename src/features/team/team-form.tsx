@@ -62,6 +62,7 @@ export const NewStaffForm = () => {
 				<AdminForm
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
+					cancelHref={returnHref}
 					submitLabel="Create account"
 					successMessage="Staff account created."
 				>
@@ -104,6 +105,7 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 				<AdminForm
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
+					cancelHref={returnHref}
 					successMessage="Staff access saved."
 				>
 					<EditableAccess account={account} version={version} />
