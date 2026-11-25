@@ -24,12 +24,17 @@ export const stockAdjustments = commerce.table(
 		delta: integer().notNull(),
 		reason: text().notNull(),
 		reference: text(),
+		kind: text(),
+		quantity: integer(),
 		before: jsonb("before_levels").$type<StockLevels>(),
 		after: jsonb("after_levels").$type<StockLevels>(),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
 		index().on(table.productId, table.createdAt, table.id),
-		check("stock_adjustments_nonzero", sql`${table.delta} <> 0`),
+		check(
+			"stock_adjustments_nonzero_or_typed",
+			sql`${table.delta} <> 0 OR ${table.kind} IS NOT NULL`,
+		),
 	],
 );

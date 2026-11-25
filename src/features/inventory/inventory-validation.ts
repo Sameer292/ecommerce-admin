@@ -8,6 +8,7 @@ import {
 import { productStatuses, stockFilters } from "@/features/catalog/catalog-options";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
+import { adjustmentKinds } from "./stock-adjustment";
 
 export const inventorySearchSchema = pageSearchSchema.extend({
 	sort: sortSchema("name", "sku", "threshold", "stock"),
@@ -18,18 +19,25 @@ export const inventorySearchSchema = pageSearchSchema.extend({
 export const adjustmentSchema = ZObject({
 	id: ZUuid(),
 	productId: ZUuid(),
-	delta: ZString()
-		.regex(/^-?\d+$/, "Enter a whole-number adjustment.")
+	kind: ZEnum(adjustmentKinds),
+	quantity: ZString()
+		.regex(/^-?\d+$/, "Enter a whole number.")
 		.transform(Number)
-		.pipe(ZInt().min(-1_000_000).max(1_000_000))
-		.refine((value) => value !== 0, "Enter an adjustment other than zero."),
+		.pipe(ZInt().min(-1_000_000).max(2_147_483_647)),
+	base: ZString().max(50),
 	reason: ZString().trim().min(1, "Enter a reason for the adjustment.").max(500),
 	reference: ZString()
 		.trim()
 		.max(120)
 		.transform((value) => value || undefined)
 		.optional(),
-});
+}).refine(
+	({ kind, quantity }) =>
+		kind === "correction"
+			? quantity !== 0 && quantity <= 1_000_000
+			: quantity >= (kind === "receiving" ? 1 : 0),
+	{ path: ["quantity"], message: "Enter a quantity allowed for this adjustment." },
+);
 
 export const stockHistorySearchSchema = pageSearchSchema.pick({ page: true }).extend({
 	sort: sortSchema("date", "staff", "change"),

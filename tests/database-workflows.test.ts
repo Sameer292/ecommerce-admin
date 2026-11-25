@@ -468,6 +468,33 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			connection`update commerce_admin.products set damaged_stock = 4 where sku = 'COUNTED-TEST'`,
 			{ code: "23514" },
 		);
+		const { adjustStockManually } = await import("../src/features/inventory/inventory.server");
+		const count = {
+			id: crypto.randomUUID(),
+			productId: available.rows[0].id,
+			kind: "stocktake",
+			quantity: 9,
+			base: "10:7:8:1",
+			reason: "Cycle count",
+			reference: "COUNT-1",
+			staffId: "stock-operator",
+		} as const;
+		await Promise.all([adjustStockManually(count), adjustStockManually(count)]);
+		await assert.rejects(
+			adjustStockManually({ ...count, id: crypto.randomUUID(), quantity: 8 }),
+			/Stock changed/,
+		);
+		await adjustStockManually({
+			...count,
+			id: crypto.randomUUID(),
+			kind: "receiving",
+			quantity: 3,
+			base: "9:7:8:1",
+		});
+		const [levels] =
+			await connection`select stock, incoming_stock from commerce_admin.products where id = ${count.productId}`;
+		assert.equal(levels.stock, 12);
+		assert.equal(levels.incoming_stock, 5);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
