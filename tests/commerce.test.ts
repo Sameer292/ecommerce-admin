@@ -3,6 +3,13 @@ import { test } from "node:test";
 import { canTransitionOrder } from "../src/features/orders/order-options";
 import { buildTrend, reportWindow } from "../src/features/overview/report-dates";
 import { importOrderSchema } from "../src/features/store-integration/integration-validation";
+import { formatDateTime } from "../src/lib/format";
+
+test("operational timestamps display the local reporting time across midnight", () => {
+	const date = new Date("2026-06-01T21:30:00Z");
+	assert.match(formatDateTime(date, "Asia/Kathmandu"), /Jun 2, 2026.*3:15 AM/);
+	assert.match(formatDateTime(date, "UTC"), /Jun 1, 2026.*9:30 PM/);
+});
 
 test("fulfillment permits forward progress and rejects jumps and reopening", () => {
 	assert.ok(canTransitionOrder("pending", "processing"));

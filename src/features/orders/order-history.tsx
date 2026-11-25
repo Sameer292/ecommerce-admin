@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
 import { PageControls } from "@/components/admin/page-controls";
-import { formatCount, formatDate, formatMoney } from "@/lib/format";
+import { formatCount, formatDateTime, formatMoney } from "@/lib/format";
 import { orderStatusLabels } from "./order-options";
 import type { OrderActivity, OrderItem } from "./order.types";
 
@@ -39,10 +39,12 @@ const itemColumns = (currency: string): Column<OrderItem>[] => [
 
 const activityColumns = (zone: string): Column<OrderActivity>[] => [
 	{
-		label: "Date",
+		label: "Date and time",
 		sort: "date.desc",
 		compact: true,
-		cell: (row) => formatDate(row.createdAt, zone),
+		cell: (row) => (
+			<time dateTime={row.createdAt.toISOString()}>{formatDateTime(row.createdAt, zone)}</time>
+		),
 	},
 	{ label: "Previous status", compact: true, cell: (row) => orderStatusLabels[row.previousStatus] },
 	{ label: "New status", compact: true, cell: (row) => orderStatusLabels[row.status] },
@@ -90,6 +92,7 @@ export const OrderHistory = ({
 		<h2 className="font-heading text-xl font-semibold" id="order-activity-title">
 			Status activity
 		</h2>
+		<p className="text-sm text-muted-foreground">Times shown in {zone}.</p>
 		<DataTable
 			sorting={sorting}
 			rows={rows}

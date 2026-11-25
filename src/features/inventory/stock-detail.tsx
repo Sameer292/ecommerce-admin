@@ -8,7 +8,7 @@ import type { Column, ListPage, TableSorting } from "@/components/admin/list.typ
 import { PageControls } from "@/components/admin/page-controls";
 import type { Product } from "@/features/catalog/catalog.types";
 import { StockStatus } from "@/features/catalog/product-labels";
-import { formatCount, formatDate } from "@/lib/format";
+import { formatCount, formatDateTime } from "@/lib/format";
 import { writeStock } from "./inventory.functions";
 import type { StockHistoryRow } from "./inventory.types";
 
@@ -67,10 +67,12 @@ export const AdjustStockForm = (props: AdjustmentFormProps) => {
 
 const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 	{
-		label: "Date",
+		label: "Date and time",
 		sort: "date.desc",
 		compact: true,
-		cell: (row) => formatDate(row.createdAt, zone),
+		cell: (row) => (
+			<time dateTime={row.createdAt.toISOString()}>{formatDateTime(row.createdAt, zone)}</time>
+		),
 	},
 	{
 		label: "Change",
@@ -103,6 +105,7 @@ export const StockHistory = ({
 		<h2 id="stock-history" className="font-heading text-xl font-semibold">
 			Adjustment history
 		</h2>
+		<p className="text-sm text-muted-foreground">Times shown in {zone}.</p>
 		<DataTable
 			rows={rows}
 			columns={stockColumns(zone)}

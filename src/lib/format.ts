@@ -3,6 +3,11 @@ export const formatCount = (amount: number) => new Intl.NumberFormat("en-US").fo
 export const formatDate = (date: Date, timeZone: string) =>
 	new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone }).format(date);
 
+export const formatDateTime = (date: Date, timeZone: string) =>
+	new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone }).format(
+		date,
+	);
+
 const currencyFormatter = (currency: string) =>
 	new Intl.NumberFormat("en-US", { style: "currency", currency });
 
