@@ -32,12 +32,14 @@ const TableEmpty = ({
 	title,
 	description,
 	action,
+	compact,
 }: {
 	title: string;
 	description?: string;
 	action?: ReactNode;
+	compact?: boolean;
 }) => (
-	<Empty className="py-11">
+	<Empty className={compact ? "py-3 text-left items-start" : "py-11"}>
 		<EmptyHeader>
 			<EmptyTitle>{title}</EmptyTitle>
 			{description && <EmptyDescription>{description}</EmptyDescription>}
@@ -100,13 +102,19 @@ export const DataTable = <Row extends { id: string }>({
 	empty,
 	emptyDescription,
 	emptyAction,
+	compactEmpty,
 	...table
 }: DataTableProps<Row>) => (
 	<div className="min-w-0 overflow-hidden rounded-xl border bg-card">
 		{table.rows.length > 0 ? (
 			<TableContents {...table} />
 		) : (
-			<TableEmpty title={empty} description={emptyDescription} action={emptyAction} />
+			<TableEmpty
+				title={empty}
+				description={emptyDescription}
+				action={emptyAction}
+				compact={compactEmpty}
+			/>
 		)}
 	</div>
 );

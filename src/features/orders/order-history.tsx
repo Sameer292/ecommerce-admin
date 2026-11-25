@@ -96,6 +96,7 @@ export const OrderHistory = ({
 			columns={activityColumns(zone)}
 			label="Status activity"
 			empty="No status changes yet"
+			compactEmpty
 		/>
 		<PageControls total={total} page={page} onPage={onPage} />
 	</section>
