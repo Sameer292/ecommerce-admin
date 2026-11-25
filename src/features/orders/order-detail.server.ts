@@ -3,7 +3,13 @@ import { inStaffAudit, setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
-import { orderEvents, orderItems, orders, paymentEvents } from "@/db/schema/orders";
+import {
+	orderEvents,
+	orderItems,
+	orderNotifications,
+	orders,
+	paymentEvents,
+} from "@/db/schema/orders";
 import { pageOffset, pageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
@@ -212,6 +218,13 @@ export const saveOrder = (
 				status: values.status,
 				fields,
 				reason: deliveryChanged ? deliveryReason : undefined,
+			});
+		}
+		if (values.status !== current.status && ["shipped", "cancelled"].includes(values.status)) {
+			await transaction.insert(orderNotifications).values({
+				orderId: id,
+				kind: values.status === "shipped" ? "shipping" : "cancellation",
+				payload: values.status === "shipped" ? { trackingNumber: values.trackingNumber } : {},
 			});
 		}
 	});

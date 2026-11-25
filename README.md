@@ -50,6 +50,8 @@ The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separa
 | `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, the first tracking number, an ISO update timestamp, and packages with carrier, service, tracking, and dispatch time. Returns 404 until the order is imported. |
 | `POST /api/store/orders` | Imports an order snapshot, creates or links its customer by email, and returns the order ID. An identical retry returns the existing ID. A different payload for the same order number returns HTTP 409. |
 | `PATCH /api/store/orders` | Records a payment event for the order `number`. Send `paid` with `paidAt`, `refunded` with optional `refundedAt`, or `failed` with `failedAt`, `externalId`, and `amountMinor`. |
+| `POST /api/store/notifications` | Claims one queued shipping, cancellation, or refund notification for up to five minutes. HTTP 204 means there is no work. |
+| `PATCH /api/store/notifications` | Accepts `{ "id": "…", "claimId": "…", "status": "sent" }` or `"failed"`. Returns 204 for an accepted acknowledgement and 409 for a stale claim. |
 
 Example order import body
 
@@ -79,6 +81,8 @@ Managers can correct the recipient or shipping address while an order is pending
 Record each package from the Shipments section while an order is processing. Enter the carrier and the units included. Once all lines are dispatched, the order moves to Shipped. The original tracking field remains available for earlier orders. Select up to 25 records in Orders to print packing slips or invoices in one batch, or move eligible pending orders to Processing.
 
 A return moves from requested to approved and received. Staff can restock sellable units when receiving the return. Record the provider refund through the payment endpoint. Send the amount in `amountMinor` and a stable `externalId` for partial refunds. For a return refund, also send its `returnId`. An omitted refund amount records the remaining paid balance. The response includes `paymentStatus`, which remains paid until the entire balance is refunded.
+
+The storefront owns sending customer messages. Its background worker should poll the notification endpoint, look up the buyer by the returned order `number`, and use the job `id` as a durable idempotency key when sending. The job carries `kind`, `payload`, `claimId`, and `leaseUntil`. Acknowledge delivery before the lease expires. An expired claim becomes eligible for another worker, so keep the same send key across attempts even if acknowledgement is interrupted. Route shipping, cancellation, and refund messages for these events through this worker once enabled to avoid duplicate messages. Managers can see delivery status and retry failed jobs from the order page. The queue starts with new events after deployment.
 
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 

@@ -4,6 +4,7 @@ import {
 	check,
 	index,
 	integer,
+	jsonb,
 	primaryKey,
 	text,
 	timestamp,
@@ -203,5 +204,46 @@ export const shipmentItems = commerce.table(
 		primaryKey({ columns: [table.shipmentId, table.itemId] }),
 		index().on(table.itemId),
 		check("shipment_items_positive_quantity", sql`${table.quantity} > 0`),
+	],
+);
+
+export const notificationStatus = commerce.enum("notification_status", [
+	"pending",
+	"sending",
+	"sent",
+	"failed",
+]);
+export const notificationKind = commerce.enum("notification_kind", [
+	"shipping",
+	"cancellation",
+	"refund",
+]);
+
+export const orderNotifications = commerce.table(
+	"order_notifications",
+	{
+		id: uuid().defaultRandom().primaryKey(),
+		orderId: uuid("order_id")
+			.notNull()
+			.references(() => orders.id, { onDelete: "restrict" }),
+		kind: notificationKind().notNull(),
+		payload: jsonb()
+			.$type<{
+				carrier?: string;
+				trackingNumber?: string;
+				trackingUrl?: string;
+				amountMinor?: number;
+			}>()
+			.notNull(),
+		status: notificationStatus().notNull().default("pending"),
+		claimId: uuid("claim_id"),
+		leaseUntil: timestamp("lease_until", { withTimezone: true }),
+		attempts: integer().notNull().default(0),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [
+		index().on(table.orderId, table.createdAt),
+		index().on(table.status, table.createdAt),
 	],
 );

@@ -1,7 +1,14 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
-import { orderEvents, orderItems, orders, orderShipments, shipmentItems } from "@/db/schema/orders";
+import {
+	orderEvents,
+	orderItems,
+	orderNotifications,
+	orders,
+	orderShipments,
+	shipmentItems,
+} from "@/db/schema/orders";
 import { ActionError } from "@/server/mutation.server";
 import { fulfillmentPaymentProblem } from "./order-options";
 import type { ShipmentValues } from "./shipment-validation";
@@ -121,6 +128,16 @@ export const saveShipment = ({ version, lines, ...shipment }: ShipmentValues, st
 
 		await setAuditActor(transaction, staffId);
 		await transaction.insert(orderShipments).values({ ...shipment, staffId });
+		await transaction.insert(orderNotifications).values({
+			id: shipment.id,
+			orderId: order.id,
+			kind: "shipping",
+			payload: {
+				carrier: shipment.carrier,
+				trackingNumber: shipment.trackingNumber,
+				trackingUrl: shipment.trackingUrl,
+			},
+		});
 		await transaction
 			.insert(shipmentItems)
 			.values(lines.map((line) => ({ ...line, shipmentId: shipment.id })));

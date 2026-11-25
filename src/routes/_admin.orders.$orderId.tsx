@@ -6,6 +6,7 @@ import { can } from "@/features/auth/permissions";
 import { FulfillmentForm } from "@/features/orders/order-forms";
 import { OrderHistory, OrderLines, PaymentHistory } from "@/features/orders/order-history";
 import { OrderStatusBadge } from "@/features/orders/order-labels";
+import { OrderNotifications } from "@/features/orders/order-notifications";
 import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
@@ -62,7 +63,7 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order, payments, shipping, shipmentId, returns, returnId, refundedMinor } =
+	const { order, payments, shipping, shipmentId, returns, returnId, refundedMinor, notifications } =
 		Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
 	const search = Route.useSearch();
@@ -114,6 +115,7 @@ const OrderPage = () => {
 				}
 			/>
 			<OrderActivityTable />
+			<OrderNotifications notifications={notifications} editable={editable} zone={store.timeZone} />
 			<PaymentHistory
 				{...payments}
 				page={search.payments}

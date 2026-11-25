@@ -35,6 +35,7 @@ import { Route as AdminTeamIndexRouteImport } from './routes/_admin.team.index'
 import { Route as AdminTeamStaffIdRouteImport } from './routes/_admin.team.$staffId'
 import { Route as AdminTeamNewRouteImport } from './routes/_admin.team.new'
 import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
+import { Route as ApiStoreNotificationsRouteImport } from './routes/api/store/notifications'
 import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
 
 const AdminRoute = AdminRouteImport.update({
@@ -168,6 +169,11 @@ const ApiStoreCatalogRoute = ApiStoreCatalogRouteImport.update({
   path: '/api/store/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStoreNotificationsRoute = ApiStoreNotificationsRouteImport.update({
+  id: '/api/store/notifications',
+  path: '/api/store/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStoreOrdersRoute = ApiStoreOrdersRouteImport.update({
   id: '/api/store/orders',
   path: '/api/store/orders',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories/': typeof AdminCategoriesIndexRoute
   '/customers/': typeof AdminCustomersIndexRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories': typeof AdminCategoriesIndexRoute
   '/customers': typeof AdminCustomersIndexRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/_admin/team/$staffId': typeof AdminTeamStaffIdRoute
   '/_admin/team/new': typeof AdminTeamNewRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/_admin/categories/': typeof AdminCategoriesIndexRoute
   '/_admin/customers/': typeof AdminCustomersIndexRoute
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/team/$staffId'
     | '/team/new'
     | '/api/store/catalog'
+    | '/api/store/notifications'
     | '/api/store/orders'
     | '/categories/'
     | '/customers/'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/team/$staffId'
     | '/team/new'
     | '/api/store/catalog'
+    | '/api/store/notifications'
     | '/api/store/orders'
     | '/categories'
     | '/customers'
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | '/_admin/team/$staffId'
     | '/_admin/team/new'
     | '/api/store/catalog'
+    | '/api/store/notifications'
     | '/api/store/orders'
     | '/_admin/categories/'
     | '/_admin/customers/'
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
+  ApiStoreNotificationsRoute: typeof ApiStoreNotificationsRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
 }
 
@@ -538,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoreCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/store/notifications': {
+      id: '/api/store/notifications'
+      path: '/api/store/notifications'
+      fullPath: '/api/store/notifications'
+      preLoaderRoute: typeof ApiStoreNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/store/orders': {
       id: '/api/store/orders'
       path: '/api/store/orders'
@@ -615,6 +635,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
+  ApiStoreNotificationsRoute: ApiStoreNotificationsRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,
 }
 export const routeTree = rootRouteImport

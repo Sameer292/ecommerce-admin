@@ -5,6 +5,7 @@ import { getStoreSettings } from "@/features/settings/settings.server";
 import { refundedAmount } from "@/features/store-integration/payment.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
+import { listOrderNotifications, retryOrderNotification } from "./notifications.server";
 import {
 	findOrder,
 	findOrderDocuments,
@@ -54,8 +55,8 @@ export const readOrder = createServerFn()
 	.validator(idSchema.extend(orderDetailSearchSchema.shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [detail, items, activity, payments, shipping, returns, refundedMinor] = await Promise.all(
-			[
+		const [detail, items, activity, payments, shipping, returns, refundedMinor, notifications] =
+			await Promise.all([
 				findOrder(data.id),
 				listOrderItems(data.id, data.page, data.sort),
 				listOrderActivity(data.id, data.activity, data.activitySort),
@@ -63,8 +64,8 @@ export const readOrder = createServerFn()
 				listOrderShipments(data.id),
 				listOrderReturns(data.id),
 				refundedAmount(data.id),
-			],
-		);
+				listOrderNotifications(data.id),
+			]);
 		if (!detail) throw notFound();
 		return {
 			...detail,
@@ -74,10 +75,19 @@ export const readOrder = createServerFn()
 			shipping,
 			returns,
 			refundedMinor,
+			notifications,
 			shipmentId: crypto.randomUUID(),
 			returnId: crypto.randomUUID(),
 		};
 	});
+
+export const retryNotification = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(idSchema, data, ({ id }) => retryOrderNotification(id)),
+		),
+	);
 
 export const writeOrder = createServerFn({ method: "POST" })
 	.validator(formDataSchema)

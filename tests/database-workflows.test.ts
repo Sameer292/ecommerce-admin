@@ -350,6 +350,39 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(
 			documents.every(({ order, items }) => order.status === "processing" && items.length === 1),
 		);
+		const {
+			claimNotification,
+			acknowledgeNotification,
+			listOrderNotifications,
+			retryOrderNotification,
+		} = await import("../src/features/orders/notifications.server");
+		const cancellation = documents[0].order;
+		await saveOrder(
+			{
+				id: cancellation.id,
+				status: "cancelled",
+				version: cancellation.updatedAt.toISOString(),
+				trackingNumber: "",
+				notes: "",
+			},
+			"stock-operator",
+		);
+		const jobs = await listOrderNotifications(split.id);
+		assert.equal(jobs.filter(({ kind }) => kind === "shipping").length, 2);
+		assert.equal(jobs.filter(({ kind }) => kind === "refund").length, 2);
+		assert.equal((await listOrderNotifications(cancellation.id))[0].kind, "cancellation");
+		const [claim, otherClaim] = await Promise.all([claimNotification(), claimNotification()]);
+		assert.ok(claim && otherClaim && claim.id !== otherClaim.id);
+		assert.equal(await acknowledgeNotification(claim.id, crypto.randomUUID(), "sent"), false);
+		assert.equal(await acknowledgeNotification(claim.id, claim.claimId, "failed"), true);
+		assert.equal(await acknowledgeNotification(claim.id, claim.claimId, "failed"), true);
+		await retryOrderNotification(claim.id);
+		const retried = await claimNotification();
+		assert.equal(retried?.id, claim.id);
+		assert.notEqual(retried?.claimId, claim.claimId);
+		assert.ok(retried);
+		assert.equal(await acknowledgeNotification(retried.id, retried.claimId, "sent"), true);
+		await assert.rejects(retryOrderNotification(retried.id), /Only failed/);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

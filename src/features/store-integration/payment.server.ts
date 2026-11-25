@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { orderReturns, orders, paymentEvents } from "@/db/schema/orders";
+import { orderNotifications, orderReturns, orders, paymentEvents } from "@/db/schema/orders";
 import { IntegrationError } from "./integration-request.server";
 import type { PaymentUpdate, Transaction } from "./integration.types";
 
@@ -142,6 +142,14 @@ export const updatePayment = (input: PaymentUpdate) =>
 			.onConflictDoNothing()
 			.returning({ id: paymentEvents.id });
 		if (!event) throw new IntegrationError(409, "This payment event is already recorded.");
+		if (refund) {
+			await transaction.insert(orderNotifications).values({
+				id: event.id,
+				orderId: order.id,
+				kind: "refund",
+				payload: { amountMinor: refund.amount },
+			});
+		}
 		if (returnId) {
 			await transaction
 				.update(orderReturns)
