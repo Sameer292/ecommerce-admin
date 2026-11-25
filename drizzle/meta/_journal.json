@@ -176,6 +176,13 @@
       "when": 1795647067297,
       "tag": "0024_replenishment_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795647282836,
+      "tag": "0025_customer_phone_search",
+      "breakpoints": true
     }
   ]
 }

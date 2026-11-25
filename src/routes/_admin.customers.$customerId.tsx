@@ -6,7 +6,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { PageControls } from "@/components/admin/page-controls";
+import { FormSection } from "@/components/admin/form-section";
 import { can } from "@/features/auth/permissions";
+import { CustomerContact } from "@/features/customers/customer-contact";
 import { CustomerForm } from "@/features/customers/customer-form";
 import { readCustomer, removeCustomer } from "@/features/customers/customers.functions";
 import { OrderTable } from "@/features/orders/order-table";
@@ -74,6 +76,10 @@ const CustomerPage = () => {
 					/>
 				)}
 			</DetailHeading>
+			<FormSection title="Contact">
+				<CustomerContact kind="email" value={customer.email} copy />
+				{customer.phone && <CustomerContact kind="phone" value={customer.phone} copy />}
+			</FormSection>
 			<CustomerForm key={customer.id} customer={customer} editable={canEdit} />
 			<CustomerOrders />
 		</>

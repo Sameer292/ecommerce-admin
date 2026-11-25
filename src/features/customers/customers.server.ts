@@ -27,7 +27,15 @@ const searchColumns = {
 
 export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) => {
 	const pattern = searchPattern(q);
-	const where = q ? or(ilike(customers.name, pattern), ilike(customers.email, pattern)) : undefined;
+	const digits = /^[+0-9().\s-]+$/.test(q) ? q.replace(/[^0-9]/g, "") : "";
+	const normalizedPhone = sql`regexp_replace(${customers.phone}, '[^0-9]', '', 'g')`;
+	const where = q
+		? or(
+				ilike(customers.name, pattern),
+				ilike(customers.email, pattern),
+				digits ? ilike(normalizedPhone, searchPattern(digits)) : undefined,
+			)
+		: undefined;
 	const [rows, total] = await Promise.all([
 		db
 			.select({

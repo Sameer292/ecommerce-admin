@@ -586,6 +586,14 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		);
 		assert.ok(reopened);
 		assert.notEqual(reopened.id, beforeAck.id);
+
+		await connection`insert into commerce_admin.customers (name, email, phone) values ('Phone search', 'phone-search@example.test', '+977 (984) 123-4567')`;
+		const { listCustomers } = await import("../src/features/customers/customers.server");
+		assert.equal((await listCustomers({ page: 1, q: "9841234567" })).total, 1);
+		assert.equal(
+			(await listCustomers({ page: 1, q: "(984) 123-4567" })).rows[0].name,
+			"Phone search",
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
