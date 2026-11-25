@@ -28,6 +28,7 @@ const CustomersPage = () => {
 				zone={store.timeZone}
 				currency={store.currency}
 				search={search}
+				canCreate={can(staff.role, "manageCommerce")}
 				onSearch={(search) => navigate({ search })}
 			/>
 		</>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { formatCount } from "@/lib/format";
 import { lastPage, pageOffset, pageSize, pageSizes } from "@/lib/pagination";
+import { cn } from "@/lib/utils";
 import type { ListSearch } from "./list.types";
 
 type PageControlsProps = { total: number; page: number; onPage: (page: number) => void };
@@ -58,6 +59,7 @@ export const PageControls = ({
 	bottom?: boolean;
 	onSize?: (size: ListSearch["perPage"]) => void;
 }) => {
+	if (bottom && total === 0) return null;
 	const offset = pageOffset(page, size);
 	const end = Math.min(offset + size, total);
 	const count =
@@ -67,14 +69,17 @@ export const PageControls = ({
 
 	return (
 		<nav
-			aria-label={bottom ? "Pagination below results" : "Pagination"}
-			className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"
+			aria-label={total === 0 ? undefined : bottom ? "Pagination below results" : "Pagination"}
+			className={cn(
+				"flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground",
+				total === 0 && "sr-only",
+			)}
 		>
 			<span role={bottom ? undefined : "status"} aria-atomic={bottom ? undefined : true}>
-				{count}
+				{total === 0 ? "No results" : count}
 			</span>
 			<div className="flex flex-wrap items-center gap-2">
-				{onSize && (
+				{onSize && total > 0 && (
 					<NativeSelect
 						aria-label="Rows per page"
 						value={size}

@@ -1,6 +1,7 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { RecordLink } from "@/components/admin/record-link";
-import { DataTable } from "@/components/admin/data-table";
+import { ClearFilters, DataTable } from "@/components/admin/data-table";
+import { NewRecord } from "@/components/admin/new-record";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
@@ -44,6 +45,7 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 
 type CustomerListProps = ListPage<CustomerRow> & {
 	search: CustomerSearch;
+	canCreate: boolean;
 	zone: string;
 	currency: string;
 	onSearch: (search: CustomerSearch) => void;
@@ -56,6 +58,7 @@ export const CustomerList = ({
 	currency,
 	search,
 	onSearch,
+	canCreate,
 }: CustomerListProps) => (
 	<div className="flex flex-col gap-4">
 		<ListControls
@@ -75,6 +78,15 @@ export const CustomerList = ({
 			rows={rows}
 			columns={customerColumns(zone, currency)}
 			label="Customers"
+			emptyAction={
+				search.q ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : canCreate ? (
+					<NewRecord to="/customers/new" label="Add customer" />
+				) : undefined
+			}
 			empty={search.q || search.page > 1 ? "No matching customers" : "No customers yet"}
 		/>
 		<ListPagination total={total} search={search} onSearch={onSearch} bottom />

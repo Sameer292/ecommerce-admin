@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
@@ -63,12 +64,14 @@ export const ProductTable = ({
 	currency,
 	zone,
 	filtered,
+	emptyAction,
 	sorting,
 }: {
 	rows: ProductListRow[];
 	currency: string;
 	zone: string;
 	filtered: boolean;
+	emptyAction?: ReactNode;
 	sorting: TableSorting;
 }) => (
 	<DataTable
@@ -76,6 +79,7 @@ export const ProductTable = ({
 		columns={productColumns(currency, zone)}
 		rows={rows}
 		label="Products"
+		emptyAction={emptyAction}
 		empty={filtered ? "No matching products" : "No products yet"}
 		emptyDescription={
 			filtered

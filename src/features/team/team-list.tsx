@@ -1,6 +1,7 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { RecordLink } from "@/components/admin/record-link";
-import { DataTable } from "@/components/admin/data-table";
+import { ClearFilters, DataTable } from "@/components/admin/data-table";
+import { NewRecord } from "@/components/admin/new-record";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
@@ -66,6 +67,15 @@ export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 			rows={rows}
 			columns={teamColumns}
 			label="Staff accounts"
+			emptyAction={
+				search.q ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : (
+					<NewRecord to="/team/new" label="Add staff member" />
+				)
+			}
 			empty={search.q || search.page > 1 ? "No matching staff accounts" : "No staff accounts"}
 		/>
 		<ListPagination total={total} search={search} onSearch={onSearch} bottom />

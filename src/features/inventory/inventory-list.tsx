@@ -1,6 +1,8 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { RecordLink } from "@/components/admin/record-link";
-import { DataTable } from "@/components/admin/data-table";
+import { Link } from "@tanstack/react-router";
+import { buttonVariants } from "@/components/ui/button";
+import { ClearFilters, DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
@@ -86,7 +88,18 @@ export const InventoryList = ({ rows, total, search, onSearch }: InventoryListPr
 			rows={rows}
 			columns={inventoryColumns}
 			label="Inventory"
-			empty="No matching inventory"
+			empty={search.q || search.stock ? "No matching inventory" : "No inventory yet"}
+			emptyAction={
+				search.q || search.stock ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : (
+					<Link to="/products" className={buttonVariants({ variant: "outline" })}>
+						View products
+					</Link>
+				)
+			}
 			emptyDescription="Check your filters or add products to your catalog."
 		/>
 		<ListPagination total={total} search={search} onSearch={onSearch} bottom />

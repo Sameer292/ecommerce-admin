@@ -1,6 +1,7 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { pageSearchDefaults } from "@/lib/pagination";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { ClearFilters } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import { NewRecord } from "@/components/admin/new-record";
 import { ListPagination } from "@/components/admin/page-controls";
@@ -13,10 +14,12 @@ import { CategoryTable } from "@/features/catalog/category-table";
 
 const CategoryList = () => {
 	const { rows, total } = Route.useLoaderData();
+	const { staff } = Route.useRouteContext();
 	const search = Route.useSearch();
 	const { q, page, sort } = search;
 	const navigate = Route.useNavigate();
 	const update = (next: typeof search) => navigate({ search: next });
+	const clear = () => update({ q: "", page: 1, sort, perPage: search.perPage });
 	return (
 		<div className="flex flex-col gap-4">
 			<ListControls
@@ -24,13 +27,20 @@ const CategoryList = () => {
 				placeholder="Search categories"
 				readSearch={(form) => categorySearchSchema.parse(Object.fromEntries(form))}
 				onSearch={update}
-				onClear={q ? () => update({ q: "", page: 1, sort, perPage: search.perPage }) : undefined}
+				onClear={q ? clear : undefined}
 			/>
 			<ListPagination total={total} search={search} onSearch={update} />
 			<CategoryTable
 				sorting={listSorting(search, "name.asc", categorySearchSchema, update)}
 				rows={rows}
 				filtered={Boolean(q || page > 1)}
+				emptyAction={
+					q ? (
+						<ClearFilters onClear={clear} />
+					) : can(staff.role, "manageCommerce") ? (
+						<NewRecord to="/categories/new" label="Add category" />
+					) : undefined
+				}
 			/>
 			<ListPagination total={total} search={search} onSearch={update} bottom />
 		</div>

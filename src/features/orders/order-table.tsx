@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
@@ -65,12 +66,14 @@ export const OrderTable = ({
 	currency,
 	zone,
 	empty = "No orders yet",
+	emptyAction,
 	sorting,
 }: {
 	rows: OrderRow[];
 	currency: string;
 	zone: string;
 	empty?: string;
+	emptyAction?: ReactNode;
 	sorting?: TableSorting;
 }) => (
 	<DataTable
@@ -79,5 +82,11 @@ export const OrderTable = ({
 		columns={columns(currency, zone)}
 		label="Orders"
 		empty={empty}
+		emptyAction={emptyAction}
+		emptyDescription={
+			empty === "No orders yet"
+				? "Orders appear here after they are imported from the storefront."
+				: undefined
+		}
 	/>
 );

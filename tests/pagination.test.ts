@@ -105,6 +105,7 @@ test("pagination shows the valid range, page count and direct first-page recover
 	const empty = renderToStaticMarkup(
 		createElement(PageControls, { total: 0, page: 1, onPage: () => {} }),
 	);
-	assert.match(empty, /0 results/);
+	assert.match(empty, /No results/);
+	assert.match(empty, /sr-only/);
 	assert.doesNotMatch(empty, /<button/);
 });

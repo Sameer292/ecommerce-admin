@@ -20,6 +20,7 @@ export type DataTableProps<Row> = {
 	label: string;
 	empty: string;
 	emptyDescription?: string;
+	emptyAction?: ReactNode;
 	sorting?: TableSorting;
 };
 

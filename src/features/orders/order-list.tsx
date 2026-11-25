@@ -1,3 +1,4 @@
+import { ClearFilters } from "@/components/admin/data-table";
 import { listSorting } from "@/components/admin/table-sorting";
 import { ListControls } from "@/components/admin/list-controls";
 import type { ListPage } from "@/components/admin/list.types";
@@ -47,6 +48,13 @@ export const OrderList = ({ rows, total, search, currency, zone, onSearch }: Ord
 			rows={rows}
 			currency={currency}
 			zone={zone}
+			emptyAction={
+				search.q || search.status ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : undefined
+			}
 			empty={search.q || search.status || search.page > 1 ? "No matching orders" : "No orders yet"}
 		/>
 		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
