@@ -46,7 +46,8 @@ The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separa
 
 | Endpoint | Behavior |
 | --- | --- |
-| `GET /api/store/catalog` | Lists active products with current stock, prices, and categories. Accepts `page`, `q`, and a `category` UUID. |
+| `GET /api/store/catalog` | Lists active products, prices, and categories. `stock` is physical on hand. `availableStock` is sellable inventory once the admin inventory authority is enabled. Accepts `page`, `q`, and a `category` UUID. |
+| `POST /api/store/inventory` | Atomically reserves, releases, or fulfills stock for one checkout or order and up to 25 SKUs. |
 | `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, the first tracking number, an ISO update timestamp, and packages with carrier, service, tracking, and dispatch time. Returns 404 until the order is imported. |
 | `POST /api/store/orders` | Imports an order snapshot, creates or links its customer by email, and returns the order ID. An identical retry returns the existing ID. A different payload for the same order number returns HTTP 409. |
 | `PATCH /api/store/orders` | Records a payment event for the order `number`. Send `paid` with `paidAt`, `refunded` with optional `refundedAt`, or `failed` with `failedAt`, `externalId`, and `amountMinor`. |
@@ -68,7 +69,11 @@ Example order import body
 }
 ```
 
-Import accepts an optional `paidAt` for already-paid orders. Other optional amounts are `taxMinor` and `discountMinor`. The storefront owns checkout, payment processing, and stock reservation. Recording an order or refund only updates its administrative records. The inventory screen records stock adjustments with a reason, actor, and timestamp.
+Import accepts an optional `paidAt` for already-paid orders. Other optional amounts are `taxMinor` and `discountMinor`. The storefront owns checkout and payment processing. The admin database owns on-hand, incoming, damaged, and reserved balances. Staff can record receipts, damage, corrections, incoming quantities, and stocktakes. Ledger entries include balances before and after, the reason, actor, and any business reference.
+
+Send inventory events from the storefront backend with a stable UUID `id`, the checkout or order `number`, an `operation` of `reserve`, `release`, or `fulfill`, and `lines` with `{ "sku": "NOTEBOOK-01", "quantity": 2 }`. Reserve before confirming checkout. Release on expiry, payment abandonment, or cancellation and fulfill reserved units at dispatch. A fulfillment removes the shipped units from both on-hand and reserved balances. Use the same `number` for that checkout throughout and one event ID per distinct action. Identical retries return 200. Insufficient stock, a conflicting event ID, or releasing another checkout's units returns 409 and applies no lines. A payment import or refund alone does not move units. Staff can put sellable returns back on hand when receiving them.
+
+Before setting `STORE_INVENTORY_AUTHORITY=admin`, reconcile on-hand counts, seed any outstanding reservations through the inventory endpoint, and switch the checkout to reserve through this API. During cutover, `inventoryAuthority` is `unverified` and the catalog returns `availableStock: null`. Use a successful reservation, rather than a catalog read, to confirm availability at checkout.
 
 Fetch fulfillment status from the storefront backend when showing an order to its buyer. The storefront authenticates the buyer and checks ownership before looking up the order number. The admin endpoint uses the integration token and returns operational status without buyer details.
 

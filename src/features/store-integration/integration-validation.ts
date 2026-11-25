@@ -3,6 +3,7 @@ import {
 	boolean as ZBoolean,
 	discriminatedUnion as ZDiscriminatedUnion,
 	email as ZEmail,
+	enum as ZEnum,
 	int as ZInt,
 	iso as ZIso,
 	literal as ZLiteral,
@@ -21,6 +22,19 @@ const orderNumber = ZString()
 	.regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/);
 export const orderStatusQuerySchema = ZObject({ number: orderNumber });
 const sku = ZString().trim().min(1).max(80).toUpperCase();
+
+export const stockMovementSchema = ZObject({
+	id: ZUuid(),
+	number: orderNumber,
+	operation: ZEnum(["reserve", "release", "fulfill"]),
+	lines: ZArray(ZObject({ sku, quantity: ZInt().min(1).max(1_000_000) }))
+		.min(1)
+		.max(25)
+		.refine(
+			(lines) => new Set(lines.map((line) => line.sku)).size === lines.length,
+			"Send each SKU once.",
+		),
+});
 
 const line = ZObject({
 	sku,

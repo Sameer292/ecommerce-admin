@@ -37,6 +37,7 @@ import { Route as AdminTeamStaffIdRouteImport } from './routes/_admin.team.$staf
 import { Route as AdminTeamNewRouteImport } from './routes/_admin.team.new'
 import { Route as ApiReportsSalesRouteImport } from './routes/api/reports/sales'
 import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
+import { Route as ApiStoreInventoryRouteImport } from './routes/api/store/inventory'
 import { Route as ApiStoreNotificationsRouteImport } from './routes/api/store/notifications'
 import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
 
@@ -182,6 +183,11 @@ const ApiStoreCatalogRoute = ApiStoreCatalogRouteImport.update({
   path: '/api/store/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStoreInventoryRoute = ApiStoreInventoryRouteImport.update({
+  id: '/api/store/inventory',
+  path: '/api/store/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStoreNotificationsRoute = ApiStoreNotificationsRouteImport.update({
   id: '/api/store/notifications',
   path: '/api/store/notifications',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories/': typeof AdminCategoriesIndexRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/categories': typeof AdminCategoriesIndexRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/_admin/team/new': typeof AdminTeamNewRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
+  '/api/store/inventory': typeof ApiStoreInventoryRoute
   '/api/store/notifications': typeof ApiStoreNotificationsRoute
   '/api/store/orders': typeof ApiStoreOrdersRoute
   '/_admin/categories/': typeof AdminCategoriesIndexRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/team/new'
     | '/api/reports/sales'
     | '/api/store/catalog'
+    | '/api/store/inventory'
     | '/api/store/notifications'
     | '/api/store/orders'
     | '/categories/'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/team/new'
     | '/api/reports/sales'
     | '/api/store/catalog'
+    | '/api/store/inventory'
     | '/api/store/notifications'
     | '/api/store/orders'
     | '/categories'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/_admin/team/new'
     | '/api/reports/sales'
     | '/api/store/catalog'
+    | '/api/store/inventory'
     | '/api/store/notifications'
     | '/api/store/orders'
     | '/_admin/categories/'
@@ -389,6 +401,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
+  ApiStoreInventoryRoute: typeof ApiStoreInventoryRoute
   ApiStoreNotificationsRoute: typeof ApiStoreNotificationsRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
 }
@@ -591,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStoreCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/store/inventory': {
+      id: '/api/store/inventory'
+      path: '/api/store/inventory'
+      fullPath: '/api/store/inventory'
+      preLoaderRoute: typeof ApiStoreInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/store/notifications': {
       id: '/api/store/notifications'
       path: '/api/store/notifications'
@@ -678,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
+  ApiStoreInventoryRoute: ApiStoreInventoryRoute,
   ApiStoreNotificationsRoute: ApiStoreNotificationsRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,
 }

@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, jsonb, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	check,
+	index,
+	integer,
+	jsonb,
+	primaryKey,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { products } from "./catalog";
 import { commerce } from "./namespace";
@@ -38,3 +47,24 @@ export const stockAdjustments = commerce.table(
 		),
 	],
 );
+
+export const stockReservations = commerce.table(
+	"stock_reservations",
+	{
+		number: text().notNull(),
+		productId: uuid("product_id")
+			.notNull()
+			.references(() => products.id, { onDelete: "restrict" }),
+		quantity: integer().notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.number, table.productId] }),
+		check("stock_reservations_positive_quantity", sql`${table.quantity} > 0`),
+	],
+);
+
+export const stockMovements = commerce.table("stock_movements", {
+	id: uuid().primaryKey(),
+	digest: text().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

@@ -495,6 +495,76 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			await connection`select stock, incoming_stock from commerce_admin.products where id = ${count.productId}`;
 		assert.equal(levels.stock, 12);
 		assert.equal(levels.incoming_stock, 5);
+
+		await connection`
+			insert into commerce_admin.products (name, slug, sku, status, price_minor, stock)
+			values ('Reserve desk', 'reserve-desk', 'RESERVE-DESK', 'active', 3000, 5),
+			       ('Reserve chair', 'reserve-chair', 'RESERVE-CHAIR', 'active', 2000, 2)
+		`;
+		const { stockMovementSchema } = await import(
+			"../src/features/store-integration/integration-validation"
+		);
+		const { applyStockMovement } = await import(
+			"../src/features/store-integration/inventory.server"
+		);
+		const reservation = stockMovementSchema.parse({
+			id: crypto.randomUUID(),
+			number: "CHECKOUT-1",
+			operation: "reserve",
+			lines: [
+				{ sku: "reserve-desk", quantity: 4 },
+				{ sku: "reserve-chair", quantity: 2 },
+			],
+		});
+		const reserved = await Promise.all([
+			applyStockMovement(reservation),
+			applyStockMovement({ ...reservation, lines: [...reservation.lines].reverse() }),
+		]);
+		assert.equal(reserved.filter(Boolean).length, 1);
+		await assert.rejects(applyStockMovement({ ...reservation, number: "CHECKOUT-2" }), {
+			status: 409,
+		});
+		await assert.rejects(
+			applyStockMovement({
+				...reservation,
+				id: crypto.randomUUID(),
+				number: "CHECKOUT-2",
+				operation: "release",
+			}),
+			{ status: 409 },
+		);
+		await assert.rejects(
+			applyStockMovement({
+				...reservation,
+				id: crypto.randomUUID(),
+				number: "CHECKOUT-2",
+				lines: [
+					{ sku: "RESERVE-DESK", quantity: 1 },
+					{ sku: "RESERVE-CHAIR", quantity: 1 },
+				],
+			}),
+			{ status: 409 },
+		);
+		await applyStockMovement({
+			...reservation,
+			id: crypto.randomUUID(),
+			operation: "fulfill",
+			lines: [{ sku: "RESERVE-DESK", quantity: 3 }],
+		});
+		await applyStockMovement({
+			...reservation,
+			id: crypto.randomUUID(),
+			operation: "release",
+			lines: [{ sku: "RESERVE-DESK", quantity: 1 }],
+		});
+		const [remainingDesk] =
+			await connection`select stock, reserved_stock from commerce_admin.products where sku = 'RESERVE-DESK'`;
+		assert.equal(remainingDesk.stock, 2);
+		assert.equal(remainingDesk.reserved_stock, 0);
+		const [pendingChair] =
+			await connection`select stock, reserved_stock from commerce_admin.products where sku = 'RESERVE-CHAIR'`;
+		assert.equal(pendingChair.stock, 2);
+		assert.equal(pendingChair.reserved_stock, 2);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
