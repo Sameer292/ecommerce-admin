@@ -133,6 +133,7 @@ export const writeReturn = (input: ReturnValues, staffId: string) =>
 				productId: item.productId,
 				delta: record.quantity,
 				reason: `Return ${record.id}`,
+				reference: record.id,
 				staffId,
 			});
 		}

@@ -58,6 +58,12 @@ const AdjustmentFields = ({ productId, adjustmentId }: AdjustmentFormProps) => (
 			hint="Enter a positive number to add stock or a negative number to remove it."
 		/>
 		<NotesField name="reason" label="Reason" maxLength={500} required />
+		<TextField
+			name="reference"
+			label="Reference"
+			maxLength={120}
+			hint="Optional order, return, receipt, or stocktake reference."
+		/>
 	</>
 );
 
@@ -98,8 +104,23 @@ const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
 	},
 	{
+		label: "On hand before and after",
+		className: "tabular-nums",
+		cell: (row) =>
+			row.before && row.after
+				? `${formatCount(row.before.stock)} → ${formatCount(row.after.stock)}`
+				: "Unavailable",
+	},
+	{
 		label: "Reason",
-		cell: (row) => row.reason,
+		cell: (row) => (
+			<>
+				<span>{row.reason}</span>
+				{row.reference && (
+					<span className="block text-xs text-muted-foreground wrap-anywhere">{row.reference}</span>
+				)}
+			</>
+		),
 	},
 	{ label: "Changed by", sort: "staff.asc", cell: (row) => row.staffName ?? "System" },
 ];

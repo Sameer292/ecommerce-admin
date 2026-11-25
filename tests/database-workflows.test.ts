@@ -39,6 +39,7 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			productId: product.id,
 			delta: 5,
 			reason: "Receiving",
+			reference: "receipt-101",
 			staffId: "stock-operator",
 		};
 		await Promise.all([
@@ -54,9 +55,15 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const [stock] =
 			await connection`select stock from commerce_admin.products where id = ${product.id}`;
 		assert.equal(stock.stock, 23);
-		const ledger = await connection`select id from commerce_admin.stock_adjustments`;
+		const ledger =
+			await connection`select id, reference, delta, before_levels, after_levels from commerce_admin.stock_adjustments`;
 		assert.equal(ledger.length, 2);
 		assert.ok(!ledger.some(({ id }) => id === failedId));
+		assert.equal(ledger.find(({ id }) => id === adjustment.id)?.reference, "receipt-101");
+		for (const entry of ledger)
+			assert.equal(entry.after_levels.stock - entry.before_levels.stock, entry.delta);
+		assert.ok(ledger.some(({ before_levels }) => before_levels.stock === 20));
+		assert.ok(ledger.some(({ after_levels }) => after_levels.stock === 23));
 
 		const { importOrder } = await import("../src/features/store-integration/import-order.server");
 		const input = importOrderSchema.parse({
@@ -282,6 +289,11 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const [restocked] =
 			await connection`select stock from commerce_admin.products where id = ${product.id}`;
 		assert.equal(restocked.stock, 24);
+		const [stockReturn] =
+			await connection`select reference, before_levels, after_levels from commerce_admin.stock_adjustments where id = ${requested.id}`;
+		assert.equal(stockReturn.reference, requested.id);
+		assert.equal(stockReturn.before_levels.stock, 23);
+		assert.equal(stockReturn.after_levels.stock, 24);
 		await updatePayment({ number: "WEB-SPLIT", status: "paid", paidAt });
 		const refund = {
 			number: "WEB-SPLIT",

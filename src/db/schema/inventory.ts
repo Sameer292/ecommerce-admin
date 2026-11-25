@@ -1,8 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, index, integer, jsonb, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { products } from "./catalog";
 import { commerce } from "./namespace";
+
+export type StockLevels = {
+	stock: number;
+	reservedStock: number;
+	incomingStock: number;
+	damagedStock: number;
+};
 
 export const stockAdjustments = commerce.table(
 	"stock_adjustments",
@@ -16,6 +23,9 @@ export const stockAdjustments = commerce.table(
 		}),
 		delta: integer().notNull(),
 		reason: text().notNull(),
+		reference: text(),
+		before: jsonb("before_levels").$type<StockLevels>(),
+		after: jsonb("after_levels").$type<StockLevels>(),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
