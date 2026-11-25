@@ -86,3 +86,5 @@ Run `TEST_EDIT_DATABASE_URL=postgresql://... bun test tests/edit-conflicts.test.
 Run `TEST_WORKFLOW_DATABASE_URL=postgresql://... bun test tests/database-workflows.test.ts` against an empty disposable database to check concurrent stock changes, order retries, write rollback, and payment transitions. A standalone PostgreSQL instance needs the cluster roles `anon` and `authenticated` for the Supabase permissions migration. CI runs this suite alongside the payment, edit-conflict, and staff-access suites, each with a fresh database.
 
 For browser regression tests, seed a disposable local Supabase workspace with `bun run db:seed`. Create a superuser and a viewer for the fixtures, then set `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_VIEWER_EMAIL`, and `E2E_VIEWER_PASSWORD`. Start the local app, run `bunx playwright install chromium`, then run `bun run test:e2e`. Set `E2E_BASE_URL` if the local app uses a different port.
+
+CI provisions a disposable Supabase workspace for the same browser suite. It runs WCAG A/AA checks in both themes with the category icon picker and product delete dialog open.
