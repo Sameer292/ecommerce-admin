@@ -15,7 +15,12 @@ const IconTrigger = ({ id, icon }: Pick<Category, "icon"> & { id: string }) => (
 		aria-label={`Icon, ${categoryIconOptions[icon].label}`}
 		render={<Button type="button" variant="outline" size="lg" className="w-full justify-start" />}
 	>
-		<HugeiconsIcon icon={categoryIconOptions[icon].glyph} data-icon="inline-start" aria-hidden />
+		<HugeiconsIcon
+			icon={categoryIconOptions[icon].glyph}
+			data-icon="inline-start"
+			className="size-6"
+			aria-hidden
+		/>
 		{categoryIconOptions[icon].label}
 		<HugeiconsIcon icon={ArrowDown01Icon} data-icon="inline-end" className="ml-auto" aria-hidden />
 	</PopoverTrigger>

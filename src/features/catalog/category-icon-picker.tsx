@@ -28,7 +28,7 @@ const IconSearch = ({ onSearch }: { onSearch: (query: string) => void }) => (
 );
 
 const IconGrid = ({ icons, selected, onSelect }: IconSelection & { icons: Category["icon"][] }) => (
-	<div className="grid grid-cols-3 gap-1 overflow-y-auto sm:grid-cols-4">
+	<div className="grid max-h-80 min-h-0 grid-cols-5 gap-1 overflow-y-auto sm:grid-cols-6">
 		{icons.length === 0 && (
 			<p role="status" className="col-span-full py-4 text-center text-muted-foreground">
 				No matching icons.
@@ -37,16 +37,18 @@ const IconGrid = ({ icons, selected, onSelect }: IconSelection & { icons: Catego
 		{icons.map((icon) => (
 			<PopoverClose
 				key={icon}
+				aria-label={categoryIconOptions[icon].label}
+				title={categoryIconOptions[icon].label}
 				aria-pressed={icon === selected}
 				onClick={() => onSelect(icon)}
 				render={
 					<Button
 						variant={icon === selected ? "secondary" : "ghost"}
-						className="h-14 min-w-0 flex-col gap-1 px-1 text-center text-xs whitespace-normal"
+						className="h-14"
 					/>
 				}
 			>
-				<HugeiconsIcon icon={categoryIconOptions[icon].glyph} aria-hidden />
+				<HugeiconsIcon icon={categoryIconOptions[icon].glyph} className="size-7" aria-hidden />
 			</PopoverClose>
 		))}
 	</div>
@@ -74,7 +76,7 @@ export const CategoryIconPicker = (selection: IconSelection) => (
 	<PopoverContent
 		align="start"
 		sideOffset={6}
-		className="max-h-(--available-height) w-84 max-w-[min(var(--available-width),calc(100vw-2rem))]"
+		className="max-h-(--available-height) w-96 max-w-[min(var(--available-width),calc(100vw-2rem))]"
 	>
 		<PopoverTitle className="sr-only">Choose a category icon</PopoverTitle>
 		<SearchableIconGrid {...selection} />
