@@ -18,3 +18,5 @@ todos.json
 *.tsbuildinfo
 
 !.env.example
+/test-results/
+/playwright-report/

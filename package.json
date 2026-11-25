@@ -16,7 +16,8 @@
     "admin:create": "bun scripts/create-admin.ts",
     "test": "bun test",
     "start": "srvx --prod -s ../public .output/server/index.mjs",
-    "db:seed": "bun scripts/seed.ts"
+    "db:seed": "bun scripts/seed.ts",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
+    "@playwright/test": "^1.65.1",
     "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.167.45",
     "@types/node": "^22",
@@ -53,8 +55,8 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
     "drizzle-kit": "^0.31.11",
+    "shadcn": "^4.23.0",
     "typescript": "^6.0.2",
-    "vite": "^8",
-    "shadcn": "^4.23.0"
+    "vite": "^8"
   }
 }
