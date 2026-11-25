@@ -7,6 +7,7 @@ import { NotesField, SelectField, TextField } from "@/components/admin/form-fiel
 import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
 import { productStatuses, productStatusLabels } from "./catalog-options";
+import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
 import { writeProduct } from "./products.functions";
 
@@ -64,7 +65,9 @@ const ProductDetails = ({
 			name="imageUrl"
 			label="Image URL"
 			type="url"
+			pattern={httpsImageUrlPattern}
 			placeholder="https://"
+			hint="Use an HTTPS image URL."
 			maxLength={2000}
 			defaultValue={product?.imageUrl}
 		/>
