@@ -13,6 +13,7 @@ import {
 	fulfillmentPaymentProblem,
 } from "./order-options";
 import type { OrderValues } from "./order.types";
+import { hasOrderShipment } from "./shipments.server";
 
 const { importDigest: _, ...orderFields } = getTableColumns(orders);
 
@@ -129,6 +130,13 @@ export const saveOrder = (
 		if (delivery.shippingAddress !== current.shippingAddress) fields.push("Shipping address");
 		if (fields.length && !canCorrectDelivery(current.status))
 			throw new ActionError("Delivery details can only change before dispatch.");
+		if (
+			(fields.length || collection !== current.cashOnDelivery) &&
+			(await hasOrderShipment(transaction, id))
+		)
+			throw new ActionError(
+				"Delivery details and payment collection are locked after the first package dispatch.",
+			);
 		if (fields.length && !deliveryReason)
 			throw new ActionError("Enter a reason for the delivery correction.", "deliveryReason");
 		if (

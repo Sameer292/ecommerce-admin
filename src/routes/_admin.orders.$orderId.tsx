@@ -9,6 +9,7 @@ import { OrderStatusBadge } from "@/features/orders/order-labels";
 import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
+import { OrderShipments } from "@/features/orders/order-shipments";
 import { formatDate } from "@/lib/format";
 
 const OrderItemsTable = () => {
@@ -59,10 +60,11 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order, payments } = Route.useLoaderData();
+	const { order, payments, shipping, shipmentId } = Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
+	const editable = can(staff.role, "manageCommerce");
 	return (
 		<>
 			<DetailHeading
@@ -77,13 +79,22 @@ const OrderPage = () => {
 				<FulfillmentForm
 					key={order.updatedAt.toISOString()}
 					order={order}
-					editable={can(staff.role, "manageCommerce")}
+					editable={editable}
+					dispatched={shipping.shipments.length > 0}
 				/>
 				<div className="flex min-w-0 flex-col gap-4">
 					<OrderContact order={order} />
 					<OrderPayment order={order} currency={store.currency} />
 				</div>
 			</div>
+			<OrderShipments
+				key={shipmentId}
+				order={order}
+				shipping={shipping}
+				shipmentId={shipmentId}
+				zone={store.timeZone}
+				editable={editable}
+			/>
 			<OrderItemsTable />
 			<OrderActivityTable />
 			<PaymentHistory

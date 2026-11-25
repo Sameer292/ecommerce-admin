@@ -47,7 +47,7 @@ The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separa
 | Endpoint | Behavior |
 | --- | --- |
 | `GET /api/store/catalog` | Lists active products with current stock, prices, and categories. Accepts `page`, `q`, and a `category` UUID. |
-| `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, tracking number, and an ISO update timestamp. Returns 404 until the order is imported. |
+| `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, the first tracking number, an ISO update timestamp, and packages with carrier, service, tracking, and dispatch time. Returns 404 until the order is imported. |
 | `POST /api/store/orders` | Imports an order snapshot, creates or links its customer by email, and returns the order ID. An identical retry returns the existing ID. A different payload for the same order number returns HTTP 409. |
 | `PATCH /api/store/orders` | Records a payment event for the order `number`. Send `paid` with `paidAt`, `refunded` with optional `refundedAt`, or `failed` with `failedAt`, `externalId`, and `amountMinor`. |
 
@@ -75,6 +75,8 @@ Record events after the corresponding provider action. Send `source`, `method`, 
 Prepaid orders need recorded payment before dispatch. Import cash-on-delivery orders with `cashOnDelivery: true` or set Payment collection before dispatch while the order is unpaid. Fully refunded orders can be cancelled or recorded as delivered if already in transit.
 
 Managers can correct the recipient or shipping address while an order is pending or processing. Enter a reason. Fulfillment activity records the staff member, changed fields, and reason.
+
+Record each package from the Shipments section while an order is processing. Enter the carrier and the units included. Once all lines are dispatched, the order moves to Shipped. The original tracking field remains available for earlier orders.
 
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 

@@ -15,7 +15,15 @@ import {
 import type { Order } from "./order.types";
 import { writeOrder } from "./orders.functions";
 
-const FulfillmentFields = ({ order, editable }: { order: Order; editable: boolean }) => {
+const FulfillmentFields = ({
+	order,
+	editable,
+	dispatched,
+}: {
+	order: Order;
+	editable: boolean;
+	dispatched: boolean;
+}) => {
 	const [cashOnDelivery, setCashOnDelivery] = useState(order.cashOnDelivery);
 	const options = [order.status, ...orderTransitions[order.status]].map((status) => ({
 		status,
@@ -25,7 +33,7 @@ const FulfillmentFields = ({ order, editable }: { order: Order; editable: boolea
 		<>
 			<input type="hidden" name="id" value={order.id} />
 			<input type="hidden" name="version" value={order.updatedAt.toISOString()} />
-			{canChangePaymentCollection(order.status, order.paymentStatus) && (
+			{!dispatched && canChangePaymentCollection(order.status, order.paymentStatus) && (
 				<SelectField
 					name="cashOnDelivery"
 					label="Payment collection"
@@ -56,7 +64,7 @@ const FulfillmentFields = ({ order, editable }: { order: Order; editable: boolea
 				defaultValue={order.trackingNumber}
 			/>
 			<NotesField name="notes" label="Internal notes" maxLength={2000} defaultValue={order.notes} />
-			{editable && canCorrectDelivery(order.status) && (
+			{editable && !dispatched && canCorrectDelivery(order.status) && (
 				<details className="rounded-lg border p-3 text-sm">
 					<summary className="cursor-pointer font-medium">Correct delivery details</summary>
 					<div className="mt-3 flex flex-col gap-3">
@@ -85,7 +93,15 @@ const FulfillmentFields = ({ order, editable }: { order: Order; editable: boolea
 	);
 };
 
-export const FulfillmentForm = ({ order, editable }: { order: Order; editable: boolean }) => {
+export const FulfillmentForm = ({
+	order,
+	editable,
+	dispatched,
+}: {
+	order: Order;
+	editable: boolean;
+	dispatched: boolean;
+}) => {
 	const router = useRouter();
 	const save = useServerFn(writeOrder);
 	return (
@@ -97,7 +113,7 @@ export const FulfillmentForm = ({ order, editable }: { order: Order; editable: b
 				submitLabel="Save fulfillment"
 				successMessage="Fulfillment saved."
 			>
-				<FulfillmentFields order={order} editable={editable} />
+				<FulfillmentFields order={order} editable={editable} dispatched={dispatched} />
 			</AdminForm>
 		</FormSection>
 	);

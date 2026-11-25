@@ -4,6 +4,7 @@ import {
 	check,
 	index,
 	integer,
+	primaryKey,
 	text,
 	timestamp,
 	unique,
@@ -136,5 +137,40 @@ export const paymentEvents = commerce.table(
 		uniqueIndex("payment_events_one_paid_order")
 			.on(table.orderId)
 			.where(sql`${table.status} = 'paid'`),
+	],
+);
+
+export const orderShipments = commerce.table(
+	"order_shipments",
+	{
+		id: uuid().primaryKey(),
+		orderId: uuid("order_id")
+			.notNull()
+			.references(() => orders.id, { onDelete: "restrict" }),
+		staffId: text("staff_id").references(() => user.id, { onDelete: "set null" }),
+		carrier: text().notNull(),
+		service: text().notNull().default(""),
+		trackingNumber: text("tracking_number").notNull().default(""),
+		trackingUrl: text("tracking_url").notNull().default(""),
+		dispatchedAt: timestamp("dispatched_at", { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [index().on(table.orderId, table.dispatchedAt, table.id)],
+);
+
+export const shipmentItems = commerce.table(
+	"shipment_items",
+	{
+		shipmentId: uuid("shipment_id")
+			.notNull()
+			.references(() => orderShipments.id, { onDelete: "restrict" }),
+		itemId: uuid("item_id")
+			.notNull()
+			.references(() => orderItems.id, { onDelete: "restrict" }),
+		quantity: integer().notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.shipmentId, table.itemId] }),
+		index().on(table.itemId),
+		check("shipment_items_positive_quantity", sql`${table.quantity} > 0`),
 	],
 );

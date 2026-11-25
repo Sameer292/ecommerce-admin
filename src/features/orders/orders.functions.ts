@@ -13,6 +13,8 @@ import {
 } from "./order-detail.server";
 import { orderDetailSearchSchema, orderFormSchema, orderSearchSchema } from "./order-validation";
 import { listOrders } from "./orders.server";
+import { shipmentSchema } from "./shipment-validation";
+import { listOrderShipments, saveShipment } from "./shipments.server";
 
 export const readOrders = createServerFn()
 	.validator(orderSearchSchema)
@@ -26,14 +28,15 @@ export const readOrder = createServerFn()
 	.validator(idSchema.extend(orderDetailSearchSchema.shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [detail, items, activity, payments] = await Promise.all([
+		const [detail, items, activity, payments, shipping] = await Promise.all([
 			findOrder(data.id),
 			listOrderItems(data.id, data.page, data.sort),
 			listOrderActivity(data.id, data.activity, data.activitySort),
 			listPaymentEvents(data.id, data.payments),
+			listOrderShipments(data.id),
 		]);
 		if (!detail) throw notFound();
-		return { ...detail, items, activity, payments };
+		return { ...detail, items, activity, payments, shipping, shipmentId: crypto.randomUUID() };
 	});
 
 export const writeOrder = createServerFn({ method: "POST" })
@@ -41,5 +44,13 @@ export const writeOrder = createServerFn({ method: "POST" })
 	.handler(({ data }) =>
 		withStaffMutation("manageCommerce", (staff) =>
 			mutate(orderFormSchema, data, (values) => saveOrder(values, staff.id)),
+		),
+	);
+
+export const writeShipment = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(shipmentSchema, data, (values) => saveShipment(values, staff.id)),
 		),
 	);

@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { orders } from "@/db/schema/orders";
+import { orders, orderShipments } from "@/db/schema/orders";
 import { importOrder } from "./import-order.server";
 import { checkIntegrationToken } from "./integration-auth.server";
 import { integrationError, withIntegrationBody } from "./integration-request.server";
@@ -14,6 +14,7 @@ import { updatePayment } from "./payment.server";
 export const findStoreOrderStatus = async (number: string) => {
 	const [order] = await db
 		.select({
+			id: orders.id,
 			number: orders.number,
 			status: orders.status,
 			paymentStatus: orders.paymentStatus,
@@ -22,7 +23,20 @@ export const findStoreOrderStatus = async (number: string) => {
 		})
 		.from(orders)
 		.where(eq(orders.number, number));
-	return order;
+	if (!order) return;
+	const { id, ...status } = order;
+	const shipments = await db
+		.select({
+			carrier: orderShipments.carrier,
+			service: orderShipments.service,
+			trackingNumber: orderShipments.trackingNumber,
+			trackingUrl: orderShipments.trackingUrl,
+			dispatchedAt: orderShipments.dispatchedAt,
+		})
+		.from(orderShipments)
+		.where(eq(orderShipments.orderId, id))
+		.orderBy(asc(orderShipments.dispatchedAt), asc(orderShipments.id));
+	return { ...status, shipments };
 };
 
 export const handleOrderStatus = async ({ request }: { request: Request }) => {

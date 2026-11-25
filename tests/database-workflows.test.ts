@@ -121,6 +121,7 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.deepEqual(Object.keys(status).sort(), [
 			"number",
 			"paymentStatus",
+			"shipments",
 			"status",
 			"trackingNumber",
 			"updatedAt",
@@ -178,6 +179,79 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			from commerce_admin.orders where number = ${number}
 		`;
 		assert.deepEqual(payment, { payment_status: "refunded", same_time: true });
+
+		const split = await importOrder({
+			...input,
+			number: "WEB-SPLIT",
+			cashOnDelivery: true,
+			items: [{ ...input.items[0], quantity: 2 }],
+		});
+		const splitOrder = await findOrder(split.id);
+		assert.ok(splitOrder);
+		await saveOrder(
+			{
+				id: split.id,
+				version: splitOrder.order.updatedAt.toISOString(),
+				status: "processing",
+				trackingNumber: "",
+				notes: "",
+			},
+			"stock-operator",
+		);
+		const { listOrderShipments, saveShipment } = await import(
+			"../src/features/orders/shipments.server"
+		);
+		const first = await findOrder(split.id);
+		assert.ok(first);
+		const { remaining } = await listOrderShipments(split.id);
+		const packageData = {
+			id: crypto.randomUUID(),
+			orderId: split.id,
+			version: first.order.updatedAt.toISOString(),
+			carrier: "Test Carrier",
+			service: "Express",
+			trackingNumber: "A100",
+			trackingUrl: "https://tracking.example.test/A100",
+			lines: [{ itemId: remaining[0].id, quantity: 1 }],
+		};
+		await Promise.all([
+			saveShipment(packageData, "stock-operator"),
+			saveShipment(packageData, "stock-operator"),
+		]);
+		const partial = await findOrder(split.id);
+		assert.ok(partial);
+		assert.equal(partial.order.status, "processing");
+		await assert.rejects(
+			saveOrder(
+				{
+					...change,
+					id: split.id,
+					version: partial.order.updatedAt.toISOString(),
+					status: "processing",
+					deliveryReason: "After partial dispatch",
+				},
+				"stock-operator",
+			),
+			/first package dispatch/,
+		);
+		const second = {
+			...packageData,
+			id: crypto.randomUUID(),
+			version: partial.order.updatedAt.toISOString(),
+			trackingNumber: "A101",
+		};
+		await assert.rejects(
+			saveShipment({ ...second, lines: [{ ...second.lines[0], quantity: 2 }] }, "stock-operator"),
+			/exceed/,
+		);
+		await saveShipment(second, "stock-operator");
+		const shipped = await findStoreOrderStatus("WEB-SPLIT");
+		assert.equal(shipped?.status, "shipped");
+		assert.deepEqual(
+			shipped.shipments.map(({ trackingNumber }) => trackingNumber),
+			["A100", "A101"],
+		);
+		assert.deepEqual((await listOrderShipments(split.id)).remaining, []);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
