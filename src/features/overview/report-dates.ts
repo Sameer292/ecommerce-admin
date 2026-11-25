@@ -24,9 +24,10 @@ export const reportWindow = (
 	timeZone: string,
 	now = new Date(),
 ): DateWindow => {
-	const to = addDays(toDateKey(now, timeZone), 1);
+	const today = toDateKey(now, timeZone);
+	const to = addDays(today, 1);
 	const days = range;
-	return { from: addDays(to, -days * 2), currentFrom: addDays(to, -days), to, timeZone };
+	return { from: addDays(to, -days * 2), currentFrom: addDays(to, -days), to, timeZone, today };
 };
 
 export const reportDate = (dateKey: string) =>

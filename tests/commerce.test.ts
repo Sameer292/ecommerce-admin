@@ -31,6 +31,7 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		from: "2026-02-23",
 		currentFrom: "2026-03-02",
 		to: "2026-03-09",
+		today: "2026-03-08",
 		timeZone: "America/New_York",
 	});
 	const trend = buildTrend(
