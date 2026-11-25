@@ -88,3 +88,5 @@ Run `TEST_WORKFLOW_DATABASE_URL=postgresql://... bun test tests/database-workflo
 For browser regression tests, seed a disposable local Supabase workspace with `bun run db:seed`. Create a superuser and a viewer for the fixtures, then set `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_VIEWER_EMAIL`, and `E2E_VIEWER_PASSWORD`. Start the local app, run `bunx playwright install chromium`, then run `bun run test:e2e`. Set `E2E_BASE_URL` if the local app uses a different port.
 
 CI provisions a disposable Supabase workspace for the same browser suite. It runs WCAG A/AA checks in both themes with the category icon picker and product delete dialog open.
+
+Point uptime monitoring at `GET /api/health`. It returns 200 when PostgreSQL accepts a query and 503 if the query fails. Match the `X-Request-Id` response header or error reference to server logs.

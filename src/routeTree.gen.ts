@@ -15,6 +15,7 @@ import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/_admin.team'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminCategoriesIndexRouteImport } from './routes/_admin.categories.index'
 import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/_admin.categories.$categoryId'
 import { Route as AdminCategoriesNewRouteImport } from './routes/_admin.categories.new'
@@ -62,6 +63,11 @@ const AdminTeamRoute = AdminTeamRouteImport.update({
   id: '/team',
   path: '/team',
   getParentRoute: () => AdminRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCategoriesIndexRoute = AdminCategoriesIndexRouteImport.update({
   id: '/categories/',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/access-denied': typeof AdminAccessDeniedRoute
   '/settings': typeof AdminSettingsRoute
   '/team': typeof AdminTeamRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/settings': typeof AdminSettingsRoute
+  '/api/health': typeof ApiHealthRoute
   '/': typeof AdminIndexRoute
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
   '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/team': typeof AdminTeamRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/_admin/': typeof AdminIndexRoute
   '/_admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/_admin/categories/new': typeof AdminCategoriesNewRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/access-denied'
     | '/settings'
     | '/team'
+    | '/api/health'
     | '/categories/$categoryId'
     | '/categories/new'
     | '/customers/$customerId'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/access-denied'
     | '/settings'
+    | '/api/health'
     | '/'
     | '/categories/$categoryId'
     | '/categories/new'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/_admin/access-denied'
     | '/_admin/settings'
     | '/_admin/team'
+    | '/api/health'
     | '/_admin/'
     | '/_admin/categories/$categoryId'
     | '/_admin/categories/new'
@@ -313,6 +325,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
   ApiStoreOrdersRoute: typeof ApiStoreOrdersRoute
 }
@@ -360,6 +373,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/team'
       preLoaderRoute: typeof AdminTeamRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_admin/categories/': {
       id: '/_admin/categories/'
@@ -551,6 +571,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
   ApiStoreOrdersRoute: ApiStoreOrdersRoute,
 }
