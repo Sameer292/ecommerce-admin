@@ -4,7 +4,7 @@ import { products } from "@/db/schema/catalog";
 import { customers } from "@/db/schema/customers";
 import { orderItems, orders } from "@/db/schema/orders";
 import { maxMinorAmount } from "@/lib/money";
-import { env } from "@/server/env.server";
+import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { sha256 } from "./integration-auth.server";
 import { IntegrationError } from "./integration-request.server";
 import type { ImportOrder, Transaction } from "./integration.types";
@@ -74,13 +74,13 @@ const insertOrder = async (transaction: Transaction, input: ImportOrder, importD
 	return inserted;
 };
 
-export const importOrder = (input: ImportOrder) =>
-	db.transaction(async (transaction) => {
-		if (input.currency !== env.STORE_CURRENCY)
-			throw new IntegrationError(400, "Order currency differs from the store currency.");
-		if (input.paidAt && input.paidAt < input.createdAt)
-			throw new IntegrationError(400, "Payment cannot predate the order.");
+export const importOrder = async (input: ImportOrder) => {
+	if (input.currency !== (await getStoreCurrency()))
+		throw new IntegrationError(400, "Order currency differs from the store currency.");
+	if (input.paidAt && input.paidAt < input.createdAt)
+		throw new IntegrationError(400, "Payment cannot predate the order.");
 
+	return db.transaction(async (transaction) => {
 		const findExisting = () =>
 			transaction
 				.select({ id: orders.id, importDigest: orders.importDigest })
@@ -99,3 +99,4 @@ export const importOrder = (input: ImportOrder) =>
 		await saveItems(transaction, inserted.id, input.items);
 		return { id: inserted.id, created: true };
 	});
+};

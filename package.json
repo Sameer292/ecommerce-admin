@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:lock-currency": "bun scripts/lock-store-currency.ts",
     "admin:create": "bun scripts/create-admin.ts",
     "test": "bun test",
     "start": "srvx --prod -s ../public .output/server/index.mjs",

@@ -17,6 +17,14 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		await connection.unsafe("CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY)");
 		const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 		await migrate(db, { migrationsFolder: "./drizzle" });
+		const { getStoreCurrency, lockStoreCurrency } = await import(
+			"../src/features/settings/store-currency.server"
+		);
+		await assert.rejects(getStoreCurrency(), /Store currency is unset/);
+		await lockStoreCurrency("USD");
+		await lockStoreCurrency("USD");
+		await assert.rejects(lockStoreCurrency("NPR"), /already locked to USD/);
+		assert.equal(await getStoreCurrency(), "USD");
 		await connection`
 			insert into commerce_admin.staff_user (id, name, email)
 			values ('stock-operator', 'Operator', 'stock@example.test')
@@ -51,10 +59,9 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(!ledger.some(({ id }) => id === failedId));
 
 		const { importOrder } = await import("../src/features/store-integration/import-order.server");
-		const { env } = await import("../src/server/env.server");
 		const input = importOrderSchema.parse({
 			number: "WEB-RETRY",
-			currency: env.STORE_CURRENCY,
+			currency: "USD",
 			createdAt: "2026-01-01T00:00:00Z",
 			customer: { name: "Buyer", email: "buyer@example.test" },
 			items: [{ sku: "TEST-MUG", name: "Test mug", quantity: 1, unitPriceMinor: 1500 }],

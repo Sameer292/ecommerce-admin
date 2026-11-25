@@ -9,7 +9,7 @@ The workspace covers catalog, order fulfillment, inventory, customers, and staff
 1. Install dependencies with `bun install`. Use Node.js 22.12 or newer and a running Docker engine.
 2. Create a loopback-only Docker network with `docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 ecommerce-admin-supabase-local`. Run `npx supabase start --network-id ecommerce-admin-supabase-local` to start the local project. [Supabase CLI setup](https://supabase.com/docs/guides/local-development)
 3. Copy `.env.example` to `.env`. Set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, and `DATABASE_URL` from `npx supabase status`. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and optionally `ADMIN_NAME` for the first superuser.
-4. Run `bun run db:migrate` and `bun run admin:create`. Remove the bootstrap password from `.env` after creating the account.
+4. Run `bun run db:migrate`, `bun run db:lock-currency`, and `bun run admin:create`. Remove the bootstrap password from `.env` after creating the account.
 5. Optionally run `bun run db:seed` for sample products, categories, customers, and orders. The seed preserves existing records when rerun.
 6. Run `bun run dev` and open http://localhost:3000.
 
@@ -30,8 +30,8 @@ Staff sign in with email and password and can change their own password. Superus
 - `bun run db:migrate` uses `DATABASE_MIGRATION_URL` when set and falls back to `DATABASE_URL`. If the runtime uses the transaction pooler, give migrations a direct or session pooler URL.
 - Order and customer substring search uses `pg_trgm` GIN indexes, installed by the migrations. Very short or broad search terms can still require scans.
 - Enable email/password sign-in. For an admin-only Supabase project, turn off account signups in Authentication settings. Keep `commerce_admin` and `commerce_admin_legacy_auth` outside the exposed schemas in the Supabase Data API.
-- Set `STORE_NAME`, `STORE_TIME_ZONE`, and `STORE_CURRENCY` before loading records. Superusers can update the name, reporting time zone, and contact email from Settings. Amounts are stored as integer minor units of the configured currency.
-- Run `bun run db:migrate` and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
+- Set `STORE_CURRENCY` explicitly and lock it before serving the application. For an existing store, confirm the currency used for its stored prices and orders, then run `bun run db:lock-currency` with that currency on the target database. The lock leaves amounts intact and rejects attempts to overwrite the currency. The application and storefront API read the locked currency from PostgreSQL. Superusers can update the name, reporting time zone, and contact email from Settings.
+- Run `bun run db:migrate`, `bun run db:lock-currency`, and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
 - Production builds generate gzip and Brotli static assets. HTML uses streaming gzip when the client accepts it.
 
 ### Moving an existing deployment

@@ -90,6 +90,7 @@ jobs:
     timeout-minutes: 20
     env:
       E2E_START_APP: 1
+      STORE_CURRENCY: USD
       E2E_ADMIN_EMAIL: browser-admin@example.test
       E2E_VIEWER_EMAIL: browser-viewer@example.test
     steps:
@@ -124,6 +125,7 @@ jobs:
             printf 'E2E_VIEWER_PASSWORD=%s\n' "$viewer_password"
           } >> "$GITHUB_ENV"
       - run: bun run db:migrate
+      - run: bun run db:lock-currency
       - run: bun run db:seed
       - run: bun scripts/seed-browser-staff.ts
       - run: bun run build
