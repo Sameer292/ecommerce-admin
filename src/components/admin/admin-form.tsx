@@ -41,7 +41,10 @@ const useSubmitForm = ({
 	const submittedForm = useRef<HTMLFormElement>(null);
 	useEffect(() => {
 		if (failure?.fieldErrors && !pending) {
-			submittedForm.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+			const field = submittedForm.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
+			const details = field?.closest("details");
+			if (details) details.open = true;
+			field?.focus();
 		}
 	}, [failure, pending]);
 	const submit = async (event: FormEvent<HTMLFormElement>) => {

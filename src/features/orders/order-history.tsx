@@ -73,6 +73,18 @@ const activityColumns = (zone: string): Column<OrderActivity>[] => [
 	},
 	{ label: "Previous status", compact: true, cell: (row) => orderStatusLabels[row.previousStatus] },
 	{ label: "New status", compact: true, cell: (row) => orderStatusLabels[row.status] },
+	{
+		label: "Changes",
+		cell: ({ fields, reason }) =>
+			fields.length > 0 ? (
+				<div className="flex flex-col gap-1">
+					<span>{fields.join(", ")}</span>
+					{reason && <span className="text-muted-foreground">{reason}</span>}
+				</div>
+			) : (
+				"—"
+			),
+	},
 	{ label: "Changed by", sort: "staff.asc", cell: (row) => row.staffName ?? "System" },
 ];
 
@@ -115,15 +127,15 @@ export const OrderHistory = ({
 }: OrderSectionProps<OrderActivity> & { zone: string }) => (
 	<section className="flex min-w-0 flex-col gap-3" aria-labelledby="order-activity-title">
 		<h2 className="font-heading text-xl font-semibold" id="order-activity-title">
-			Status activity
+			Fulfillment activity
 		</h2>
 		<p className="text-sm text-muted-foreground">Times shown in {zone}.</p>
 		<DataTable
 			sorting={sorting}
 			rows={rows}
 			columns={activityColumns(zone)}
-			label="Status activity"
-			empty="No status changes yet"
+			label="Fulfillment activity"
+			empty="No fulfillment changes yet"
 			compactEmpty
 		/>
 		<PageControls total={total} page={page} onPage={onPage} />

@@ -106,6 +106,8 @@ export const orderEvents = commerce.table(
 		staffId: text("staff_id").references(() => user.id, { onDelete: "set null" }),
 		previousStatus: orderStatus("previous_status").notNull(),
 		status: orderStatus().notNull(),
+		fields: text().array().notNull().default([]),
+		reason: text().notNull().default(""),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [index().on(table.orderId, table.createdAt, table.id)],

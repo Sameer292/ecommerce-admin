@@ -8,6 +8,7 @@ import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import {
 	canChangePaymentCollection,
+	canCorrectDelivery,
 	canTransitionOrder,
 	fulfillmentPaymentProblem,
 } from "./order-options";
@@ -80,7 +81,15 @@ export const listPaymentEvents = async (id: string, page: number) => {
 };
 
 export const saveOrder = (
-	{ id, version, cashOnDelivery, ...values }: OrderValues,
+	{
+		id,
+		version,
+		cashOnDelivery,
+		shippingName,
+		shippingAddress,
+		deliveryReason,
+		...values
+	}: OrderValues,
 	staffId: string,
 ) =>
 	db.transaction(async (transaction) => {
@@ -111,17 +120,38 @@ export const saveOrder = (
 			collection,
 		);
 		if (problem) throw new ActionError(problem, "status");
+		const delivery = {
+			shippingName: shippingName ?? current.shippingName,
+			shippingAddress: shippingAddress ?? current.shippingAddress,
+		};
+		const fields = [];
+		if (delivery.shippingName !== current.shippingName) fields.push("Recipient");
+		if (delivery.shippingAddress !== current.shippingAddress) fields.push("Shipping address");
+		if (fields.length && !canCorrectDelivery(current.status))
+			throw new ActionError("Delivery details can only change before dispatch.");
+		if (fields.length && !deliveryReason)
+			throw new ActionError("Enter a reason for the delivery correction.", "deliveryReason");
+		if (
+			!fields.length &&
+			values.status === current.status &&
+			values.notes === current.notes &&
+			values.trackingNumber === current.trackingNumber &&
+			collection === current.cashOnDelivery
+		)
+			return;
 		const updatedAt = new Date(Math.max(Date.now(), current.updatedAt.getTime() + 1));
 		await transaction
 			.update(orders)
-			.set({ ...values, cashOnDelivery: collection, updatedAt })
+			.set({ ...values, ...delivery, cashOnDelivery: collection, updatedAt })
 			.where(and(eq(orders.id, id), eq(orders.status, current.status)));
-		if (values.status !== current.status) {
+		if (values.status !== current.status || fields.length > 0) {
 			await transaction.insert(orderEvents).values({
 				orderId: id,
 				staffId,
 				previousStatus: current.status,
 				status: values.status,
+				fields,
+				reason: fields.length ? deliveryReason : undefined,
 			});
 		}
 	});

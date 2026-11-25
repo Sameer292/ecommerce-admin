@@ -39,6 +39,9 @@ export const canTransitionOrder = (current: OrderStatus, next: OrderStatus) =>
 export const canChangePaymentCollection = (status: OrderStatus, payment: PaymentStatus) =>
 	payment === "pending" && (status === "pending" || status === "processing");
 
+export const canCorrectDelivery = (status: OrderStatus) =>
+	status === "pending" || status === "processing";
+
 export const fulfillmentPaymentProblem = (
 	current: OrderStatus,
 	next: OrderStatus,

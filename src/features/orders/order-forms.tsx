@@ -7,6 +7,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { NativeSelectOption } from "@/components/ui/native-select";
 import {
 	canChangePaymentCollection,
+	canCorrectDelivery,
 	fulfillmentPaymentProblem,
 	orderStatusLabels,
 	orderTransitions,
@@ -14,7 +15,7 @@ import {
 import type { Order } from "./order.types";
 import { writeOrder } from "./orders.functions";
 
-const FulfillmentFields = ({ order }: { order: Order }) => {
+const FulfillmentFields = ({ order, editable }: { order: Order; editable: boolean }) => {
 	const [cashOnDelivery, setCashOnDelivery] = useState(order.cashOnDelivery);
 	const options = [order.status, ...orderTransitions[order.status]].map((status) => ({
 		status,
@@ -55,6 +56,31 @@ const FulfillmentFields = ({ order }: { order: Order }) => {
 				defaultValue={order.trackingNumber}
 			/>
 			<NotesField name="notes" label="Internal notes" maxLength={2000} defaultValue={order.notes} />
+			{editable && canCorrectDelivery(order.status) && (
+				<details className="rounded-lg border p-3 text-sm">
+					<summary className="cursor-pointer font-medium">Correct delivery details</summary>
+					<div className="mt-3 flex flex-col gap-3">
+						<TextField
+							name="shippingName"
+							label="Recipient"
+							defaultValue={order.shippingName}
+							maxLength={120}
+						/>
+						<NotesField
+							name="shippingAddress"
+							label="Shipping address"
+							defaultValue={order.shippingAddress}
+							maxLength={1000}
+						/>
+						<TextField
+							name="deliveryReason"
+							label="Reason for correction"
+							maxLength={250}
+							hint="Required when you change the recipient or address."
+						/>
+					</div>
+				</details>
+			)}
 		</>
 	);
 };
@@ -71,7 +97,7 @@ export const FulfillmentForm = ({ order, editable }: { order: Order; editable: b
 				submitLabel="Save fulfillment"
 				successMessage="Fulfillment saved."
 			>
-				<FulfillmentFields order={order} />
+				<FulfillmentFields order={order} editable={editable} />
 			</AdminForm>
 		</FormSection>
 	);

@@ -89,6 +89,29 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			0,
 		);
 		assert.equal((await listOrders({ ...filters, maxTotalMinor: 1400 })).total, 0);
+		const { findOrder, saveOrder, listOrderActivity } = await import(
+			"../src/features/orders/order-detail.server"
+		);
+		const beforeCorrection = await findOrder(duplicates[0].id);
+		assert.ok(beforeCorrection);
+		const change = {
+			id: duplicates[0].id,
+			version: beforeCorrection.order.updatedAt.toISOString(),
+			status: "pending",
+			trackingNumber: "",
+			notes: "",
+			shippingName: "Corrected Recipient",
+			shippingAddress: "Corrected address",
+		} as const;
+		await assert.rejects(saveOrder(change, "stock-operator"), /Enter a reason/);
+		await saveOrder(
+			{ ...change, deliveryReason: "Buyer requested the correction." },
+			"stock-operator",
+		);
+		const { rows: corrections } = await listOrderActivity(change.id, 1);
+		assert.deepEqual(corrections[0]?.fields, ["Recipient", "Shipping address"]);
+		assert.equal(corrections[0]?.reason, "Buyer requested the correction.");
+		assert.equal(corrections[0]?.staffName, "Operator");
 		const { findStoreOrderStatus } = await import(
 			"../src/features/store-integration/orders.server"
 		);
@@ -104,9 +127,23 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		]);
 		assert.equal(status.status, "shipped");
 		assert.equal(status.trackingNumber, "TRACK-1");
+		const dispatched = await findOrder(change.id);
+		assert.ok(dispatched);
+		await assert.rejects(
+			saveOrder(
+				{
+					...change,
+					version: dispatched.order.updatedAt.toISOString(),
+					status: "shipped",
+					shippingName: "Too late",
+					deliveryReason: "After dispatch",
+				},
+				"stock-operator",
+			),
+			/before dispatch/,
+		);
 		assert.equal(await findStoreOrderStatus("UNKNOWN"), undefined);
 		await connection`update commerce_admin.customers set name = 'New Name', phone = '+1 555 0100' where email = ${input.customer.email}`;
-		const { findOrder } = await import("../src/features/orders/order-detail.server");
 		const detail = await findOrder(duplicates[0].id);
 		assert.equal(detail?.order.buyerName, "Buyer");
 		assert.equal(detail.order.buyerEmail, "buyer@example.test");

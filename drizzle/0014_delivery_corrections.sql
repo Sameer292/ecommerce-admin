@@ -1,0 +1,2 @@
+ALTER TABLE "commerce_admin"."order_events" ADD COLUMN "fields" text[] DEFAULT '{}' NOT NULL;--> statement-breakpoint
+ALTER TABLE "commerce_admin"."order_events" ADD COLUMN "reason" text DEFAULT '' NOT NULL;

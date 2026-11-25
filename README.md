@@ -74,6 +74,8 @@ Record events after the corresponding provider action. Send `source`, `method`, 
 
 Prepaid orders need recorded payment before dispatch. Import cash-on-delivery orders with `cashOnDelivery: true` or set Payment collection before dispatch while the order is unpaid. Fully refunded orders can be cancelled or recorded as delivered if already in transit.
 
+Managers can correct the recipient or shipping address while an order is pending or processing. Enter a reason. Fulfillment activity records the staff member, changed fields, and reason.
+
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 
 ## Checks

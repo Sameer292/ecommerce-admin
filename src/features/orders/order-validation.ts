@@ -59,4 +59,7 @@ export const orderFormSchema = ZObject({
 		.optional(),
 	trackingNumber: ZString().trim().max(100),
 	notes: ZString().trim().max(2_000),
+	shippingName: ZString().trim().max(120).optional(),
+	shippingAddress: ZString().trim().max(1_000).optional(),
+	deliveryReason: ZString().trim().max(250).optional(),
 });
