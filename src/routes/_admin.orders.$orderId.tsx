@@ -10,6 +10,7 @@ import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
 import { OrderShipments } from "@/features/orders/order-shipments";
+import { OrderReturns } from "@/features/orders/order-returns";
 import { formatDate } from "@/lib/format";
 
 const OrderItemsTable = () => {
@@ -60,7 +61,8 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order, payments, shipping, shipmentId } = Route.useLoaderData();
+	const { order, payments, shipping, shipmentId, returns, returnId, refundedMinor } =
+		Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
@@ -84,7 +86,7 @@ const OrderPage = () => {
 				/>
 				<div className="flex min-w-0 flex-col gap-4">
 					<OrderContact order={order} />
-					<OrderPayment order={order} currency={store.currency} />
+					<OrderPayment order={order} currency={store.currency} refundedMinor={refundedMinor} />
 				</div>
 			</div>
 			<OrderShipments
@@ -96,6 +98,19 @@ const OrderPage = () => {
 				editable={editable}
 			/>
 			<OrderItemsTable />
+			<OrderReturns
+				key={returnId}
+				orderId={order.id}
+				data={returns}
+				returnId={returnId}
+				zone={store.timeZone}
+				editable={editable}
+				dispatched={
+					shipping.shipments.length > 0 ||
+					order.status === "shipped" ||
+					order.status === "delivered"
+				}
+			/>
 			<OrderActivityTable />
 			<PaymentHistory
 				{...payments}

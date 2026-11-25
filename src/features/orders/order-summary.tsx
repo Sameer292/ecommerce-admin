@@ -20,7 +20,15 @@ const AmountRow = ({
 	</div>
 );
 
-export const OrderPayment = ({ order, currency }: { order: Order; currency: string }) => (
+export const OrderPayment = ({
+	order,
+	currency,
+	refundedMinor,
+}: {
+	order: Order;
+	currency: string;
+	refundedMinor: number;
+}) => (
 	<FormSection title="Payment">
 		<PaymentStatusBadge status={order.paymentStatus} />
 		<p className="text-sm text-muted-foreground">
@@ -34,6 +42,9 @@ export const OrderPayment = ({ order, currency }: { order: Order; currency: stri
 			<div className="mt-2 border-t pt-3 font-semibold">
 				<AmountRow label="Total" amount={order.totalMinor} currency={currency} />
 			</div>
+			{refundedMinor > 0 && (
+				<AmountRow label="Refunded" amount={refundedMinor} currency={currency} />
+			)}
 		</dl>
 	</FormSection>
 );

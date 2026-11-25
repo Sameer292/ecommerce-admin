@@ -15,6 +15,7 @@ import {
 	orderStatuses,
 	paymentEventStatuses,
 	paymentStatuses,
+	returnStatuses,
 } from "../../features/orders/order-options";
 import { user } from "./auth";
 import { products } from "./catalog";
@@ -24,6 +25,7 @@ import { commerce } from "./namespace";
 export const orderStatus = commerce.enum("order_status", orderStatuses);
 export const paymentStatus = commerce.enum("payment_status", paymentStatuses);
 export const paymentEventStatus = commerce.enum("payment_event_status", paymentEventStatuses);
+export const orderReturnStatus = commerce.enum("order_return_status", returnStatuses);
 
 export const orders = commerce.table(
 	"orders",
@@ -114,6 +116,32 @@ export const orderEvents = commerce.table(
 	(table) => [index().on(table.orderId, table.createdAt, table.id)],
 );
 
+export const orderReturns = commerce.table(
+	"order_returns",
+	{
+		id: uuid().primaryKey(),
+		orderId: uuid("order_id")
+			.notNull()
+			.references(() => orders.id, { onDelete: "restrict" }),
+		itemId: uuid("item_id")
+			.notNull()
+			.references(() => orderItems.id, { onDelete: "restrict" }),
+		quantity: integer().notNull(),
+		reason: text().notNull(),
+		status: orderReturnStatus().notNull().default("requested"),
+		restocked: boolean().notNull().default(false),
+		requestedBy: text("requested_by").references(() => user.id, { onDelete: "set null" }),
+		updatedBy: text("updated_by").references(() => user.id, { onDelete: "set null" }),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [
+		index().on(table.orderId, table.createdAt, table.id),
+		index().on(table.itemId),
+		check("order_returns_positive_quantity", sql`${table.quantity} > 0`),
+	],
+);
+
 export const paymentEvents = commerce.table(
 	"payment_events",
 	{
@@ -128,6 +156,9 @@ export const paymentEvents = commerce.table(
 		source: text().notNull(),
 		method: text(),
 		externalId: text("external_id"),
+		returnId: uuid("return_id")
+			.unique()
+			.references(() => orderReturns.id, { onDelete: "restrict" }),
 	},
 	(table) => [
 		index().on(table.orderId, table.recordedAt, table.id),

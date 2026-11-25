@@ -8,6 +8,7 @@ import {
 	literal as ZLiteral,
 	object as ZObject,
 	string as ZString,
+	uuid as ZUuid,
 } from "zod";
 import { maxMinorAmount } from "@/lib/money";
 
@@ -45,7 +46,11 @@ const paymentDetails = ZObject({
 
 export const paymentUpdateSchema = ZDiscriminatedUnion("status", [
 	paymentDetails.extend({ status: ZLiteral("paid"), paidAt: timestamp }),
-	paymentDetails.extend({ status: ZLiteral("refunded"), refundedAt: timestamp.optional() }),
+	paymentDetails.extend({
+		status: ZLiteral("refunded"),
+		refundedAt: timestamp.optional(),
+		returnId: ZUuid().optional(),
+	}),
 	paymentDetails.extend({
 		status: ZLiteral("failed"),
 		failedAt: timestamp,

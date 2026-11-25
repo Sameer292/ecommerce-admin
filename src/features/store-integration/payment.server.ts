@@ -1,11 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { orders, paymentEvents } from "@/db/schema/orders";
+import { orderReturns, orders, paymentEvents } from "@/db/schema/orders";
 import { IntegrationError } from "./integration-request.server";
 import type { PaymentUpdate, Transaction } from "./integration.types";
 
 type PaymentEvent = typeof paymentEvents.$inferSelect;
-type NewPaymentEvent = typeof paymentEvents.$inferInsert;
 
 const verifyRetry = (previous: PaymentEvent, input: PaymentUpdate, occurredAt?: Date) => {
 	if (occurredAt && previous.occurredAt?.getTime() !== occurredAt.getTime()) {
@@ -15,39 +14,49 @@ const verifyRetry = (previous: PaymentEvent, input: PaymentUpdate, occurredAt?: 
 		(input.amountMinor !== undefined && input.amountMinor !== previous.amountMinor) ||
 		(input.externalId !== undefined && input.externalId !== previous.externalId) ||
 		(input.source !== undefined && input.source !== previous.source) ||
-		(input.method !== undefined && input.method !== previous.method)
+		(input.method !== undefined && input.method !== previous.method) ||
+		(input.status === "refunded" &&
+			input.returnId !== undefined &&
+			input.returnId !== previous.returnId)
 	) {
 		throw new IntegrationError(409, "Payment details do not match the recorded event.");
 	}
 };
 
-const savePaymentEvent = async (
+export const refundedAmount = async (orderId: string, reader: typeof db | Transaction = db) => {
+	const [row] = await reader
+		.select({
+			amount: sql<number>`coalesce(sum(${paymentEvents.amountMinor}), 0)`.mapWith(Number),
+		})
+		.from(paymentEvents)
+		.where(and(eq(paymentEvents.orderId, orderId), eq(paymentEvents.status, "refunded")));
+	return row.amount;
+};
+
+const checkRefund = async (
 	transaction: Transaction,
-	event: NewPaymentEvent,
-	input: PaymentUpdate,
+	order: typeof orders.$inferSelect,
+	input: Extract<PaymentUpdate, { status: "refunded" }>,
 ) => {
-	const [inserted] = await transaction
-		.insert(paymentEvents)
-		.values(event)
-		.onConflictDoNothing()
-		.returning({ id: paymentEvents.id });
-	if (inserted) return;
-	const [previous] = event.externalId
-		? await transaction
-				.select()
-				.from(paymentEvents)
-				.where(
-					and(
-						eq(paymentEvents.externalId, event.externalId),
-						eq(paymentEvents.source, event.source),
-						eq(paymentEvents.status, event.status),
-					),
-				)
-		: [];
-	if (!previous || previous.orderId !== event.orderId) {
-		throw new IntegrationError(409, "This payment event is already recorded.");
+	const remaining = order.totalMinor - (await refundedAmount(order.id, transaction));
+	const amount = input.amountMinor ?? remaining;
+	if (amount > remaining || (amount === 0 && remaining > 0)) {
+		throw new IntegrationError(400, "Refund amount must be within the remaining paid balance.");
 	}
-	verifyRetry(previous, input, event.occurredAt ?? undefined);
+	if (amount < remaining && !input.externalId)
+		throw new IntegrationError(400, "Send an external ID for a partial refund.");
+	if (input.returnId) {
+		if (!input.externalId || input.amountMinor === undefined) {
+			throw new IntegrationError(400, "Send an external ID and an amount for a return refund.");
+		}
+		const [record] = await transaction
+			.select({ status: orderReturns.status })
+			.from(orderReturns)
+			.where(and(eq(orderReturns.id, input.returnId), eq(orderReturns.orderId, order.id)));
+		if (record?.status !== "received")
+			throw new IntegrationError(409, "Receive the return before recording its refund.");
+	}
+	return { amount, fulfilled: amount === remaining };
 };
 
 export const updatePayment = (input: PaymentUpdate) =>
@@ -64,6 +73,25 @@ export const updatePayment = (input: PaymentUpdate) =>
 			: input.status === "failed"
 				? input.failedAt
 				: input.refundedAt;
+		const source = input.source ?? "storefront";
+		if (input.externalId && input.status !== "paid") {
+			const [previous] = await transaction
+				.select()
+				.from(paymentEvents)
+				.where(
+					and(
+						eq(paymentEvents.source, source),
+						eq(paymentEvents.status, input.status),
+						eq(paymentEvents.externalId, input.externalId),
+					),
+				);
+			if (previous) {
+				if (previous.orderId !== order.id)
+					throw new IntegrationError(409, "This payment event is already recorded.");
+				verifyRetry(previous, input, occurredAt);
+				return { id: order.id, paymentStatus: order.paymentStatus };
+			}
+		}
 		if (order.paymentStatus === input.status) {
 			const [previous] = await transaction
 				.select()
@@ -73,7 +101,7 @@ export const updatePayment = (input: PaymentUpdate) =>
 				.limit(1);
 			if (!previous) throw new IntegrationError(409, "The recorded payment is unavailable.");
 			verifyRetry(previous, input, occurredAt);
-			return { id: order.id };
+			return { id: order.id, paymentStatus: order.paymentStatus };
 		}
 
 		if (
@@ -82,7 +110,6 @@ export const updatePayment = (input: PaymentUpdate) =>
 		) {
 			throw new IntegrationError(409, "Invalid payment status transition.");
 		}
-
 		const eventDate = occurredAt ?? new Date();
 		const earliest = input.status === "refunded" ? order.paidAt : order.createdAt;
 		if (earliest && eventDate < earliest) {
@@ -93,33 +120,49 @@ export const updatePayment = (input: PaymentUpdate) =>
 					: "Payment cannot predate the order.",
 			);
 		}
-		const amountMinor = input.amountMinor ?? order.totalMinor;
-		if (input.status !== "failed" && amountMinor !== order.totalMinor) {
+
+		if (paid && input.amountMinor !== undefined && input.amountMinor !== order.totalMinor) {
 			throw new IntegrationError(400, "Payment amount must match the order total.");
 		}
-
-		await savePaymentEvent(
-			transaction,
-			{
+		const refund =
+			input.status === "refunded" ? await checkRefund(transaction, order, input) : undefined;
+		const returnId = input.status === "refunded" ? input.returnId : undefined;
+		const [event] = await transaction
+			.insert(paymentEvents)
+			.values({
 				orderId: order.id,
 				status: input.status,
-				amountMinor,
+				amountMinor: refund?.amount ?? input.amountMinor ?? order.totalMinor,
 				occurredAt: eventDate,
-				source: input.source ?? "storefront",
+				source,
 				externalId: input.externalId,
 				method: input.method,
-			},
-			input,
-		);
+				returnId,
+			})
+			.onConflictDoNothing()
+			.returning({ id: paymentEvents.id });
+		if (!event) throw new IntegrationError(409, "This payment event is already recorded.");
+		if (returnId) {
+			await transaction
+				.update(orderReturns)
+				.set({ status: "refunded", updatedAt: new Date(), updatedBy: null })
+				.where(eq(orderReturns.id, returnId));
+		}
+		const paymentStatus =
+			input.status === "failed"
+				? order.paymentStatus
+				: refund && !refund.fulfilled
+					? "paid"
+					: input.status;
 		if (input.status !== "failed") {
 			await transaction
 				.update(orders)
 				.set({
-					paymentStatus: input.status,
+					paymentStatus,
 					paidAt: paid ? input.paidAt : order.paidAt,
 					updatedAt: new Date(Math.max(Date.now(), order.updatedAt.getTime() + 1)),
 				})
 				.where(eq(orders.id, order.id));
 		}
-		return { id: order.id };
+		return { id: order.id, paymentStatus };
 	});

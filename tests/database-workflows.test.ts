@@ -252,6 +252,57 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			["A100", "A101"],
 		);
 		assert.deepEqual((await listOrderShipments(split.id)).remaining, []);
+
+		const { writeReturn, listOrderReturns } = await import(
+			"../src/features/orders/order-returns.server"
+		);
+		const { refundedAmount } = await import("../src/features/store-integration/payment.server");
+		const requested = {
+			action: "request",
+			id: crypto.randomUUID(),
+			orderId: split.id,
+			itemId: remaining[0].id,
+			quantity: 1,
+			reason: "Returned unopened",
+		} as const;
+		await writeReturn(requested, "stock-operator");
+		await assert.rejects(
+			writeReturn({ ...requested, id: crypto.randomUUID(), quantity: 2 }, "stock-operator"),
+			/exceeds the dispatched quantity/,
+		);
+		await assert.rejects(
+			writeReturn({ ...requested, action: "receive", restock: true }, "stock-operator"),
+			/current status/,
+		);
+		await writeReturn({ ...requested, action: "approve" }, "stock-operator");
+		await Promise.all([
+			writeReturn({ ...requested, action: "receive", restock: true }, "stock-operator"),
+			writeReturn({ ...requested, action: "receive", restock: true }, "stock-operator"),
+		]);
+		const [restocked] =
+			await connection`select stock from commerce_admin.products where id = ${product.id}`;
+		assert.equal(restocked.stock, 24);
+		await updatePayment({ number: "WEB-SPLIT", status: "paid", paidAt });
+		const refund = {
+			number: "WEB-SPLIT",
+			status: "refunded",
+			amountMinor: 1500,
+			externalId: "RETURN-1",
+			returnId: requested.id,
+		} as const;
+		assert.equal((await updatePayment(refund)).paymentStatus, "paid");
+		assert.equal((await updatePayment(refund)).paymentStatus, "paid");
+		assert.equal(await refundedAmount(split.id), 1500);
+		assert.equal((await listOrderReturns(split.id)).returns[0].record.status, "refunded");
+		await assert.rejects(
+			updatePayment({ ...refund, returnId: undefined, amountMinor: 1501, externalId: "RETURN-2" }),
+			{ status: 400 },
+		);
+		assert.equal(
+			(await updatePayment({ number: "WEB-SPLIT", status: "refunded" })).paymentStatus,
+			"refunded",
+		);
+		assert.equal(await refundedAmount(split.id), 3000);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

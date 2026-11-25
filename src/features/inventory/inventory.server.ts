@@ -66,15 +66,16 @@ const claimAdjustment = async (transaction: Transaction, input: Adjustment) => {
 	return false;
 };
 
+export const adjustStockInTransaction = async (transaction: Transaction, input: Adjustment) => {
+	if (!(await claimAdjustment(transaction, input))) return;
+	const newStock = sql`${products.stock}::bigint + ${input.delta}`;
+	const [updated] = await transaction
+		.update(products)
+		.set({ stock: newStock, updatedAt: new Date() })
+		.where(and(eq(products.id, input.productId), sql`${newStock} BETWEEN 0 AND 2147483647`))
+		.returning({ id: products.id });
+	if (!updated) throw new ActionError("This adjustment would put stock outside its allowed range.");
+};
+
 export const adjustStock = (input: Adjustment) =>
-	db.transaction(async (transaction) => {
-		if (!(await claimAdjustment(transaction, input))) return;
-		const newStock = sql`${products.stock}::bigint + ${input.delta}`;
-		const [updated] = await transaction
-			.update(products)
-			.set({ stock: newStock, updatedAt: new Date() })
-			.where(and(eq(products.id, input.productId), sql`${newStock} BETWEEN 0 AND 2147483647`))
-			.returning({ id: products.id });
-		if (!updated)
-			throw new ActionError("This adjustment would put stock outside its allowed range.");
-	});
+	db.transaction((transaction) => adjustStockInTransaction(transaction, input));

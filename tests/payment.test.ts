@@ -33,8 +33,8 @@ test("paid retries must match the recorded payment instant", {
 			externalId: "failed-attempt-1",
 			amountMinor: 1000,
 		} as const;
-		assert.deepEqual(await updatePayment(failure), order);
-		assert.deepEqual(await updatePayment(failure), order);
+		assert.deepEqual(await updatePayment(failure), { ...order, paymentStatus: "pending" });
+		assert.deepEqual(await updatePayment(failure), { ...order, paymentStatus: "pending" });
 		await assert.rejects(updatePayment({ ...failure, amountMinor: 1500 }), { status: 409 });
 		const paid = {
 			number: "PAY-01",
@@ -43,13 +43,13 @@ test("paid retries must match the recorded payment instant", {
 			method: "card",
 			externalId: "paid-attempt-1",
 		} as const;
-		assert.deepEqual(
-			await updatePayment({ ...paid, paidAt: new Date("2026-01-01T01:00:00Z") }),
-			order,
-		);
+		assert.deepEqual(await updatePayment({ ...paid, paidAt: new Date("2026-01-01T01:00:00Z") }), {
+			...order,
+			paymentStatus: "paid",
+		});
 		assert.deepEqual(
 			await updatePayment({ ...paid, paidAt: new Date("2026-01-01T06:45:00+05:45") }),
-			order,
+			{ ...order, paymentStatus: "paid" },
 		);
 		await assert.rejects(updatePayment({ ...paid, paidAt: new Date("2026-01-01T02:00:00Z") }), {
 			status: 409,

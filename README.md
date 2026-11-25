@@ -78,6 +78,8 @@ Managers can correct the recipient or shipping address while an order is pending
 
 Record each package from the Shipments section while an order is processing. Enter the carrier and the units included. Once all lines are dispatched, the order moves to Shipped. The original tracking field remains available for earlier orders.
 
+A return moves from requested to approved and received. Staff can restock sellable units when receiving the return. Record the provider refund through the payment endpoint. Send the amount in `amountMinor` and a stable `externalId` for partial refunds. For a return refund, also send its `returnId`. An omitted refund amount records the remaining paid balance. The response includes `paymentStatus`, which remains paid until the entire balance is refunded.
+
 The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
 
 ## Checks
