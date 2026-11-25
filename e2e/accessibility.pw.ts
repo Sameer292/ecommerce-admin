@@ -3,11 +3,21 @@ import { expect, test, type Page } from "@playwright/test";
 import { signIn } from "./staff";
 
 const checkAccessibility = async (page: Page) => {
+	await page.evaluate(async () => {
+		const animations = document.getAnimations().filter((animation) => {
+			const timing = animation.effect?.getComputedTiming();
+			return animation.playState === "running" && Number.isFinite(timing?.endTime);
+		});
+		await Promise.allSettled(animations.map((animation) => animation.finished));
+	});
 	const { violations } = await new AxeBuilder({ page })
 		.withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
 		.analyze();
 	expect(
-		violations.map(({ id, nodes }) => ({ id, elements: nodes.map(({ target }) => target) })),
+		violations.map(({ id, nodes }) => ({
+			id,
+			elements: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
+		})),
 	).toEqual([]);
 };
 
