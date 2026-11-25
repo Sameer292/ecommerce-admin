@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { productFormSchema } from "../src/features/catalog/catalog-validation";
+import { categoryFormSchema, productFormSchema } from "../src/features/catalog/catalog-validation";
 
 const product = {
 	id: "",
@@ -26,4 +26,16 @@ test("product image URLs are optional and require an HTTPS URL", () => {
 		const result = productFormSchema.safeParse({ ...product, imageUrl });
 		assert.equal(result.error?.issues[0].message, "Enter an HTTPS image URL.");
 	}
+});
+
+test("blank names identify the record being edited", () => {
+	const values = { ...product, name: "   ", imageUrl: "" };
+	assert.equal(
+		productFormSchema.safeParse(values).error?.issues[0].message,
+		"Enter a product name.",
+	);
+	assert.equal(
+		categoryFormSchema.safeParse(values).error?.issues[0].message,
+		"Enter a category name.",
+	);
 });

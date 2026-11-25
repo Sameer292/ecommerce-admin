@@ -65,12 +65,12 @@ const slug = ZString()
 
 const catalogFormSchema = ZObject({
 	id: optionalId,
-	name: ZString().trim().min(1, "Enter a category name.").max(120),
 	slug,
 	description: ZString().trim().max(1_000),
 });
 
 export const categoryFormSchema = catalogFormSchema.extend({
+	name: ZString().trim().min(1, "Enter a category name.").max(120),
 	icon: ZEnum(categoryIcons, "Choose a category icon.").optional(),
 });
 
@@ -78,6 +78,7 @@ export const httpsImageUrlPattern = "[Hh][Tt][Tt][Pp][Ss]://.+";
 const imageUrlError = "Enter an HTTPS image URL.";
 
 export const productFormSchema = catalogFormSchema.extend({
+	name: ZString().trim().min(1, "Enter a product name.").max(120),
 	sku: ZString()
 		.trim()
 		.min(1, "Enter a SKU.")
