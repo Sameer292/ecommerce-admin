@@ -147,10 +147,11 @@ export const productStatusLabels = {
 	archived: "Archived",
 } as const;
 
-export const stockFilters = ["in", "out", "low"] as const;
+export const stockFilters = ["in", "out", "low", "at_or_below"] as const;
 
 export const stockFilterLabels = {
 	in: "Above threshold",
 	out: "Out of stock",
 	low: "Low stock",
+	at_or_below: "At or below threshold",
 } as const;

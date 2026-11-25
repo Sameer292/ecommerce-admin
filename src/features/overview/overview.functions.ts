@@ -10,19 +10,25 @@ import { countOrderSyncFailures } from "@/features/store-integration/order-sync.
 import { getAnalytics } from "./analytics.server";
 import { overviewSearchSchema, resolveReportRange } from "./overview-validation";
 
-const watchStock = () =>
-	db
-		.select({
-			id: products.id,
-			name: products.name,
-			sku: products.sku,
-			stock: products.stock,
-			lowStockThreshold: products.lowStockThreshold,
-		})
-		.from(products)
-		.where(and(eq(products.status, "active"), lowStock))
-		.orderBy(asc(products.stock), asc(products.id))
-		.limit(5);
+const watchStock = async () => {
+	const where = and(eq(products.status, "active"), lowStock);
+	const [rows, total] = await Promise.all([
+		db
+			.select({
+				id: products.id,
+				name: products.name,
+				sku: products.sku,
+				stock: products.stock,
+				lowStockThreshold: products.lowStockThreshold,
+			})
+			.from(products)
+			.where(where)
+			.orderBy(asc(products.stock), asc(products.id))
+			.limit(5),
+		db.$count(products, where),
+	]);
+	return { rows, total };
+};
 
 export const readOverview = createServerFn()
 	.validator(overviewSearchSchema)

@@ -18,6 +18,7 @@ const stockConditions = {
 	in: gt(products.stock, products.lowStockThreshold),
 	out: eq(products.stock, 0),
 	low: and(gt(products.stock, 0), lowStock),
+	at_or_below: lowStock,
 };
 
 const productFilter = (

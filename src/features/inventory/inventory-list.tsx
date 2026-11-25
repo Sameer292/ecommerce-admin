@@ -7,7 +7,12 @@ import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { stockFilterLabels, stockFilters } from "@/features/catalog/catalog-options";
+import {
+	productStatusLabels,
+	productStatuses,
+	stockFilterLabels,
+	stockFilters,
+} from "@/features/catalog/catalog-options";
 import type { ProductListRow } from "@/features/catalog/catalog.types";
 import { ProductStatus, StockStatus } from "@/features/catalog/product-labels";
 import { formatCount } from "@/lib/format";
@@ -64,16 +69,24 @@ const InventoryFilters = ({
 		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
 		onClear={
-			search.q || search.stock
+			search.q || search.stock || search.status
 				? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
 				: undefined
 		}
 	>
 		<NativeSelect name="stock" aria-label="Stock filter" defaultValue={search.stock ?? ""}>
-			<NativeSelectOption value="">All products</NativeSelectOption>
+			<NativeSelectOption value="">All stock levels</NativeSelectOption>
 			{stockFilters.map((stock) => (
 				<NativeSelectOption key={stock} value={stock}>
 					{stockFilterLabels[stock]}
+				</NativeSelectOption>
+			))}
+		</NativeSelect>
+		<NativeSelect name="status" aria-label="Publication" defaultValue={search.status ?? ""}>
+			<NativeSelectOption value="">All publication states</NativeSelectOption>
+			{productStatuses.map((status) => (
+				<NativeSelectOption key={status} value={status}>
+					{productStatusLabels[status]}
 				</NativeSelectOption>
 			))}
 		</NativeSelect>
@@ -89,9 +102,11 @@ export const InventoryList = ({ rows, total, search, onSearch }: InventoryListPr
 			rows={rows}
 			columns={inventoryColumns}
 			label="Inventory"
-			empty={search.q || search.stock ? "No matching inventory" : "No inventory yet"}
+			empty={
+				search.q || search.stock || search.status ? "No matching inventory" : "No inventory yet"
+			}
 			emptyAction={
-				search.q || search.stock ? (
+				search.q || search.stock || search.status ? (
 					<ClearFilters
 						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
 					/>

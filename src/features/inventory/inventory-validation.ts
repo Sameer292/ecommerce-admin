@@ -5,13 +5,14 @@ import {
 	string as ZString,
 	uuid as ZUuid,
 } from "zod";
-import { stockFilters } from "@/features/catalog/catalog-options";
+import { productStatuses, stockFilters } from "@/features/catalog/catalog-options";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
 
 export const inventorySearchSchema = pageSearchSchema.extend({
 	sort: sortSchema("name", "sku", "threshold", "stock"),
 	stock: ZEnum(stockFilters).optional().catch(undefined),
+	status: ZEnum(productStatuses).optional().catch(undefined),
 });
 
 export const adjustmentSchema = ZObject({
