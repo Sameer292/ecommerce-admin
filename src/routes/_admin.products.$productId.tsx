@@ -57,6 +57,10 @@ const ProductPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/products/$productId")({
-	loader: ({ params }) => readProduct({ data: { id: params.productId } }),
+	loader: ({ context: { queryClient }, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["product", params.productId],
+			queryFn: ({ signal }) => readProduct({ data: { id: params.productId }, signal }),
+		}),
 	component: ProductPage,
 });

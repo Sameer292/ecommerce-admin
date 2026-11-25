@@ -4,12 +4,14 @@ import { test } from "node:test";
 import { mock } from "bun:test";
 import {
 	createMemoryHistory,
-	createRootRoute,
+	createRootRouteWithContext,
 	createRoute,
 	createRouter,
 	redirect,
 } from "@tanstack/react-router";
 import type { readWorkspace } from "../src/features/auth/session.functions";
+import type { QueryClient } from "@tanstack/react-query";
+import { createQueryClient } from "../src/lib/query-client";
 
 test("workspace data is reused across navigation and preload, refreshed on invalidation, and isolated per router", async () => {
 	let workspaceCalls = 0;
@@ -30,7 +32,7 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 	}));
 	const { Route } = await import("../src/routes/_admin");
 	const makeRouter = () => {
-		const root = createRootRoute();
+		const root = createRootRouteWithContext<{ queryClient: QueryClient }>()();
 		const admin = createRoute({
 			getParentRoute: () => root,
 			id: "_admin",
@@ -52,6 +54,7 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 		const login = createRoute({ getParentRoute: () => root, path: "login" });
 		return createRouter({
 			routeTree: root.addChildren([admin.addChildren(pages), login]),
+			context: { queryClient: createQueryClient() },
 			history: createMemoryHistory({ initialEntries: ["/products"] }),
 			origin: "http://localhost",
 			isServer: false,

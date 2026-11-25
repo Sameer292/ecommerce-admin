@@ -44,6 +44,10 @@ export const Route = createFileRoute("/_admin/")({
 	validateSearch: overviewSearchSchema,
 	search: { middlewares: [stripSearchParams({ range: defaultRange })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => readOverview({ data: deps }),
+	loader: ({ context: { queryClient }, deps }) =>
+		queryClient.fetchQuery({
+			queryKey: ["overview", deps],
+			queryFn: ({ signal }) => readOverview({ data: deps, signal }),
+		}),
 	component: OverviewPage,
 });

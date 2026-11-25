@@ -19,6 +19,10 @@ const StaffPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/team/$staffId")({
-	loader: ({ params }) => readStaffAccount({ data: { id: params.staffId } }),
+	loader: ({ context: { queryClient }, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["staff-account", params.staffId],
+			queryFn: ({ signal }) => readStaffAccount({ data: { id: params.staffId }, signal }),
+		}),
 	component: StaffPage,
 });

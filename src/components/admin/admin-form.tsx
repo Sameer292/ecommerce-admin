@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type FormProps = {
 };
 
 const useSubmitForm = ({ onSave, onSuccess }: Pick<FormProps, "onSave" | "onSuccess">) => {
+	const queryClient = useQueryClient();
 	const [error, setError] = useState("");
 	const [pending, setPending] = useState(false);
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -22,8 +24,11 @@ const useSubmitForm = ({ onSave, onSuccess }: Pick<FormProps, "onSave" | "onSucc
 		setPending(true);
 		try {
 			const result = await onSave(new FormData(event.currentTarget));
-			if (result.success) await onSuccess?.();
-			else setError(result.error);
+			if (result.success) {
+				await queryClient.cancelQueries();
+				await queryClient.invalidateQueries({ refetchType: "none" });
+				await onSuccess?.();
+			} else setError(result.error);
 		} catch {
 			setError("Couldn’t complete the request. Please try again.");
 		} finally {

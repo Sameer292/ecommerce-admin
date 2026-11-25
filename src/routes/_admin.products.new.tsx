@@ -24,6 +24,10 @@ export const Route = createFileRoute("/_admin/products/new")({
 	beforeLoad: ({ context }) => {
 		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/products" });
 	},
-	loader: () => readNewProduct(),
+	loader: ({ context: { queryClient } }) =>
+		queryClient.fetchQuery({
+			queryKey: ["new-product"],
+			queryFn: ({ signal }) => readNewProduct({ signal }),
+		}),
 	component: NewProductPage,
 });

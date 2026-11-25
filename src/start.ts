@@ -1,6 +1,7 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 import { compressHtml } from "@/server/compression";
+import { axiosFetch } from "@/lib/http";
 
 const privateResponses = createMiddleware().server(async ({ next, request }) => {
 	setResponseHeaders(
@@ -16,6 +17,7 @@ const privateResponses = createMiddleware().server(async ({ next, request }) => 
 });
 
 export const startInstance = createStart(() => ({
+	serverFns: { fetch: axiosFetch },
 	requestMiddleware: [
 		privateResponses,
 		createCsrfMiddleware({

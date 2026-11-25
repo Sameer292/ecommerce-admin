@@ -85,6 +85,10 @@ export const Route = createFileRoute("/_admin/orders/$orderId")({
 	validateSearch: orderDetailSearchSchema,
 	search: { middlewares: [stripSearchParams({ page: 1, activity: 1 })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps, params }) => readOrder({ data: { ...deps, id: params.orderId } }),
+	loader: ({ context: { queryClient }, deps, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["order", params.orderId, deps],
+			queryFn: ({ signal }) => readOrder({ data: { ...deps, id: params.orderId }, signal }),
+		}),
 	component: OrderPage,
 });

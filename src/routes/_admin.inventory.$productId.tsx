@@ -50,6 +50,10 @@ export const Route = createFileRoute("/_admin/inventory/$productId")({
 	validateSearch: stockHistorySearchSchema,
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps, params }) => readStock({ data: { id: params.productId, ...deps } }),
+	loader: ({ context: { queryClient }, deps, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["stock", params.productId, deps],
+			queryFn: ({ signal }) => readStock({ data: { id: params.productId, ...deps }, signal }),
+		}),
 	component: StockPage,
 });

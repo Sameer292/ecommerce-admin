@@ -56,6 +56,10 @@ export const Route = createFileRoute("/_admin/categories/")({
 	validateSearch: categorySearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => readCategories({ data: deps }),
+	loader: ({ context: { queryClient }, deps }) =>
+		queryClient.fetchQuery({
+			queryKey: ["categories", deps],
+			queryFn: ({ signal }) => readCategories({ data: deps, signal }),
+		}),
 	component: CategoriesPage,
 });

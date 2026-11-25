@@ -24,6 +24,10 @@ export const Route = createFileRoute("/_admin/inventory/")({
 	validateSearch: inventorySearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => readInventory({ data: deps }),
+	loader: ({ context: { queryClient }, deps }) =>
+		queryClient.fetchQuery({
+			queryKey: ["inventory", deps],
+			queryFn: ({ signal }) => readInventory({ data: deps, signal }),
+		}),
 	component: InventoryPage,
 });

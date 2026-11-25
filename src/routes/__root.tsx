@@ -1,8 +1,9 @@
+import type { QueryClient } from "@tanstack/react-query";
 import {
 	HeadContent,
 	Link,
 	Scripts,
-	createRootRoute,
+	createRootRouteWithContext,
 	type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
@@ -46,7 +47,7 @@ const RouteError = ({ reset }: ErrorComponentProps) => (
 	</main>
 );
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },

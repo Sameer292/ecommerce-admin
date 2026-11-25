@@ -24,6 +24,10 @@ export const Route = createFileRoute("/_admin/team/")({
 	validateSearch: teamSearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => readTeam({ data: deps }),
+	loader: ({ context: { queryClient }, deps }) =>
+		queryClient.fetchQuery({
+			queryKey: ["team", deps],
+			queryFn: ({ signal }) => readTeam({ data: deps, signal }),
+		}),
 	component: TeamPage,
 });

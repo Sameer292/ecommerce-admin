@@ -7,13 +7,16 @@ type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
 const AdminLayout = () => <AdminShell {...Route.useRouteContext()} />;
 
 export const Route = createFileRoute("/_admin")({
-	// Reuse layout data so workspace requests don't delay page loaders.
-	beforeLoad: ({ matches }): Workspace | Promise<Workspace> => {
+	beforeLoad: async ({ context: { queryClient }, matches }): Promise<Workspace> => {
 		const match = matches.find((match) => match.routeId === "/_admin");
-		if (match?.loaderData && !match.invalid) return match.loaderData;
-		return readWorkspace();
+		if (match?.invalid) await queryClient.invalidateQueries({ refetchType: "none" });
+		return queryClient.fetchQuery({
+			queryKey: ["workspace"],
+			queryFn: ({ signal }) => readWorkspace({ signal }),
+			staleTime: Infinity,
+		});
 	},
-	loader: ({ context }): Workspace => context,
+	loader: ({ context: { staff, store } }): Workspace => ({ staff, store }),
 	staleTime: Infinity,
 	component: AdminLayout,
 });

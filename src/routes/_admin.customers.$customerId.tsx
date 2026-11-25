@@ -74,6 +74,10 @@ export const Route = createFileRoute("/_admin/customers/$customerId")({
 	validateSearch: orderHistorySearchSchema,
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps, params }) => readCustomer({ data: { id: params.customerId, ...deps } }),
+	loader: ({ context: { queryClient }, deps, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["customer", params.customerId, deps],
+			queryFn: ({ signal }) => readCustomer({ data: { id: params.customerId, ...deps }, signal }),
+		}),
 	component: CustomerPage,
 });

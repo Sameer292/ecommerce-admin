@@ -35,6 +35,10 @@ export const Route = createFileRoute("/_admin/products/")({
 	validateSearch: productSearchSchema,
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
-	loader: ({ deps }) => readProducts({ data: deps }),
+	loader: ({ context: { queryClient }, deps }) =>
+		queryClient.fetchQuery({
+			queryKey: ["products", deps],
+			queryFn: ({ signal }) => readProducts({ data: deps, signal }),
+		}),
 	component: ProductsPage,
 });

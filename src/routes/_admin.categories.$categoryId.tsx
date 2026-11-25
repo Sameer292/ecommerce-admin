@@ -36,6 +36,10 @@ const CategoryPage = () => {
 };
 
 export const Route = createFileRoute("/_admin/categories/$categoryId")({
-	loader: ({ params }) => readCategory({ data: { id: params.categoryId } }),
+	loader: ({ context: { queryClient }, params }) =>
+		queryClient.fetchQuery({
+			queryKey: ["category", params.categoryId],
+			queryFn: ({ signal }) => readCategory({ data: { id: params.categoryId }, signal }),
+		}),
 	component: CategoryPage,
 });
