@@ -12,17 +12,29 @@ const OrderNumber = ({ id, number }: Pick<OrderRow, "id" | "number">) => (
 );
 
 const columns = (currency: string, zone: string): Column<OrderRow>[] => [
-	{ label: "Order", sort: "number.asc", cell: (row) => <OrderNumber {...row} /> },
-	{ label: "Customer", sort: "customer.asc", cell: (row) => row.customerName },
+	{
+		label: "Order",
+		className: "min-w-35",
+		sort: "number.asc",
+		cell: (row) => <OrderNumber {...row} />,
+	},
+	{
+		label: "Customer",
+		className: "min-w-35",
+		sort: "customer.asc",
+		cell: (row) => row.customerName,
+	},
 	{
 		label: "Date",
+		className: "min-w-35",
+
 		sort: "date.desc",
 		cell: (row) => formatDate(row.createdAt, zone),
 	},
-	{ label: "Status", compact: true, cell: (row) => <OrderStatusBadge status={row.status} /> },
+	{ label: "Status", cell: (row) => <OrderStatusBadge status={row.status} /> },
 	{
 		label: "Payment",
-		compact: true,
+		// compact: true,
 		cell: (row) => <PaymentStatusBadge status={row.paymentStatus} />,
 	},
 	{

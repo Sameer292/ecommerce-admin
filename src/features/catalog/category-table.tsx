@@ -14,7 +14,7 @@ const categoryColumns: Column<CategoryListRow>[] = [
 			<Link
 				to="/categories/$categoryId"
 				params={{ categoryId: row.id }}
-				className="inline-flex items-center gap-4 font-medium hover:underline"
+				className="inline-flex items-center gap-4 truncate font-medium hover:underline"
 			>
 				<CategoryIcon icon={row.icon} />
 				{row.name}
@@ -24,7 +24,7 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Slug",
 		sort: "slug.asc",
-		cell: (row) => <span className="text-muted-foreground">{row.slug}</span>,
+		cell: (row) => <span className="text-muted-foreground truncate">{row.slug}</span>,
 	},
 	{
 		label: "Products",

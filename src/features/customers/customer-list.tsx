@@ -16,7 +16,7 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 			<Link
 				to="/customers/$customerId"
 				params={{ customerId: row.id }}
-				className="font-medium hover:underline"
+				className="font-medium hover:underline truncate"
 			>
 				{row.name}
 			</Link>
@@ -25,14 +25,19 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 	{
 		label: "Email",
 		sort: "email.asc",
-		cell: (row) => <span className="text-muted-foreground">{row.email}</span>,
+		cell: (row) => <span className="text-muted-foreground truncate">{row.email}</span>,
 	},
-	{ label: "Phone", cell: (row) => row.phone || "—" },
-	{ label: "Added", sort: "date.desc", cell: (row) => formatDate(row.createdAt, zone) },
+	{ label: "Phone", className: "min-w-40", cell: (row) => row.phone || "—" },
+	{
+		label: "Added",
+		sort: "date.desc",
+		className: "min-w-35 text-center",
+		cell: (row) => formatDate(row.createdAt, zone),
+	},
 	{
 		label: "Total purchases",
 		sort: "purchases.desc",
-		className: "tabular-nums ",
+		className: "tabular-nums text-center",
 		cell: (row) => formatMoney(row.totalPurchasesMinor, currency),
 	},
 ];

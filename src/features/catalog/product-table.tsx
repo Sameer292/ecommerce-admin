@@ -12,7 +12,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 			<Link
 				to="/products/$productId"
 				params={{ productId: product.id }}
-				className="font-medium hover:underline"
+				className="font-medium hover:underline truncate"
 			>
 				{product.name}
 			</Link>
@@ -25,7 +25,6 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Product",
 		sort: "name.asc",
-		className: "min-w-64",
 		cell: (product) => <ProductName product={product} />,
 	},
 	{
@@ -52,7 +51,7 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Added",
 		sort: "date.desc",
-		className: "text-center",
+		className: "text-center min-w-35",
 		cell: (product) => formatDate(product.createdAt, zone),
 	},
 ];

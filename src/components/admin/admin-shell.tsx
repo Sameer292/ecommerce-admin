@@ -30,7 +30,7 @@ const MobileNav = (workspace: Workspace) => {
 };
 
 const TopBar = (workspace: Workspace) => (
-	<header className="flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7">
+	<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7">
 		<div className="flex min-w-0 items-center gap-2">
 			<div className="-ml-2 lg:hidden">
 				<MobileNav {...workspace} />

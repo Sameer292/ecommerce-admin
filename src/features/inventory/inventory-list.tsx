@@ -20,7 +20,7 @@ const inventoryColumns: Column<ProductListRow>[] = [
 			<Link
 				to="/inventory/$productId"
 				params={{ productId: row.id }}
-				className="font-medium hover:underline"
+				className="font-medium hover:underline truncate"
 			>
 				{row.name}
 			</Link>
@@ -29,7 +29,7 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	{
 		label: "SKU",
 		sort: "sku.asc",
-		cell: (row) => <span className="text-muted-foreground">{row.sku}</span>,
+		cell: (row) => <span className="text-muted-foreground truncate">{row.sku}</span>,
 	},
 	{ label: "Status", className: "text-center", cell: (row) => <StockStatus {...row} /> },
 	// {
