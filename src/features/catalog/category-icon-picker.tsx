@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PopoverClose, PopoverContent, PopoverTitle } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryIcons } from "./catalog-options";
 import type { Category } from "./catalog.types";
 import { categoryIconOptions } from "./category-icon";
@@ -34,18 +35,27 @@ const IconGrid = ({ icons, selected, onSelect }: IconSelection & { icons: Catego
 				No matching icons.
 			</p>
 		)}
-		{icons.map((icon) => (
-			<PopoverClose
-				key={icon}
-				aria-label={categoryIconOptions[icon].label}
-				title={categoryIconOptions[icon].label}
-				aria-pressed={icon === selected}
-				onClick={() => onSelect(icon)}
-				render={<Button variant={icon === selected ? "secondary" : "ghost"} className="h-14" />}
-			>
-				<HugeiconsIcon icon={categoryIconOptions[icon].glyph} className="size-7" aria-hidden />
-			</PopoverClose>
-		))}
+		<TooltipProvider>
+			{icons.map((icon) => (
+				<Tooltip key={icon}>
+					<TooltipTrigger
+						aria-label={categoryIconOptions[icon].label}
+						aria-pressed={icon === selected}
+						onClick={() => onSelect(icon)}
+						render={
+							<PopoverClose
+								render={
+									<Button variant={icon === selected ? "secondary" : "ghost"} className="h-14" />
+								}
+							/>
+						}
+					>
+						<HugeiconsIcon icon={categoryIconOptions[icon].glyph} className="size-7" aria-hidden />
+					</TooltipTrigger>
+					<TooltipContent>{categoryIconOptions[icon].label}</TooltipContent>
+				</Tooltip>
+			))}
+		</TooltipProvider>
 	</div>
 );
 
