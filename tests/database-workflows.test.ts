@@ -594,6 +594,20 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			(await listCustomers({ page: 1, q: "(984) 123-4567" })).rows[0].name,
 			"Phone search",
 		);
+		const { customerOrderSummary } = await import("../src/features/customers/customers.server");
+		const [reportCustomer] =
+			await connection`select customer_id from commerce_admin.orders where number = 'WEB-REPORT'`;
+		const summary = await customerOrderSummary(reportCustomer.customer_id);
+		assert.ok(summary.count > 0);
+		assert.ok(summary.openCount > 0);
+		assert.equal(summary.first.toISOString(), "2025-02-01T02:00:00.000Z");
+		assert.ok(summary.outstanding.some(({ number }) => number.startsWith("WEB-")));
+		const [noOrders] =
+			await connection`select id from commerce_admin.customers where email = 'phone-search@example.test'`;
+		const emptySummary = await customerOrderSummary(noOrders.id);
+		assert.equal(emptySummary.count, 0);
+		assert.equal(emptySummary.first, null);
+		assert.equal(emptySummary.average, null);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

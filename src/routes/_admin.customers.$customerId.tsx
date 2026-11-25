@@ -10,6 +10,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { can } from "@/features/auth/permissions";
 import { CustomerContact } from "@/features/customers/customer-contact";
 import { CustomerForm } from "@/features/customers/customer-form";
+import { CustomerSummary } from "@/features/customers/customer-summary";
 import { readCustomer, removeCustomer } from "@/features/customers/customers.functions";
 import { OrderTable } from "@/features/orders/order-table";
 import { orderSearchSchema } from "@/features/orders/order-validation";
@@ -49,8 +50,8 @@ const CustomerOrders = () => {
 };
 
 const CustomerPage = () => {
-	const { customer, orders } = Route.useLoaderData();
-	const { staff } = Route.useRouteContext();
+	const { customer, orders, summary } = Route.useLoaderData();
+	const { staff, store } = Route.useRouteContext();
 	const canEdit = can(staff.role, "manageCommerce");
 	const returnHref = useListReturn("/customers");
 	const remove = useServerFn(removeCustomer);
@@ -81,6 +82,7 @@ const CustomerPage = () => {
 				{customer.phone && <CustomerContact kind="phone" value={customer.phone} copy />}
 			</FormSection>
 			<CustomerForm key={customer.id} customer={customer} editable={canEdit} />
+			<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
 			<CustomerOrders />
 		</>
 	);

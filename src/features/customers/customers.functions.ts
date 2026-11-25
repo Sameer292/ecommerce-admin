@@ -6,7 +6,13 @@ import { orderSearchSchema } from "@/features/orders/order-validation";
 import { listOrders } from "@/features/orders/orders.server";
 import { mutate } from "@/server/mutation.server";
 import { customerFormSchema, customerSearchSchema } from "./customer-validation";
-import { deleteCustomer, findCustomer, listCustomers, saveCustomer } from "./customers.server";
+import {
+	customerOrderSummary,
+	deleteCustomer,
+	findCustomer,
+	listCustomers,
+	saveCustomer,
+} from "./customers.server";
 
 export const readCustomers = createServerFn()
 	.validator(customerSearchSchema)
@@ -19,12 +25,13 @@ export const readCustomer = createServerFn()
 	.validator(idSchema.extend(orderSearchSchema.pick({ page: true, sort: true }).shape))
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [customer, orders] = await Promise.all([
+		const [customer, orders, summary] = await Promise.all([
 			findCustomer(data.id),
 			listOrders({ page: data.page, q: "", sort: data.sort }, data.id),
+			customerOrderSummary(data.id),
 		]);
 		if (!customer) throw notFound();
-		return { customer, orders };
+		return { customer, orders, summary };
 	});
 
 export const writeCustomer = createServerFn({ method: "POST" })

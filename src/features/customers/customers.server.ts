@@ -2,7 +2,8 @@ import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { customers } from "@/db/schema/customers";
-import { orders } from "@/db/schema/orders";
+import { orders, paymentEvents } from "@/db/schema/orders";
+import { openOrder, recentOpenCustomerOrders } from "@/features/orders/orders.server";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
@@ -60,6 +61,41 @@ export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) 
 export const findCustomer = async (id: string) => {
 	const [customer] = await db.select().from(customers).where(eq(customers.id, id));
 	return customer;
+};
+
+export const customerOrderSummary = async (id: string) => {
+	const [[counts], [payments], outstanding] = await Promise.all([
+		db
+			.select({
+				count: sql`count(*)`.mapWith(Number),
+				openCount: sql`count(*) filter (where ${openOrder})`.mapWith(Number),
+				first: sql`min(${orders.createdAt})`.mapWith((value) => new Date(value)),
+				last: sql`max(${orders.createdAt})`.mapWith((value) => new Date(value)),
+			})
+			.from(orders)
+			.where(eq(orders.customerId, id)),
+		db
+			.select({
+				paid: sql`coalesce(sum(${paymentEvents.amountMinor}) filter (where ${paymentEvents.status} = 'paid'), 0)`.mapWith(
+					Number,
+				),
+				refunded:
+					sql`coalesce(sum(${paymentEvents.amountMinor}) filter (where ${paymentEvents.status} = 'refunded'), 0)`.mapWith(
+						Number,
+					),
+				paidOrders: sql`count(*) filter (where ${paymentEvents.status} = 'paid')`.mapWith(Number),
+			})
+			.from(orders)
+			.innerJoin(paymentEvents, eq(paymentEvents.orderId, orders.id))
+			.where(eq(orders.customerId, id)),
+		recentOpenCustomerOrders(id),
+	]);
+	return {
+		...counts,
+		spend: payments.paid - payments.refunded,
+		average: payments.paidOrders ? Math.round(payments.paid / payments.paidOrders) : null,
+		outstanding,
+	};
 };
 
 export const saveCustomer = async ({ id, version, ...values }: CustomerValues) => {
