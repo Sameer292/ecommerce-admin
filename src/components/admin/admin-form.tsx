@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useHydrated } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FieldError, FieldSet } from "@/components/ui/field";
@@ -18,6 +18,7 @@ type FormProps = {
 	successMessage?: string;
 	cancelHref?: string;
 	stickyActions?: boolean;
+	requireChanges?: boolean;
 	destructive?: boolean;
 };
 
@@ -25,10 +26,14 @@ const useSubmitForm = ({
 	onSave,
 	onSuccess,
 	successMessage,
-}: Pick<FormProps, "onSave" | "onSuccess" | "successMessage">) => {
+	requireChanges,
+	onSaved,
+}: Pick<FormProps, "onSave" | "onSuccess" | "successMessage" | "requireChanges"> & {
+	onSaved: () => void;
+}) => {
 	const queryClient = useQueryClient();
 	const { add } = useToastManager();
-	const { markSaved } = useUnsavedChanges();
+	const { isFormDirty, markSaved } = useUnsavedChanges();
 	const [failure, setFailure] = useState<MutationFailure>();
 	const [pending, setPending] = useState(false);
 	const submittedForm = useRef<HTMLFormElement>(null);
@@ -41,6 +46,7 @@ const useSubmitForm = ({
 		event.preventDefault();
 		if (!onSave || pending) return;
 		const form = event.currentTarget;
+		if (requireChanges && !isFormDirty(form)) return;
 		submittedForm.current = form;
 		setFailure(undefined);
 		setPending(true);
@@ -48,12 +54,14 @@ const useSubmitForm = ({
 			const result = await onSave(new FormData(form));
 			if (result.success) {
 				markSaved(form);
+				onSaved();
 				if (successMessage) add({ title: successMessage });
 				await queryClient.cancelQueries();
 				await queryClient.invalidateQueries({ refetchType: "none" });
 				await onSuccess?.();
 				// Revalidation can replace fields with the server's saved values.
 				markSaved(form);
+				onSaved();
 			} else setFailure(result);
 		} catch {
 			setFailure({ success: false, error: "Couldn’t complete the request. Please try again." });
@@ -72,11 +80,34 @@ export const AdminForm = ({
 	successMessage,
 	cancelHref,
 	stickyActions,
+	requireChanges,
 	destructive,
 }: FormProps) => {
-	const { failure, pending, submit } = useSubmitForm({ onSave, onSuccess, successMessage });
+	const [dirty, setDirty] = useState(false);
+	const { failure, pending, submit } = useSubmitForm({
+		onSave,
+		onSuccess,
+		successMessage,
+		requireChanges,
+		onSaved: () => setDirty(false),
+	});
 	const hydrated = useHydrated();
-	const { register } = useUnsavedChanges();
+	const { isFormDirty, register } = useUnsavedChanges();
+	const registerForm = useCallback(
+		(form: HTMLFormElement | null) => {
+			const unregister = register(form);
+			if (!form || !requireChanges) return unregister;
+			const update = () => setDirty(isFormDirty(form));
+			const observer = new MutationObserver(update);
+			// Custom fields such as the category icon write to a hidden input.
+			observer.observe(form, { attributes: true, attributeFilter: ["value"], subtree: true });
+			return () => {
+				unregister?.();
+				observer.disconnect();
+			};
+		},
+		[isFormDirty, register, requireChanges],
+	);
 	if (!onSave) {
 		return (
 			<section aria-label="Read-only access" className="flex flex-col items-start gap-4">
@@ -88,7 +119,13 @@ export const AdminForm = ({
 		);
 	}
 	return (
-		<form ref={register} method="post" onSubmit={submit} className="flex flex-col gap-4">
+		<form
+			ref={registerForm}
+			method="post"
+			onSubmit={submit}
+			onChange={requireChanges ? (event) => setDirty(isFormDirty(event.currentTarget)) : undefined}
+			className="flex flex-col gap-4"
+		>
 			<FieldSet disabled={!hydrated || pending} className="min-w-0">
 				<FieldValidation value={failure?.fieldErrors}>{children}</FieldValidation>
 			</FieldSet>
@@ -113,7 +150,7 @@ export const AdminForm = ({
 					type="submit"
 					size="lg"
 					variant={destructive ? "destructive" : "default"}
-					disabled={!hydrated || pending}
+					disabled={!hydrated || pending || (requireChanges && !dirty)}
 				>
 					{pending ? "Saving…" : submitLabel}
 				</Button>

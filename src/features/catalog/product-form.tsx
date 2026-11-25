@@ -116,6 +116,7 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 			onSuccess={() => navigate({ href: returnHref })}
 			cancelHref={returnHref}
 			stickyActions
+			requireChanges={Boolean(product)}
 			submitLabel={product ? "Save product" : "Create product"}
 			successMessage={product ? "Product saved." : "Product created."}
 		>

@@ -106,6 +106,7 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
 					cancelHref={returnHref}
+					requireChanges
 					successMessage="Staff access saved."
 				>
 					<EditableAccess account={account} version={version} />

@@ -14,12 +14,17 @@ const formValues = (form: HTMLFormElement) =>
 
 const createFormGuard = () => {
 	const forms = new Map<HTMLFormElement, string>();
-	const isDirty = () => [...forms].some(([form, saved]) => formValues(form) !== saved);
+	const isFormDirty = (form: HTMLFormElement) => {
+		const saved = forms.get(form);
+		return saved !== undefined && formValues(form) !== saved;
+	};
+	const isDirty = () => [...forms.keys()].some(isFormDirty);
 	const markSaved = (form: HTMLFormElement) => {
 		if (forms.has(form)) forms.set(form, formValues(form));
 	};
 	return {
 		isDirty,
+		isFormDirty,
 		markSaved,
 		register: (form: HTMLFormElement | null) => {
 			if (!form) return;

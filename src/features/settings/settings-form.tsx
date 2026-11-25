@@ -51,6 +51,7 @@ export const StoreSettingsForm = ({
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => router.invalidate()}
+				requireChanges
 				submitLabel="Save settings"
 				successMessage="Store settings saved."
 			>

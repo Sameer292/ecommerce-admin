@@ -48,6 +48,7 @@ export const CategoryForm = ({
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
 				cancelHref={returnHref}
+				requireChanges={Boolean(category)}
 				submitLabel={category ? "Save category" : "Create category"}
 				successMessage={category ? "Category saved." : "Category created."}
 			>

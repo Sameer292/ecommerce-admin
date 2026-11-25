@@ -37,6 +37,7 @@ export const FulfillmentForm = ({ order, editable }: { order: Order; editable: b
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => router.invalidate()}
+				requireChanges
 				submitLabel="Save fulfillment"
 				successMessage="Fulfillment saved."
 			>

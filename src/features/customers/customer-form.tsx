@@ -52,6 +52,7 @@ export const CustomerForm = ({
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
 				cancelHref={returnHref}
+				requireChanges={Boolean(customer)}
 				submitLabel={customer ? "Save customer" : "Create customer"}
 				successMessage={customer ? "Customer saved." : "Customer created."}
 			>
