@@ -33,7 +33,7 @@ export const changeStaffPassword = createServerFn({ method: "POST" })
 				data: { user },
 			} = await auth.getUser();
 			if (!user?.email || !(await verifyCurrentPassword(user.id, user.email, currentPassword))) {
-				throw new ActionError("Check your current password and try again.");
+				throw new ActionError("Check your current password and try again.", "currentPassword");
 			}
 			const { error } = await auth.updateUser({
 				current_password: currentPassword,

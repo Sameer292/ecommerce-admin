@@ -86,7 +86,8 @@ export const findProduct = async (id: string) => {
 
 export const saveProduct = async ({ id, price, version, ...values }: ProductValues) => {
 	const priceMinor = parseMoneyInput(price, env.STORE_CURRENCY);
-	if (priceMinor === null) throw new ActionError(`Enter a valid ${env.STORE_CURRENCY} price.`);
+	if (priceMinor === null)
+		throw new ActionError(`Enter a valid ${env.STORE_CURRENCY} price.`, "price");
 
 	if (!id) return db.insert(products).values({ ...values, priceMinor });
 	const [updated] = await db

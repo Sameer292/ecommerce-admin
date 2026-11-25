@@ -16,7 +16,7 @@ export const changePasswordSchema = ZObject({
 	currentPassword: existingPassword,
 	newPassword: staffPasswordSchema,
 	confirmation: ZString(),
-}).refine(
-	({ newPassword, confirmation }) => newPassword === confirmation,
-	"The new passwords don’t match.",
-);
+}).refine(({ newPassword, confirmation }) => newPassword === confirmation, {
+	message: "The new passwords don’t match.",
+	path: ["confirmation"],
+});

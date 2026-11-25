@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { FieldError, FieldSet } from "@/components/ui/field";
-import type { MutationResult } from "@/server/mutation.types";
+import type { MutationFailure, MutationResult } from "@/server/mutation.types";
+import { FieldValidation } from "./form-fields";
 import { useUnsavedChanges } from "./unsaved-changes";
 
 type FormProps = {
@@ -17,13 +18,20 @@ type FormProps = {
 const useSubmitForm = ({ onSave, onSuccess }: Pick<FormProps, "onSave" | "onSuccess">) => {
 	const queryClient = useQueryClient();
 	const { markSaved } = useUnsavedChanges();
-	const [error, setError] = useState("");
+	const [failure, setFailure] = useState<MutationFailure>();
 	const [pending, setPending] = useState(false);
+	const submittedForm = useRef<HTMLFormElement>(null);
+	useEffect(() => {
+		if (failure?.fieldErrors && !pending) {
+			submittedForm.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+		}
+	}, [failure, pending]);
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (!onSave || pending) return;
 		const form = event.currentTarget;
-		setError("");
+		submittedForm.current = form;
+		setFailure(undefined);
 		setPending(true);
 		try {
 			const result = await onSave(new FormData(form));
@@ -34,14 +42,14 @@ const useSubmitForm = ({ onSave, onSuccess }: Pick<FormProps, "onSave" | "onSucc
 				await onSuccess?.();
 				// Revalidation can replace fields with the server's saved values.
 				markSaved(form);
-			} else setError(result.error);
+			} else setFailure(result);
 		} catch {
-			setError("Couldn’t complete the request. Please try again.");
+			setFailure({ success: false, error: "Couldn’t complete the request. Please try again." });
 		} finally {
 			setPending(false);
 		}
 	};
-	return { error, pending, submit };
+	return { failure, pending, submit };
 };
 
 export const AdminForm = ({
@@ -51,7 +59,7 @@ export const AdminForm = ({
 	submitLabel = "Save changes",
 	destructive,
 }: FormProps) => {
-	const { error, pending, submit } = useSubmitForm({ onSave, onSuccess });
+	const { failure, pending, submit } = useSubmitForm({ onSave, onSuccess });
 	const hydrated = useHydrated();
 	const { register } = useUnsavedChanges();
 	return (
@@ -62,9 +70,9 @@ export const AdminForm = ({
 			className="flex flex-col gap-4"
 		>
 			<FieldSet disabled={!onSave || !hydrated || pending} className="min-w-0">
-				{children}
+				<FieldValidation value={failure?.fieldErrors}>{children}</FieldValidation>
 			</FieldSet>
-			{error && <FieldError>{error}</FieldError>}
+			{failure && <FieldError>{failure.error}</FieldError>}
 			{onSave && (
 				<div className="flex justify-end">
 					<Button

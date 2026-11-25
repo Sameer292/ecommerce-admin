@@ -1,8 +1,15 @@
-import type { ZodType } from "zod";
+import type { ZodType as ZType } from "zod";
 import { databaseCode } from "./db-errors.server";
-import type { MutationResult } from "./mutation.types";
+import type { FieldErrors, MutationResult } from "./mutation.types";
 
-export class ActionError extends Error {}
+export class ActionError extends Error {
+	constructor(
+		message: string,
+		readonly field?: string,
+	) {
+		super(message);
+	}
+}
 
 const getMutationError = (error: unknown, constraints?: Record<string, string>) => {
 	if (error instanceof ActionError) return error.message;
@@ -17,19 +24,38 @@ const getMutationError = (error: unknown, constraints?: Record<string, string>) 
 };
 
 export const mutate = async <Value>(
-	schema: ZodType<Value>,
+	schema: ZType<Value>,
 	form: FormData,
 	save: (value: Value) => Promise<unknown>,
 	constraints?: Record<string, string>,
 ): Promise<MutationResult> => {
 	const parsed = schema.safeParse(Object.fromEntries(form));
 	if (!parsed.success) {
-		return { success: false, error: parsed.error.issues[0]?.message ?? "Check the form values." };
+		const fieldErrors: FieldErrors = Object.create(null);
+		let formError: string | undefined;
+		for (const { path, message } of parsed.error.issues) {
+			const field = path[0];
+			if (typeof field === "string" && !["id", "version", "productId"].includes(field)) {
+				fieldErrors[field] ??= message;
+			} else formError ??= message;
+		}
+		return {
+			success: false,
+			error: formError ?? "Check the highlighted fields.",
+			fieldErrors: { ...fieldErrors },
+		};
 	}
 	try {
 		await save(parsed.data);
 		return { success: true };
 	} catch (error) {
+		if (error instanceof ActionError && error.field) {
+			return {
+				success: false,
+				error: "Check the highlighted fields.",
+				fieldErrors: { [error.field]: error.message },
+			};
+		}
 		return { success: false, error: getMutationError(error, constraints) };
 	}
 };
