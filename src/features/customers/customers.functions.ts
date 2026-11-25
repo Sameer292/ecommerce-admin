@@ -5,7 +5,9 @@ import { formDataSchema, idSchema } from "@/lib/validation";
 import { orderSearchSchema } from "@/features/orders/order-validation";
 import { listOrders } from "@/features/orders/orders.server";
 import { mutate } from "@/server/mutation.server";
+import { anonymizeCustomerData } from "./customer-privacy.server";
 import {
+	anonymizeCustomerSchema,
 	customerFormSchema,
 	customerSearchSchema,
 	mergeCustomerSchema,
@@ -36,7 +38,20 @@ export const readCustomer = createServerFn()
 			customerOrderSummary(data.id),
 		]);
 		if (!customer) throw notFound();
-		return { customer, orders, summary };
+		return {
+			customer: customer.mergedInto
+				? {
+						...customer,
+						name: "Customer merged",
+						email: "",
+						phone: "",
+						notes: "",
+						mergeReason: null,
+					}
+				: customer,
+			orders,
+			summary,
+		};
 	});
 
 export const writeCustomer = createServerFn({ method: "POST" })
@@ -64,5 +79,13 @@ export const mergeCustomer = createServerFn({ method: "POST" })
 	.handler(({ data }) =>
 		withStaffMutation("manageCommerce", (staff) =>
 			mutate(mergeCustomerSchema, data, (input) => mergeDuplicateCustomer(input, staff.id)),
+		),
+	);
+
+export const anonymizeCustomer = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(anonymizeCustomerSchema, data, (input) => anonymizeCustomerData(input, staff.id)),
 		),
 	);

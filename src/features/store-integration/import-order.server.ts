@@ -23,14 +23,16 @@ const lockPrimaryCustomer = async (transaction: Transaction, id: string) => {
 		const [active] = await transaction
 			.select({ id: customers.id })
 			.from(customers)
-			.where(and(eq(customers.id, id), isNull(customers.mergedInto)))
+			.where(
+				and(eq(customers.id, id), isNull(customers.mergedInto), isNull(customers.anonymizedAt)),
+			)
 			.for("update");
 		if (active) return active.id;
 		const [merged] = await transaction
-			.select({ target: customers.mergedInto })
+			.select({ target: customers.mergedInto, anonymizedAt: customers.anonymizedAt })
 			.from(customers)
 			.where(eq(customers.id, id));
-		if (!merged)
+		if (!merged || merged.anonymizedAt)
 			throw new IntegrationError(409, "The customer changed during import. Retry the request.");
 		if (merged.target) id = merged.target;
 	}

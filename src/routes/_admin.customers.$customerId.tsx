@@ -7,8 +7,10 @@ import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { PageControls } from "@/components/admin/page-controls";
 import { FormSection } from "@/components/admin/form-section";
+import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
 import { CustomerContact } from "@/features/customers/customer-contact";
+import { CustomerAnonymize } from "@/features/customers/customer-anonymize";
 import { CustomerForm } from "@/features/customers/customer-form";
 import { CustomerMerge } from "@/features/customers/customer-merge";
 import { CustomerSummary } from "@/features/customers/customer-summary";
@@ -75,6 +77,19 @@ const CustomerPage = () => {
 				</Link>
 			</>
 		);
+	if (customer.anonymizedAt)
+		return (
+			<>
+				<DetailHeading
+					title="Anonymized customer"
+					description="Personal details have been removed."
+					back="/customers"
+					backLabel="Customers"
+				/>
+				<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
+				<CustomerOrders />
+			</>
+		);
 	return (
 		<>
 			<DetailHeading
@@ -83,6 +98,14 @@ const CustomerPage = () => {
 				back="/customers"
 				backLabel="Customers"
 			>
+				{canEdit && (
+					<a
+						className={buttonVariants({ variant: "outline" })}
+						href={`/api/customers/${customer.id}/export`}
+					>
+						Export customer data
+					</a>
+				)}
 				{canEdit && (
 					<DeleteRecord
 						id={customer.id}
@@ -104,6 +127,7 @@ const CustomerPage = () => {
 			<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
 			<CustomerOrders />
 			{canEdit && <CustomerMerge customer={customer} />}
+			{canEdit && <CustomerAnonymize customer={customer} />}
 		</>
 	);
 };

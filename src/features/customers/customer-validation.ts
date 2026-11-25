@@ -29,3 +29,9 @@ export const mergeCustomerSchema = ZObject({
 	reason: ZString().trim().min(1, "Enter a reason for the merge.").max(500),
 	confirm: ZLiteral("on", { error: "Confirm which customer profile will be kept." }),
 });
+
+export const anonymizeCustomerSchema = ZObject({
+	id: ZUuid(),
+	version: editVersionSchema,
+	confirmation: ZLiteral("ANONYMIZE", { error: "Type ANONYMIZE to confirm." }),
+});

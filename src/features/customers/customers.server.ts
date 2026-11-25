@@ -40,7 +40,7 @@ export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) 
 				digits ? ilike(normalizedPhone, searchPattern(digits)) : undefined,
 			)
 		: undefined;
-	const where = and(isNull(customers.mergedInto), matching);
+	const where = and(isNull(customers.mergedInto), isNull(customers.anonymizedAt), matching);
 	const [rows, total] = await Promise.all([
 		db
 			.select({
@@ -108,7 +108,12 @@ export const saveCustomer = async ({ id, version, ...values }: CustomerValues) =
 		.update(customers)
 		.set({ ...values, updatedAt: new Date(), version: sql`${customers.version} + 1` })
 		.where(
-			and(eq(customers.id, id), eq(customers.version, version ?? -1), isNull(customers.mergedInto)),
+			and(
+				eq(customers.id, id),
+				eq(customers.version, version ?? -1),
+				isNull(customers.mergedInto),
+				isNull(customers.anonymizedAt),
+			),
 		)
 		.returning({ id: customers.id });
 	if (!updated)
@@ -116,7 +121,9 @@ export const saveCustomer = async ({ id, version, ...values }: CustomerValues) =
 };
 
 export const deleteCustomer = (id: string) =>
-	db.delete(customers).where(and(eq(customers.id, id), isNull(customers.mergedInto)));
+	db
+		.delete(customers)
+		.where(and(eq(customers.id, id), isNull(customers.mergedInto), isNull(customers.anonymizedAt)));
 
 export const mergeDuplicateCustomer = (
 	{ id, version, targetEmail, reason }: ZOutput<typeof mergeCustomerSchema>,
@@ -137,12 +144,12 @@ export const mergeDuplicateCustomer = (
 			.for("update");
 		const source = locked.find((entry) => entry.id === id);
 		const target = locked.find((entry) => entry.id === match.id);
-		if (!target || target.mergedInto || target.email !== targetEmail)
+		if (!target || target.mergedInto || target.anonymizedAt || target.email !== targetEmail)
 			throw new ActionError(
 				"The customer to keep changed. Enter their current email.",
 				"targetEmail",
 			);
-		if (!source || source.mergedInto || source.version !== version)
+		if (!source || source.mergedInto || source.anonymizedAt || source.version !== version)
 			throw new ActionError("This customer changed. Refresh before merging.");
 		await transaction
 			.update(orders)

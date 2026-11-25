@@ -26,6 +26,8 @@ export const customers = commerce.table(
 		mergedAt: timestamp("merged_at", { withTimezone: true }),
 		mergedBy: text("merged_by").references(() => user.id, { onDelete: "set null" }),
 		mergeReason: text("merge_reason"),
+		anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+		anonymizedBy: text("anonymized_by").references(() => user.id, { onDelete: "set null" }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
