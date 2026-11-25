@@ -41,12 +41,7 @@ const IconGrid = ({ icons, selected, onSelect }: IconSelection & { icons: Catego
 				title={categoryIconOptions[icon].label}
 				aria-pressed={icon === selected}
 				onClick={() => onSelect(icon)}
-				render={
-					<Button
-						variant={icon === selected ? "secondary" : "ghost"}
-						className="h-14"
-					/>
-				}
+				render={<Button variant={icon === selected ? "secondary" : "ghost"} className="h-14" />}
 			>
 				<HugeiconsIcon icon={categoryIconOptions[icon].glyph} className="size-7" aria-hidden />
 			</PopoverClose>
