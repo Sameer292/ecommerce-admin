@@ -9,7 +9,7 @@ const OrderNumber = ({ id, number }: Pick<OrderRow, "id" | "number">) => (
 	<RecordLink
 		to="/orders/$orderId"
 		params={{ orderId: id }}
-		className="font-medium hover:underline"
+		className="font-medium wrap-anywhere hover:underline"
 	>
 		#{number}
 	</RecordLink>
@@ -18,9 +18,33 @@ const OrderNumber = ({ id, number }: Pick<OrderRow, "id" | "number">) => (
 const columns = (currency: string, zone: string): Column<OrderRow>[] => [
 	{
 		label: "Order",
-		className: "min-w-35",
+		className: "min-w-24 px-3 md:min-w-35 md:px-4",
 		sort: "number.asc",
 		cell: (row) => <OrderNumber {...row} />,
+	},
+	{
+		label: "Status",
+		className: "min-w-0 px-2 md:min-w-24 md:px-4",
+		cell: (row) => (
+			<div className="flex flex-col items-start gap-1">
+				<OrderStatusBadge status={row.status} />
+				<div className="md:hidden">
+					<PaymentStatusBadge status={row.paymentStatus} />
+				</div>
+			</div>
+		),
+	},
+	{
+		label: "Total",
+		sort: "total.asc",
+		compact: true,
+		className: "px-3 text-right tabular-nums md:px-4",
+		cell: (row) => formatMoney(row.totalMinor, currency),
+	},
+	{
+		label: "Payment",
+		className: "hidden md:table-cell",
+		cell: (row) => <PaymentStatusBadge status={row.paymentStatus} />,
 	},
 	{
 		label: "Customer",
@@ -31,22 +55,8 @@ const columns = (currency: string, zone: string): Column<OrderRow>[] => [
 	{
 		label: "Date",
 		className: "min-w-35",
-
 		sort: "date.desc",
 		cell: (row) => formatDate(row.createdAt, zone),
-	},
-	{ label: "Status", cell: (row) => <OrderStatusBadge status={row.status} /> },
-	{
-		label: "Payment",
-		// compact: true,
-		cell: (row) => <PaymentStatusBadge status={row.paymentStatus} />,
-	},
-	{
-		label: "Total",
-		sort: "total.asc",
-		compact: true,
-		className: "tabular-nums",
-		cell: (row) => formatMoney(row.totalMinor, currency),
 	},
 ];
 
