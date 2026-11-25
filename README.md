@@ -36,7 +36,7 @@ Staff sign in with email and password and can change their own password. Superus
 
 ### Moving an existing deployment
 
-Back up the old database. When moving databases, restore the `commerce_admin` and `drizzle` schemas in the destination Supabase PostgreSQL database before running `bun run db:migrate`. The migration preserves catalog, orders, stock history, and staff profiles. It archives the old authentication tables in a private schema.
+Use the [backup and restore runbook](docs/backup-restore.md) before moving a database. For a commerce-only migration, restore the `commerce_admin` and `drizzle` schemas in the destination Supabase PostgreSQL database before running `bun run db:migrate`. The migration preserves catalog, orders, stock history, and staff profiles. It archives the old authentication tables in a private schema.
 
 Provision the first superuser with the same email and a new password. Then provision the other staff accounts from Team using their existing email and role with a new password. This links the existing profile and preserves its audit history. Earlier passwords and sessions need to be replaced with Supabase credentials.
 
