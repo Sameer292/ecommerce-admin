@@ -19,6 +19,7 @@ import { discardProductUpload, productImageUrl, uploadProductImage } from "./pro
 import {
 	deleteProduct,
 	findProduct,
+	listProductVariants,
 	listProducts,
 	productHasHistory,
 	saveProduct,
@@ -37,14 +38,15 @@ export const readNewProduct = createServerFn()
 	.validator(newProductSearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff("manageCommerce");
+		const sourceId = data.variantOf ?? data.duplicate;
 		const [categories, source] = await Promise.all([
 			categoryOptions(),
-			data.duplicate ? findProduct(data.duplicate) : null,
+			sourceId ? findProduct(sourceId) : null,
 		]);
-		if (data.duplicate && !source) throw notFound();
+		if ((sourceId && !source) || (data.variantOf && source?.variantOf)) throw notFound();
 		const draft = source
 			? {
-					name: `${source.name.slice(0, 115)} copy`,
+					name: `${source.name.slice(0, data.variantOf ? 112 : 115).replace(/[\uD800-\uDBFF]$/, "")} ${data.variantOf ? "variant" : "copy"}`,
 					sku: "",
 					description: source.description,
 					categoryId: source.categoryId,
@@ -54,6 +56,7 @@ export const readNewProduct = createServerFn()
 					priceMinor: source.priceMinor,
 					lowStockThreshold: source.lowStockThreshold,
 					status: "draft" as const,
+					variantOf: data.variantOf,
 				}
 			: undefined;
 		return { categories, draft };
@@ -63,13 +66,20 @@ export const readProduct = createServerFn()
 	.validator(idSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [product, categories, hasHistory] = await Promise.all([
+		const [product, categories, hasHistory, variants] = await Promise.all([
 			findProduct(data.id),
 			categoryOptions(),
 			productHasHistory(data.id),
+			listProductVariants(data.id),
 		]);
 		if (!product) throw notFound();
-		return { product, categories, hasHistory, managedImage: productImageUrl(product.imageKey) };
+		return {
+			product,
+			categories,
+			hasHistory,
+			variants,
+			managedImage: productImageUrl(product.imageKey),
+		};
 	});
 
 const saveProductImage = async (values: ProductValues, data: FormData, staffId: string) => {
@@ -102,7 +112,7 @@ export const writeProduct = createServerFn({ method: "POST" })
 	.handler(({ data }) =>
 		withStaffMutation("manageCommerce", (staff) =>
 			mutate(productFormSchema, data, (values) => saveProductImage(values, data, staff.id), {
-				23505: "A product already uses this SKU or slug.",
+				23505: "This SKU, slug, or set of variant options is already in use.",
 				23514: "A published product’s SKU is fixed. Refresh before making changes.",
 				23503: "This category no longer exists.",
 			}),

@@ -73,6 +73,34 @@ const catalogFormSchema = ZObject({
 	description: ZString().trim().max(1_000),
 });
 
+const variantOptionsSchema = ZString()
+	.max(580)
+	.transform((text) =>
+		text
+			.split(/\r?\n/)
+			.filter((line) => line.trim())
+			.map((line) => {
+				const split = line.indexOf(":");
+				return split < 0
+					? { name: "", value: "" }
+					: { name: line.slice(0, split), value: line.slice(split + 1) };
+			}),
+	)
+	.pipe(
+		ZArray(
+			ZObject({ name: ZString().trim().min(1).max(40), value: ZString().trim().min(1).max(70) }),
+		)
+			.min(1)
+			.max(5)
+			.refine(
+				(options) =>
+					new Set(options.map(({ name }) => name.normalize("NFKC").toLowerCase())).size ===
+					options.length,
+				"Use each option name once.",
+			),
+	)
+	.optional();
+
 export const categoryFormSchema = catalogFormSchema.extend({
 	name: ZString().trim().min(1, "Enter a category name.").max(120),
 	icon: ZEnum(categoryIcons, "Choose a category icon.").optional(),
@@ -81,37 +109,47 @@ export const categoryFormSchema = catalogFormSchema.extend({
 export const httpsImageUrlPattern = "[Hh][Tt][Tt][Pp][Ss]://.+";
 const imageUrlError = "Enter an HTTPS image URL.";
 
-export const productFormSchema = catalogFormSchema.extend({
-	name: ZString().trim().min(1, "Enter a product name.").max(120),
-	sku: ZString()
-		.trim()
-		.min(1, "Enter a SKU.")
-		.max(80)
-		.transform((value) => value.toUpperCase()),
-	imageUrl: ZString()
-		.trim()
-		.max(2_000)
-		.pipe(
-			ZUnion(
-				[
-					ZLiteral(""),
-					ZString()
-						.regex(new RegExp(`^${httpsImageUrlPattern}$`), imageUrlError)
-						.pipe(ZUrl({ protocol: /^https$/, error: imageUrlError })),
-				],
-				{ error: imageUrlError },
+export const productFormSchema = catalogFormSchema
+	.extend({
+		name: ZString().trim().min(1, "Enter a product name.").max(120),
+		sku: ZString()
+			.trim()
+			.min(1, "Enter a SKU.")
+			.max(80)
+			.transform((value) => value.toUpperCase()),
+		imageUrl: ZString()
+			.trim()
+			.max(2_000)
+			.pipe(
+				ZUnion(
+					[
+						ZLiteral(""),
+						ZString()
+							.regex(new RegExp(`^${httpsImageUrlPattern}$`), imageUrlError)
+							.pipe(ZUrl({ protocol: /^https$/, error: imageUrlError })),
+					],
+					{ error: imageUrlError },
+				),
 			),
-		),
-	categoryId: ZUnion([ZUuid(), ZLiteral("")]).transform((value) => value || null),
-	status: ZEnum(productStatuses),
-	price: ZString().trim().min(1, "Enter a price.").max(24),
-	lowStockThreshold: ZString()
-		.regex(/^\d+$/, "Enter a whole number for the low-stock threshold.")
-		.transform(Number)
-		.pipe(ZInt().min(0).max(1_000_000)),
-});
+		categoryId: ZUnion([ZUuid(), ZLiteral("")]).transform((value) => value || null),
+		status: ZEnum(productStatuses),
+		price: ZString().trim().min(1, "Enter a price.").max(24),
+		lowStockThreshold: ZString()
+			.regex(/^\d+$/, "Enter a whole number for the low-stock threshold.")
+			.transform(Number)
+			.pipe(ZInt().min(0).max(1_000_000)),
+		variantOf: ZUuid().optional(),
+		variantOptions: variantOptionsSchema,
+	})
+	.refine(({ variantOf, variantOptions }) => Boolean(variantOf) === Boolean(variantOptions), {
+		path: ["variantOptions"],
+		message: "Enter the variant options as Name: Value on separate lines.",
+	});
 
-export const newProductSearchSchema = ZObject({ duplicate: ZUuid().optional().catch(undefined) });
+export const newProductSearchSchema = ZObject({
+	duplicate: ZUuid().optional().catch(undefined),
+	variantOf: ZUuid().optional().catch(undefined),
+});
 
 export const bulkProductSchema = ZObject({
 	selected: ZString()

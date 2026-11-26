@@ -7,6 +7,7 @@ import { DetailHeading } from "@/components/admin/detail-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
 import { ProductForm } from "@/features/catalog/product-form";
+import { ProductVariants } from "@/features/catalog/product-variants";
 import { readProduct, removeProduct } from "@/features/catalog/products.functions";
 
 const ProductActions = ({
@@ -64,7 +65,7 @@ const ProductActions = ({
 };
 
 const ProductPage = () => {
-	const { product, categories, hasHistory, managedImage } = Route.useLoaderData();
+	const { product, categories, hasHistory, managedImage, variants } = Route.useLoaderData();
 	const { staff, store } = Route.useRouteContext();
 	const editable = can(staff.role, "manageCommerce");
 	return (
@@ -83,6 +84,15 @@ const ProductPage = () => {
 					published={Boolean(product.publishedAt)}
 				/>
 			</DetailHeading>
+			{product.variantOf && (
+				<Link
+					to="/products/$productId"
+					params={{ productId: product.variantOf }}
+					className="w-fit text-sm font-medium underline"
+				>
+					View parent product
+				</Link>
+			)}
 			<ProductForm
 				key={product.id}
 				product={product}
@@ -91,6 +101,14 @@ const ProductPage = () => {
 				currency={store.currency}
 				editable={editable}
 			/>
+			{!product.variantOf && (
+				<ProductVariants
+					id={product.id}
+					rows={variants}
+					currency={store.currency}
+					editable={editable}
+				/>
+			)}
 		</>
 	);
 };

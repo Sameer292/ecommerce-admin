@@ -44,16 +44,14 @@ test("uploads and unlinks a product image", async ({ page }) => {
 	await page.locator('input[name="name"]').fill(name);
 	await page.locator('input[name="sku"]').fill(sku);
 	await page.locator('input[name="price"]').fill("15.00");
-	await page
-		.locator('input[name="imageFile"]')
-		.setInputFiles({
-			name: "pixel.png",
-			mimeType: "image/png",
-			buffer: Buffer.from(
-				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD2UAAAAASUVORK5CYII=",
-				"base64",
-			),
-		});
+	await page.locator('input[name="imageFile"]').setInputFiles({
+		name: "pixel.png",
+		mimeType: "image/png",
+		buffer: Buffer.from(
+			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD2UAAAAASUVORK5CYII=",
+			"base64",
+		),
+	});
 	await expect(page.getByRole("img", { name, exact: true })).toHaveAttribute("src", /^blob:/);
 	await page.getByRole("button", { name: "Create product" }).click();
 	await expect(page).toHaveURL(/\/products\/?$/);
@@ -72,4 +70,19 @@ test("uploads and unlinks a product image", async ({ page }) => {
 	await expect(page).toHaveURL(/\/products\?q=/);
 	await page.getByRole("link", { name, exact: true }).click();
 	await expect(page.getByRole("img", { name, exact: true })).toHaveCount(0);
+});
+
+test("adds an independent SKU and option values to a product", async ({ page }) => {
+	await signIn(page, "/products?q=Alpine");
+	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await page.getByRole("link", { name: "Add variant" }).click();
+	const suffix = crypto.randomUUID().slice(0, 8);
+	await page.locator('input[name="name"]').fill(`Travel Mug ${suffix}`);
+	await page.locator('input[name="sku"]').fill(`VARIANT-${suffix}`);
+	await page.locator('textarea[name="variantOptions"]').fill(`Size: Large\nColor: Blue ${suffix}`);
+	await page.getByRole("button", { name: "Create product" }).click();
+	await expect(page).toHaveURL(/\/products\/?$/);
+	await page.goto("/products?q=Alpine", { waitUntil: "domcontentloaded" });
+	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await expect(page.getByRole("link", { name: `Size Large · Color Blue ${suffix}` })).toBeVisible();
 });

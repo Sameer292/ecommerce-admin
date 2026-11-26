@@ -781,6 +781,81 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(alias.canonicalSlug, "canonical-slug");
 		assert.equal(alias.redirected, true);
 		assert.equal(alias.item.sku, "PUBLISHED-SKU");
+
+		const { saveProduct, listProductVariants } = await import(
+			"../src/features/catalog/products.server"
+		);
+		const variant = {
+			id: undefined,
+			name: "Fixture · Blue small",
+			slug: "fixture-blue-small",
+			sku: "FIXTURE-BLUE-S",
+			description: "",
+			imageUrl: "https://example.test/blue.jpg",
+			categoryId: null,
+			status: "active",
+			price: "25.00",
+			lowStockThreshold: 2,
+			variantOf: published.id,
+			variantOptions: [
+				{ name: "Size", value: "Small" },
+				{ name: "Color", value: "Blue" },
+			],
+		} as const;
+		await saveProduct(
+			{ ...variant, variantOptions: [...variant.variantOptions] },
+			"stock-operator",
+		);
+		const { databaseCode } = await import("../src/server/db-errors.server");
+		await assert.rejects(
+			saveProduct(
+				{
+					...variant,
+					sku: "FIXTURE-DUPLICATE",
+					slug: "fixture-duplicate",
+					variantOptions: [
+						{ name: "color", value: "BLUE" },
+						{ name: "SIZE", value: "small" },
+					],
+				},
+				"stock-operator",
+			),
+			(error: unknown) => databaseCode(error) === "23505",
+		);
+		const [savedVariant] = await listProductVariants(published.id);
+		await adjustStock({
+			id: crypto.randomUUID(),
+			productId: savedVariant.id,
+			delta: 5,
+			reason: "Fixture stock",
+			staffId: "stock-operator",
+		});
+		const stockRequest = {
+			id: crypto.randomUUID(),
+			number: "WITH-VARIANT",
+			operation: "reserve",
+			lines: [{ sku: variant.sku, quantity: 2 }],
+		} as const;
+		await applyStockMovement({ ...stockRequest, lines: [...stockRequest.lines] });
+		const request = (slug: string) =>
+			new Request(`http://localhost/api/store/catalog?slug=${slug}`, {
+				headers: { authorization: `Bearer ${replacement}` },
+			});
+		const listing = await (await handleStoreCatalog({ request: request("canonical-slug") })).json();
+		assert.equal(listing.item.stock, 0);
+		assert.equal(listing.item.variants[0].sku, variant.sku);
+		assert.equal(listing.item.variants[0].stock, 5);
+		assert.equal(listing.item.variants[0].priceMinor, 2500);
+		await connection`update commerce_admin.products set status = 'archived' where id = ${published.id}`;
+		assert.equal((await handleStoreCatalog({ request: request(variant.slug) })).status, 404);
+		await assert.rejects(
+			applyStockMovement({
+				...stockRequest,
+				id: crypto.randomUUID(),
+				lines: [...stockRequest.lines],
+			}),
+			{ status: 409 },
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

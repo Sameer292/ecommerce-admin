@@ -8,22 +8,24 @@ import { readNewProduct } from "@/features/catalog/products.functions";
 
 const NewProductPage = () => {
 	const { categories, draft } = Route.useLoaderData();
-	const { duplicate } = Route.useSearch();
+	const { duplicate, variantOf } = Route.useSearch();
 	const { store } = Route.useRouteContext();
 	return (
 		<>
 			<DetailHeading
-				title={draft ? "Duplicate product" : "Add product"}
+				title={variantOf ? "Add product variant" : draft ? "Duplicate product" : "Add product"}
 				description={
-					draft
-						? "Enter a new SKU and review the draft before saving."
-						: "Set up a new catalog item."
+					variantOf
+						? "Set the options, SKU, price, and image. Adjust this variant’s stock from Inventory after saving."
+						: draft
+							? "Enter a new SKU and review the draft before saving."
+							: "Set up a new catalog item."
 				}
 				back="/products"
 				backLabel="Products"
 			/>
 			<ProductForm
-				key={duplicate ?? "new"}
+				key={variantOf ?? duplicate ?? "new"}
 				categories={categories}
 				draft={draft}
 				currency={store.currency}
@@ -41,7 +43,7 @@ export const Route = createFileRoute("/_admin/products/new")({
 	loaderDeps: ({ search }) => newProductSearchSchema.parse(search),
 	loader: ({ context: { queryClient }, deps }) =>
 		queryClient.fetchQuery({
-			queryKey: ["new-product", deps.duplicate],
+			queryKey: ["new-product", deps.duplicate, deps.variantOf],
 			queryFn: ({ signal }) => readNewProduct({ data: deps, signal }),
 		}),
 	component: NewProductPage,

@@ -28,7 +28,7 @@ type ProductDefaults = Pick<
 
 type ProductFormProps = {
 	product?: Product;
-	draft?: ProductDefaults & { managedImage?: string; imageSourceId?: string };
+	draft?: ProductDefaults & { managedImage?: string; imageSourceId?: string; variantOf?: string };
 	managedImage?: string;
 	categories: CategoryOption[];
 	currency: string;
@@ -134,6 +134,7 @@ export const ProductForm = ({
 }: ProductFormProps) => {
 	const [version] = useState(product?.version);
 	const defaults = product ?? draft;
+	const variantOf = product?.variantOf ?? draft?.variantOf;
 	const storedImage = managedImage ?? draft?.managedImage ?? "";
 	const [photo, setPhoto] = useState(storedImage || defaults?.imageUrl || "");
 	const [publication, setPublication] = useState<PublicationFields>(() => ({
@@ -157,6 +158,7 @@ export const ProductForm = ({
 			successMessage={product ? "Product saved." : "Product created."}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
+			{variantOf && <input type="hidden" name="variantOf" value={variantOf} />}
 			{draft?.imageSourceId && (
 				<input type="hidden" name="imageSourceId" value={draft.imageSourceId} />
 			)}
@@ -178,6 +180,21 @@ export const ProductForm = ({
 			>
 				<div className="flex min-w-0 flex-col gap-4">
 					<ProductDetails product={defaults} categories={categories} />
+					{variantOf && (
+						<FormSection title="Variant options">
+							<NotesField
+								name="variantOptions"
+								label="Options, one per line"
+								placeholder={"Size: Medium\nColor: Blue"}
+								maxLength={580}
+								rows={4}
+								required
+								defaultValue={product?.variantOptions
+									.map(({ name, value }) => `${name}: ${value}`)
+									.join("\n")}
+							/>
+						</FormSection>
+					)}
 					<ProductImageField
 						external={defaults?.imageUrl ?? ""}
 						managed={storedImage}
