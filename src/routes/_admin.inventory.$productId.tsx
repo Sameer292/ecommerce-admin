@@ -41,7 +41,7 @@ const StockPage = () => {
 			<div className="grid items-start gap-4 md:grid-cols-2">
 				<StockSummary product={product} />
 				{can(staff.role, "manageCommerce") && (
-					<AdjustStockForm key={adjustmentId} productId={product.id} adjustmentId={adjustmentId} />
+					<AdjustStockForm key={adjustmentId} product={product} adjustmentId={adjustmentId} />
 				)}
 			</div>
 			<StockHistoryTable />

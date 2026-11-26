@@ -37,7 +37,7 @@ const OverviewPage = () => {
 			<ReportPeriod window={window} />
 			<MetricCards metrics={metrics} currency={store.currency} />
 			<div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]">
-				<StockWatch stock={stock} />
+				<StockWatch stock={stock.rows} total={stock.total} alerts={stock.alerts} />
 				<RecentOrders rows={orders} currency={store.currency} zone={store.timeZone} />
 			</div>
 			<RevenueChart

@@ -39,6 +39,7 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			productId: product.id,
 			delta: 5,
 			reason: "Receiving",
+			reference: "receipt-101",
 			staffId: "stock-operator",
 		};
 		await Promise.all([
@@ -54,9 +55,15 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const [stock] =
 			await connection`select stock from commerce_admin.products where id = ${product.id}`;
 		assert.equal(stock.stock, 23);
-		const ledger = await connection`select id from commerce_admin.stock_adjustments`;
+		const ledger =
+			await connection`select id, reference, delta, before_levels, after_levels from commerce_admin.stock_adjustments`;
 		assert.equal(ledger.length, 2);
 		assert.ok(!ledger.some(({ id }) => id === failedId));
+		assert.equal(ledger.find(({ id }) => id === adjustment.id)?.reference, "receipt-101");
+		for (const entry of ledger)
+			assert.equal(entry.after_levels.stock - entry.before_levels.stock, entry.delta);
+		assert.ok(ledger.some(({ before_levels }) => before_levels.stock === 20));
+		assert.ok(ledger.some(({ after_levels }) => after_levels.stock === 23));
 
 		const { importOrder } = await import("../src/features/store-integration/import-order.server");
 		const input = importOrderSchema.parse({
@@ -282,6 +289,11 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const [restocked] =
 			await connection`select stock from commerce_admin.products where id = ${product.id}`;
 		assert.equal(restocked.stock, 24);
+		const [stockReturn] =
+			await connection`select reference, before_levels, after_levels from commerce_admin.stock_adjustments where id = ${requested.id}`;
+		assert.equal(stockReturn.reference, requested.id);
+		assert.equal(stockReturn.before_levels.stock, 23);
+		assert.equal(stockReturn.after_levels.stock, 24);
 		await updatePayment({ number: "WEB-SPLIT", status: "paid", paidAt });
 		const refund = {
 			number: "WEB-SPLIT",
@@ -439,6 +451,141 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.ok(failures.rows[0].orderId);
 		await trackOrderSync("WEB-REPORT", "payment", async () => new Response(null, { status: 200 }));
 		assert.equal(await countOrderSyncFailures(), 0);
+
+		await connection`
+			insert into commerce_admin.products (name, slug, sku, status, price_minor, stock, reserved_stock, incoming_stock, damaged_stock)
+			values ('Counted test item', 'counted-test-item', 'COUNTED-TEST', 'active', 3000, 10, 7, 8, 1)
+		`;
+		const { listProducts } = await import("../src/features/catalog/products.server");
+		const available = await listProducts(
+			{ page: 1, q: "COUNTED-TEST", status: "active" },
+			"at_or_below",
+		);
+		assert.equal(available.total, 1);
+		assert.equal(available.rows[0].stock, 10);
+		assert.equal(available.rows[0].availableStock, 2);
+		await assert.rejects(
+			connection`update commerce_admin.products set damaged_stock = 4 where sku = 'COUNTED-TEST'`,
+			{ code: "23514" },
+		);
+		const { adjustStockManually } = await import("../src/features/inventory/inventory.server");
+		const count = {
+			id: crypto.randomUUID(),
+			productId: available.rows[0].id,
+			kind: "stocktake",
+			quantity: 9,
+			base: "10:7:8:1",
+			reason: "Cycle count",
+			reference: "COUNT-1",
+			staffId: "stock-operator",
+		} as const;
+		await Promise.all([adjustStockManually(count), adjustStockManually(count)]);
+		await assert.rejects(
+			adjustStockManually({ ...count, id: crypto.randomUUID(), quantity: 8 }),
+			/Stock changed/,
+		);
+		await adjustStockManually({
+			...count,
+			id: crypto.randomUUID(),
+			kind: "receiving",
+			quantity: 3,
+			base: "9:7:8:1",
+		});
+		const [levels] =
+			await connection`select stock, incoming_stock from commerce_admin.products where id = ${count.productId}`;
+		assert.equal(levels.stock, 12);
+		assert.equal(levels.incoming_stock, 5);
+
+		await connection`
+			insert into commerce_admin.products (name, slug, sku, status, price_minor, stock)
+			values ('Reserve desk', 'reserve-desk', 'RESERVE-DESK', 'active', 3000, 5),
+			       ('Reserve chair', 'reserve-chair', 'RESERVE-CHAIR', 'active', 2000, 2)
+		`;
+		const { stockMovementSchema } = await import(
+			"../src/features/store-integration/integration-validation"
+		);
+		const { applyStockMovement } = await import(
+			"../src/features/store-integration/inventory.server"
+		);
+		const reservation = stockMovementSchema.parse({
+			id: crypto.randomUUID(),
+			number: "CHECKOUT-1",
+			operation: "reserve",
+			lines: [
+				{ sku: "reserve-desk", quantity: 4 },
+				{ sku: "reserve-chair", quantity: 2 },
+			],
+		});
+		const reserved = await Promise.all([
+			applyStockMovement(reservation),
+			applyStockMovement({ ...reservation, lines: [...reservation.lines].reverse() }),
+		]);
+		assert.equal(reserved.filter(Boolean).length, 1);
+		await assert.rejects(applyStockMovement({ ...reservation, number: "CHECKOUT-2" }), {
+			status: 409,
+		});
+		await assert.rejects(
+			applyStockMovement({
+				...reservation,
+				id: crypto.randomUUID(),
+				number: "CHECKOUT-2",
+				operation: "release",
+			}),
+			{ status: 409 },
+		);
+		await assert.rejects(
+			applyStockMovement({
+				...reservation,
+				id: crypto.randomUUID(),
+				number: "CHECKOUT-2",
+				lines: [
+					{ sku: "RESERVE-DESK", quantity: 1 },
+					{ sku: "RESERVE-CHAIR", quantity: 1 },
+				],
+			}),
+			{ status: 409 },
+		);
+		await applyStockMovement({
+			...reservation,
+			id: crypto.randomUUID(),
+			operation: "fulfill",
+			lines: [{ sku: "RESERVE-DESK", quantity: 3 }],
+		});
+		await applyStockMovement({
+			...reservation,
+			id: crypto.randomUUID(),
+			operation: "release",
+			lines: [{ sku: "RESERVE-DESK", quantity: 1 }],
+		});
+		const [remainingDesk] =
+			await connection`select stock, reserved_stock from commerce_admin.products where sku = 'RESERVE-DESK'`;
+		assert.equal(remainingDesk.stock, 2);
+		assert.equal(remainingDesk.reserved_stock, 0);
+		const [pendingChair] =
+			await connection`select stock, reserved_stock from commerce_admin.products where sku = 'RESERVE-CHAIR'`;
+		assert.equal(pendingChair.stock, 2);
+		assert.equal(pendingChair.reserved_stock, 2);
+
+		const { acknowledgeReplenishment, readReplenishmentAlerts } = await import(
+			"../src/features/inventory/replenishment.server"
+		);
+		const beforeAck = (await readReplenishmentAlerts(1, true)).rows.find(
+			({ sku }) => sku === "RESERVE-DESK",
+		);
+		assert.ok(beforeAck);
+		await acknowledgeReplenishment(beforeAck.id, "stock-operator");
+		assert.ok(!(await readReplenishmentAlerts(1, true)).rows.some(({ id }) => id === beforeAck.id));
+		assert.ok(
+			(await readReplenishmentAlerts(1)).rows.find(({ id }) => id === beforeAck.id)?.acknowledgedAt,
+		);
+		await connection`update commerce_admin.products set stock = 10 where sku = 'RESERVE-DESK'`;
+		assert.ok(!(await readReplenishmentAlerts(1)).rows.some(({ sku }) => sku === "RESERVE-DESK"));
+		await connection`update commerce_admin.products set stock = 1 where sku = 'RESERVE-DESK'`;
+		const reopened = (await readReplenishmentAlerts(1, true)).rows.find(
+			({ sku }) => sku === "RESERVE-DESK",
+		);
+		assert.ok(reopened);
+		assert.notEqual(reopened.id, beforeAck.id);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

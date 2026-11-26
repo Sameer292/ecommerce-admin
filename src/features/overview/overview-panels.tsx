@@ -53,22 +53,40 @@ const StockLine = ({ product }: { product: StockRow }) => (
 	</li>
 );
 
-export const StockWatch = ({ stock }: { stock: StockRow[] }) => (
+export const StockWatch = ({
+	stock,
+	total,
+	alerts,
+}: {
+	stock: StockRow[];
+	total: number;
+	alerts: number;
+}) => (
 	<Card size="sm" className="min-w-0 gap-3 p-4 sm:p-5">
 		<CardHeader className="flex flex-row items-start justify-between gap-2 px-0">
 			<div className="flex flex-col gap-1">
 				<h2 className="font-heading text-lg font-semibold">Low stock</h2>
-				<CardDescription>Active products at or below threshold</CardDescription>
+				<CardDescription>
+					{formatCount(total)} active {total === 1 ? "product" : "products"} at or below threshold
+				</CardDescription>
 			</div>
 			<Link
 				to="/inventory"
+				search={{ page: 1, q: "", stock: "at_or_below", status: "active" }}
 				className={buttonVariants({ variant: "ghost", size: "icon" })}
-				aria-label="View inventory"
+				aria-label="View active inventory at or below threshold"
 			>
 				<HugeiconsIcon icon={ArrowUpRight01Icon} />
 			</Link>
 		</CardHeader>
 		<CardContent className="px-0">
+			<Link
+				to="/inventory/replenishment"
+				search={{ page: 1 }}
+				className="text-sm font-medium underline underline-offset-2"
+			>
+				Replenishment alerts{alerts ? ` (${formatCount(alerts)} new)` : ""}
+			</Link>
 			{stock.length > 0 ? (
 				<ul className="divide-y">
 					{stock.map((product) => (

@@ -1,0 +1,6 @@
+DROP INDEX "commerce_admin"."products_low_stock";--> statement-breakpoint
+ALTER TABLE "commerce_admin"."products" ADD COLUMN "reserved_stock" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "commerce_admin"."products" ADD COLUMN "incoming_stock" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "commerce_admin"."products" ADD COLUMN "damaged_stock" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+CREATE INDEX "products_available_low_stock" ON "commerce_admin"."products" USING btree (("stock" - "reserved_stock" - "damaged_stock"),"id") WHERE "commerce_admin"."products"."stock" - "commerce_admin"."products"."reserved_stock" - "commerce_admin"."products"."damaged_stock" <= "commerce_admin"."products"."low_stock_threshold" AND "commerce_admin"."products"."status" = 'active';--> statement-breakpoint
+ALTER TABLE "commerce_admin"."products" ADD CONSTRAINT "products_stock_levels" CHECK ("commerce_admin"."products"."reserved_stock" >= 0 AND "commerce_admin"."products"."incoming_stock" >= 0 AND "commerce_admin"."products"."damaged_stock" >= 0 AND "commerce_admin"."products"."reserved_stock"::bigint + "commerce_admin"."products"."damaged_stock" <= "commerce_admin"."products"."stock");

@@ -1,9 +1,10 @@
 import { and, asc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { categories, products } from "@/db/schema/catalog";
+import { availableStock, categories, products } from "@/db/schema/catalog";
 import { productSearchSchema } from "@/features/catalog/catalog-validation";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
+import { env } from "@/server/env.server";
 import { checkIntegrationToken } from "./integration-auth.server";
 import { integrationError } from "./integration-request.server";
 
@@ -16,6 +17,7 @@ const publishedFields = {
 	imageUrl: products.imageUrl,
 	priceMinor: products.priceMinor,
 	stock: products.stock,
+	availableStock,
 	category: { id: categories.id, name: categories.name, slug: categories.slug },
 };
 
@@ -40,7 +42,18 @@ const publishedCatalog = async (request: Request) => {
 		db.$count(products, where),
 		getStoreCurrency(),
 	]);
-	return { items, page, pageSize, total, currency };
+	const authority = env.STORE_INVENTORY_AUTHORITY;
+	return {
+		items: items.map((item) => ({
+			...item,
+			availableStock: authority === "admin" ? item.availableStock : null,
+		})),
+		page,
+		pageSize,
+		total,
+		currency,
+		inventoryAuthority: authority,
+	};
 };
 
 export const handleStoreCatalog = async ({ request }: { request: Request }) => {

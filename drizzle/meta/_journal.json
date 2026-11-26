@@ -141,6 +141,41 @@
       "when": 1795646425781,
       "tag": "0019_order_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795646639839,
+      "tag": "0020_stock_levels",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795646694362,
+      "tag": "0021_stock_ledger_context",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795646817658,
+      "tag": "0022_typed_stock_adjustments",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795646913932,
+      "tag": "0023_storefront_stock_reservations",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795647067297,
+      "tag": "0024_replenishment_alerts",
+      "breakpoints": true
     }
   ]
 }

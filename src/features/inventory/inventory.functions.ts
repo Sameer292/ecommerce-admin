@@ -4,7 +4,7 @@ import { requireStaff, withStaffMutation } from "@/features/auth/session.server"
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { findProduct, listProducts } from "@/features/catalog/products.server";
 import { mutate } from "@/server/mutation.server";
-import { adjustStock, findStockHistory } from "./inventory.server";
+import { adjustStockManually, findStockHistory } from "./inventory.server";
 import {
 	adjustmentSchema,
 	inventorySearchSchema,
@@ -34,8 +34,13 @@ export const writeStock = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
 		withStaffMutation("manageCommerce", (staff) =>
-			mutate(adjustmentSchema, data, (value) => adjustStock({ ...value, staffId: staff.id }), {
-				23503: "This product no longer exists.",
-			}),
+			mutate(
+				adjustmentSchema,
+				data,
+				(value) => adjustStockManually({ ...value, staffId: staff.id }),
+				{
+					23503: "This product no longer exists.",
+				},
+			),
 		),
 	);
