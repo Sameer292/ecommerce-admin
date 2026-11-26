@@ -1,6 +1,7 @@
 import type { ZodType as ZType } from "zod";
 import { logRequestFailure } from "@/server/request-diagnostics.server";
 import { checkIntegrationToken } from "./integration-auth.server";
+import type { IntegrationScope } from "./integration-scopes";
 
 export class IntegrationError extends Error {
 	readonly status: number;
@@ -54,10 +55,11 @@ export const integrationError = (error: unknown) => {
 
 export const withIntegrationBody = async <Input>(
 	request: Request,
+	scope: IntegrationScope,
 	schema: ZType<Input>,
 	handle: (data: Input) => Promise<Response>,
 ) => {
-	const blocked = checkIntegrationToken(request);
+	const blocked = await checkIntegrationToken(request, scope);
 	if (blocked) return blocked;
 	try {
 		const parsed = schema.safeParse(await readJson(request));

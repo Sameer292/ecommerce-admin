@@ -7,6 +7,7 @@ import type { MutationResult } from "@/server/mutation.types";
 import type { Permission } from "./auth.types";
 import { can, isRole } from "./permissions";
 import { loginReturn } from "./login-return";
+import { readLiveStaffSession } from "./staff-sessions.server";
 import { getSupabaseAuth } from "./supabase.server";
 
 export const findActiveStaff = async (authUserId: string) => {
@@ -17,32 +18,68 @@ export const findActiveStaff = async (authUserId: string) => {
 			name: user.name,
 			role: user.role,
 			banned: user.banned,
+			passwordPending: user.passwordPending,
+			sessionsValidAfter: user.sessionsValidAfter,
 		})
 		.from(user)
 		.where(eq(user.authUserId, authUserId));
 	if (!staff || staff.banned || !isRole(staff.role)) return null;
-	const { id, email, name, role } = staff;
-	return { id, email, name, role };
+	const { id, email, name, role, passwordPending, sessionsValidAfter } = staff;
+	return { id, email, name, role, passwordPending, sessionsValidAfter };
 };
 
-const fetchStaff = async () => {
+const fetchStaffIdentity = async () => {
 	const auth = getSupabaseAuth();
 	const { data, error } = await auth.getUser();
 	if (error || !data.user) return null;
 	const staff = await findActiveStaff(data.user.id);
-	if (!staff) await auth.signOut({ scope: "local" });
-	return staff;
+	if (!staff) {
+		await auth.signOut({ scope: "local" });
+		return null;
+	}
+	const hasFactor = Boolean(data.user.factors?.some((factor) => factor.status === "verified"));
+	const requireMfa = staff.role === "superuser" || hasFactor;
+	const result = await auth.getClaims();
+	const claims = result.data?.claims;
+	const sessionId = claims?.session_id;
+	if (!claims || typeof sessionId !== "string" || claims.sub !== data.user.id) return null;
+	const assured = !requireMfa || claims.aal === "aal2";
+	const session = await readLiveStaffSession(
+		data.user.id,
+		sessionId,
+		staff.id,
+		staff.sessionsValidAfter,
+	);
+	if (!session) {
+		await auth.signOut({ scope: "local" });
+		return null;
+	}
+	return {
+		staff,
+		assured,
+		hasFactor,
+		sessionId,
+		authUserId: data.user.id,
+		passwordGrant: session.expiresAt,
+	};
 };
 
-const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaff>>();
+const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaffIdentity>>();
 
-export const getStaff = () => {
+export const getStaffIdentity = () => {
 	const request = getRequest();
 	const cached = requestStaff.get(request);
 	if (cached) return cached;
-	const staff = fetchStaff();
+	const staff = fetchStaffIdentity();
 	requestStaff.set(request, staff);
 	return staff;
+};
+
+export const getStaff = async () => {
+	const identity = await getStaffIdentity();
+	if (!identity?.assured || identity.passwordGrant || identity.staff.passwordPending) return null;
+	const { id, email, name, role } = identity.staff;
+	return { id, email, name, role };
 };
 
 export const requireStaff = async (permission: Permission = "read") => {

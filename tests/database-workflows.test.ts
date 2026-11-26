@@ -695,6 +695,51 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.deepEqual({ ...suppressed }, { status: "suppressed", payload: {} });
 		await updatePayment({ number: "IDENTITY-1", status: "refunded" });
 		assert.equal((await listOrderNotifications(firstOrder.id)).length, 1);
+
+		const { issueIntegrationKey, listIntegrationKeys, revokeIntegrationKey } = await import(
+			"../src/features/store-integration/integration-keys.server"
+		);
+		const { checkIntegrationToken } = await import(
+			"../src/features/store-integration/integration-auth.server"
+		);
+		const oldKey = await issueIntegrationKey("Catalog worker", ["catalog:read"], "stock-operator");
+		const replacement = await issueIntegrationKey(
+			"Catalog replacement",
+			["catalog:read"],
+			"stock-operator",
+		);
+		const storefrontRequest = (token: string) =>
+			new Request("http://localhost/api/store/catalog", {
+				headers: { authorization: `Bearer ${token}` },
+			});
+		assert.equal(await checkIntegrationToken(storefrontRequest(oldKey), "catalog:read"), undefined);
+		assert.equal(
+			(await checkIntegrationToken(storefrontRequest(oldKey), "payments:write"))?.status,
+			403,
+		);
+		assert.equal(
+			await checkIntegrationToken(storefrontRequest(replacement), "catalog:read"),
+			undefined,
+		);
+		const oldCredential = (await listIntegrationKeys()).find(
+			({ name }) => name === "Catalog worker",
+		);
+		assert.ok(oldCredential?.lastUsedAt);
+		assert.equal(oldCredential.requestCount, 1);
+		await connection`update commerce_admin.integration_keys set window_count = 120, window_start = date_trunc('minute', now()) where id = ${oldCredential.id}`;
+		assert.equal(
+			(await checkIntegrationToken(storefrontRequest(oldKey), "catalog:read"))?.status,
+			429,
+		);
+		await revokeIntegrationKey(oldCredential.id);
+		assert.equal(
+			(await checkIntegrationToken(storefrontRequest(oldKey), "catalog:read"))?.status,
+			401,
+		);
+		assert.equal(
+			await checkIntegrationToken(storefrontRequest(replacement), "catalog:read"),
+			undefined,
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

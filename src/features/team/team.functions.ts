@@ -5,12 +5,13 @@ import { formDataSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import {
 	editStaffSchema,
-	staffAccountSchema,
+	inviteStaffSchema,
 	staffIdSchema,
 	teamSearchSchema,
+	transferOwnershipSchema,
 } from "./team-validation";
-import { createStaffAccount } from "./provision-staff.server";
-import { editStaffAccount, findStaffAccount, listTeam } from "./team.server";
+import { inviteStaffAccount } from "./provision-staff.server";
+import { editStaffAccount, findStaffAccount, listTeam, transferOwnership } from "./team.server";
 
 export const readTeam = createServerFn()
 	.validator(teamSearchSchema)
@@ -32,7 +33,7 @@ export const addStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
 		withStaffMutation("manageTeam", (staff) =>
-			mutate(staffAccountSchema, data, (values) => createStaffAccount(values, staff.id)),
+			mutate(inviteStaffSchema, data, (values) => inviteStaffAccount(values, staff.id)),
 		),
 	);
 
@@ -41,5 +42,15 @@ export const writeStaffAccount = createServerFn({ method: "POST" })
 	.handler(({ data }) =>
 		withStaffMutation("manageTeam", (staff) =>
 			mutate(editStaffSchema, data, (values) => editStaffAccount(values, staff.id)),
+		),
+	);
+
+export const transferStaffOwnership = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageTeam", (staff) =>
+			mutate(transferOwnershipSchema, data, ({ id, version }) =>
+				transferOwnership(id, version, staff.id),
+			),
 		),
 	);

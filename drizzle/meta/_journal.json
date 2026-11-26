@@ -197,6 +197,34 @@
       "when": 1795647637434,
       "tag": "0027_customer_anonymization",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1795648251183,
+      "tag": "0028_staff_password_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1795661853095,
+      "tag": "0029_staff_password_setup",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1795661976025,
+      "tag": "0030_staff_session_revocation",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1795662228796,
+      "tag": "0031_scoped_integration_keys",
+      "breakpoints": true
     }
   ]
 }

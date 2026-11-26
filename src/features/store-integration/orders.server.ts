@@ -41,7 +41,7 @@ export const findStoreOrderStatus = async (number: string) => {
 };
 
 export const handleOrderStatus = async ({ request }: { request: Request }) => {
-	const blocked = checkIntegrationToken(request);
+	const blocked = await checkIntegrationToken(request, "orders:read");
 	if (blocked) return blocked;
 	const parsed = orderStatusQuerySchema.safeParse({
 		number: new URL(request.url).searchParams.get("number"),
@@ -59,7 +59,7 @@ export const handleOrderStatus = async ({ request }: { request: Request }) => {
 };
 
 export const handleImportOrder = ({ request }: { request: Request }) =>
-	withIntegrationBody(request, importOrderSchema, (input) =>
+	withIntegrationBody(request, "orders:import", importOrderSchema, (input) =>
 		trackOrderSync(input.number, "import", async () => {
 			const { id, created } = await importOrder(input);
 			return Response.json({ id, number: input.number }, { status: created ? 201 : 200 });
@@ -67,7 +67,7 @@ export const handleImportOrder = ({ request }: { request: Request }) =>
 	);
 
 export const handlePaymentUpdate = ({ request }: { request: Request }) =>
-	withIntegrationBody(request, paymentUpdateSchema, (input) =>
+	withIntegrationBody(request, "payments:write", paymentUpdateSchema, (input) =>
 		trackOrderSync(input.number, "payment", async () =>
 			Response.json({
 				...(await updatePayment(input)),

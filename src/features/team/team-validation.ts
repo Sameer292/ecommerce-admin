@@ -1,4 +1,4 @@
-import { enum as ZEnum, object as ZObject, string as ZString } from "zod";
+import { enum as ZEnum, literal as ZLiteral, object as ZObject, string as ZString } from "zod";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
 import { editVersionSchema } from "@/lib/validation";
@@ -14,10 +14,19 @@ export const staffAccountSchema = ZObject({
 	role: ZEnum(roles),
 });
 
+export const inviteStaffSchema = staffAccountSchema.omit({ password: true });
+
 export const editStaffSchema = staffIdSchema.extend({
 	version: editVersionSchema,
 	role: ZEnum(roles),
 	status: ZEnum(["active", "disabled"]),
+	name: staffAccountSchema.shape.name.optional(),
+	email: staffEmailSchema.optional(),
+});
+
+export const transferOwnershipSchema = staffIdSchema.extend({
+	version: editVersionSchema,
+	confirmation: ZLiteral("TRANSFER", { error: "Type TRANSFER to confirm the ownership change." }),
 });
 
 export const teamSearchSchema = pageSearchSchema.extend({ sort: sortSchema("name", "email") });

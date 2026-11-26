@@ -30,6 +30,11 @@ Staff sign in with email and password and can change their own password. Superus
 - `bun run db:migrate` uses `DATABASE_MIGRATION_URL` when set and falls back to `DATABASE_URL`. If the runtime uses the transaction pooler, give migrations a direct or session pooler URL.
 - Order and customer substring search uses `pg_trgm` GIN indexes, installed by the migrations. Very short or broad search terms can still require scans.
 - Enable email/password sign-in. For an admin-only Supabase project, turn off account signups in Authentication settings. Keep `commerce_admin` and `commerce_admin_legacy_auth` outside the exposed schemas in the Supabase Data API.
+- Enable authenticator app MFA in Supabase Auth before deploying. Superusers enroll an authenticator on their first sign-in and verify it on each fresh session before they can open the console.
+- Set the Supabase Auth Site URL to the admin application's public URL. Install the [invite](supabase/templates/staff-invite.html) and [recovery](supabase/templates/staff-recovery.html) email templates and configure SMTP for staff mail. The links open a confirmation page before they are redeemed. Staff can request a replacement from the sign-in page.
+- Team invitations remain pending until the recipient sets their own password through a verified email link.
+- Staff can review active sessions and sign out other devices in Settings. For a compromised account, disable it in Team, verify the staff member’s identity, and secure the credentials and factors through Supabase Auth before restoring access. The console rejects sessions from before the access change.
+- Owners can update staff contact details and transfer their superuser role to an active staff member from that person’s Team page. The new owner must verify an authenticator before using owner tools.
 - Set `STORE_CURRENCY` explicitly and lock it before serving the application. For an existing store, confirm the currency used for its stored prices and orders, then run `bun run db:lock-currency` with that currency on the target database. The lock leaves amounts intact and rejects attempts to overwrite the currency. The application and storefront API read the locked currency from PostgreSQL. Superusers can update the name, reporting time zone, and contact email from Settings.
 - Run `bun run db:migrate`, `bun run db:lock-currency`, and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
 - Production builds generate gzip and Brotli static assets. HTML uses streaming gzip when the client accepts it.
@@ -42,7 +47,7 @@ Provision the first superuser with the same email and a new password. Then provi
 
 ## Storefront integration
 
-The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separate random token of at least 32 characters. Send it as `Authorization: Bearer <token>` from your storefront backend. Keep it out of storefront browser code.
+Issue scoped keys from Settings → Integration credentials as a superuser. Copy each key when it is created and send it as `Authorization: Bearer <token>` from the storefront backend. Keys have a limit of 120 authorized requests per minute. HTTP 429 includes `Retry-After`. For rotation, issue a replacement with the necessary scopes, update the storefront and verify activity on the replacement, then revoke the previous key. Existing `STORE_INTEGRATION_TOKEN` credentials retain full access during migration. Remove that environment variable from all deployments once the scoped keys are in use.
 
 | Endpoint | Behavior |
 | --- | --- |

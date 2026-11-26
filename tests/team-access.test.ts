@@ -28,7 +28,9 @@ test("only active superusers can edit access and concurrent revocations leave on
 				('unlinked', null, 'Unlinked', 'unlinked@example.test', 'superuser', false),
 				('manager', null, 'Manager', 'manager@example.test', 'manager', false)
 		`;
-		const { editStaffAccount, findStaffAccount } = await import("../src/features/team/team.server");
+		const { editStaffAccount, findStaffAccount, transferOwnership } = await import(
+			"../src/features/team/team.server"
+		);
 		const { findActiveStaff } = await import("../src/features/auth/session.server");
 		await assert.rejects(
 			editStaffAccount({ id: first, version: 0, role: "superuser", status: "disabled" }, first),
@@ -69,6 +71,21 @@ test("only active superusers can edit access and concurrent revocations leave on
 		);
 		assert.equal((await findActiveStaff(disabled))?.role, "viewer");
 		assert.equal((await findActiveStaff(remaining))?.role, "superuser");
+		await editStaffAccount(
+			{
+				id: disabled,
+				version: account.version + 2,
+				role: "viewer",
+				status: "active",
+				name: "Next owner",
+			},
+			remaining,
+		);
+		assert.equal((await findActiveStaff(disabled))?.name, "Next owner");
+		await assert.rejects(transferOwnership(disabled, account.version + 2, remaining), /changed/);
+		await transferOwnership(disabled, account.version + 3, remaining);
+		assert.equal((await findActiveStaff(disabled))?.role, "superuser");
+		assert.equal((await findActiveStaff(remaining))?.role, "manager");
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
