@@ -22,6 +22,7 @@ export type ProductListRow = Pick<
 	| "priceMinor"
 	| "stock"
 	| "lowStockThreshold"
+	| "version"
 > & {
 	categoryName: string | null;
 	availableStock: number;

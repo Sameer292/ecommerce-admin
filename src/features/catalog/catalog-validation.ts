@@ -1,4 +1,5 @@
 import {
+	array as ZArray,
 	enum as ZEnum,
 	int as ZInt,
 	literal as ZLiteral,
@@ -109,3 +110,26 @@ export const productFormSchema = catalogFormSchema.extend({
 });
 
 export const newProductSearchSchema = ZObject({ duplicate: ZUuid().optional().catch(undefined) });
+
+export const bulkProductSchema = ZObject({
+	selected: ZString()
+		.max(4_000)
+		.transform((value) => {
+			try {
+				return JSON.parse(value) as unknown;
+			} catch {
+				return null;
+			}
+		})
+		.pipe(
+			ZArray(ZObject({ id: ZUuid(), version: ZInt().min(0).max(2_147_483_647) }))
+				.min(1)
+				.max(50)
+				.refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length),
+		),
+	status: ZEnum(["keep", ...productStatuses]),
+	categoryId: ZUnion([ZLiteral(["keep", ""]), ZUuid()]),
+}).refine(
+	({ status, categoryId }) => status !== "keep" || categoryId !== "keep",
+	"Choose a status or category change.",
+);

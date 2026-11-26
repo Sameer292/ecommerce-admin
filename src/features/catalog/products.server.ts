@@ -1,4 +1,5 @@
-import { and, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
+import type { output as ZOutput } from "zod";
 import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
@@ -11,6 +12,7 @@ import type { InventorySearch } from "@/features/inventory/inventory.types";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
 import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
+import type { bulkProductSchema } from "./catalog-validation";
 
 export const lowStock = lte(availableStock, products.lowStockThreshold);
 
@@ -53,6 +55,7 @@ const columns = {
 	sku: products.sku,
 	imageUrl: products.imageUrl,
 	status: products.status,
+	version: products.version,
 	priceMinor: products.priceMinor,
 	stock: products.stock,
 	availableStock,
@@ -120,3 +123,34 @@ export const deleteProduct = (id: string, staffId?: string) =>
 	inStaffAudit(staffId, async (transaction) =>
 		transaction.delete(products).where(eq(products.id, id)),
 	);
+
+export const updateProductsInBulk = (
+	{ selected, status, categoryId }: ZOutput<typeof bulkProductSchema>,
+	staffId: string,
+) =>
+	inStaffAudit(staffId, async (transaction) => {
+		const versions = new Map(selected.map(({ id, version }) => [id, version]));
+		const where = inArray(products.id, [...versions.keys()]);
+		const rows = await transaction
+			.select({ id: products.id, version: products.version })
+			.from(products)
+			.where(where)
+			.orderBy(products.id)
+			.for("update");
+		if (
+			rows.length !== selected.length ||
+			rows.some(({ id, version }) => versions.get(id) !== version)
+		)
+			throw new ActionError(
+				"A selected product changed or was removed. Refresh before applying the update.",
+			);
+		await transaction
+			.update(products)
+			.set({
+				status: status === "keep" ? undefined : status,
+				categoryId: categoryId === "keep" ? undefined : categoryId || null,
+				version: sql`${products.version} + 1`,
+				updatedAt: sql`now()`,
+			})
+			.where(where);
+	});

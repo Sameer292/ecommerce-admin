@@ -66,6 +66,7 @@ export const ProductTable = ({
 	filtered,
 	emptyAction,
 	sorting,
+	selection,
 }: {
 	rows: ProductListRow[];
 	currency: string;
@@ -73,10 +74,30 @@ export const ProductTable = ({
 	filtered: boolean;
 	emptyAction?: ReactNode;
 	sorting: TableSorting;
+	selection?: { ids: string[]; toggle: (id: string) => void };
 }) => (
 	<DataTable
 		sorting={sorting}
-		columns={productColumns(currency, zone)}
+		columns={[
+			...(selection
+				? [
+						{
+							label: "Select",
+							compact: true,
+							cell: (row: ProductListRow) => (
+								<input
+									type="checkbox"
+									aria-label={`Select ${row.name}`}
+									checked={selection.ids.includes(row.id)}
+									disabled={selection.ids.length >= 50 && !selection.ids.includes(row.id)}
+									onChange={() => selection.toggle(row.id)}
+								/>
+							),
+						},
+					]
+				: []),
+			...productColumns(currency, zone),
+		]}
 		rows={rows}
 		label="Products"
 		emptyAction={emptyAction}

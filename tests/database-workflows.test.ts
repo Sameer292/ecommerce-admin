@@ -740,6 +740,25 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			await checkIntegrationToken(storefrontRequest(replacement), "catalog:read"),
 			undefined,
 		);
+		const { updateProductsInBulk } = await import("../src/features/catalog/products.server");
+		const selected = await connection<
+			{ id: string; version: number }[]
+		>`select id, version from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR')`;
+		assert.equal(selected.length, 2);
+		await updateProductsInBulk(
+			{ selected, status: "archived", categoryId: "keep" },
+			"stock-operator",
+		);
+		await assert.rejects(
+			updateProductsInBulk({ selected, status: "active", categoryId: "" }, "stock-operator"),
+			/selected product changed/,
+		);
+		assert.equal(
+			(
+				await connection`select id from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR') and status = 'archived'`
+			).length,
+			2,
+		);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
