@@ -10,14 +10,20 @@ const linkStaffProfile = (
 	authUserId: string,
 	profile: Omit<StaffValues, "password">,
 	actorId?: string,
+	passwordPending = false,
 ) =>
 	inStaffAudit(actorId, async (transaction) => {
 		const [staff] = await transaction
 			.insert(user)
-			.values({ id: authUserId, authUserId, ...profile })
+			.values({ id: authUserId, authUserId, ...profile, passwordPending })
 			.onConflictDoUpdate({
 				target: user.email,
-				set: { authUserId, updatedAt: new Date(), version: sql`${user.version} + 1` },
+				set: {
+					authUserId,
+					passwordPending,
+					updatedAt: new Date(),
+					version: sql`${user.version} + 1`,
+				},
 				setWhere: and(isNull(user.authUserId), eq(user.role, profile.role)),
 			})
 			.returning({ id: user.id });
@@ -68,5 +74,5 @@ export const inviteStaffAccount = async (
 			throw new ActionError("This email is already in use in Supabase Auth.", "email");
 		throw error ?? new ActionError("Couldn’t send the staff invitation.");
 	}
-	await linkStaffProfile(data.user.id, profile, actorId);
+	await linkStaffProfile(data.user.id, profile, actorId, true);
 };

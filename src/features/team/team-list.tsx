@@ -36,8 +36,16 @@ const teamColumns: Column<StaffAccount>[] = [
 	{
 		label: "Access",
 		cell: (row) => (
-			<StatusBadge tone={!row.linked ? "warning" : row.banned ? "danger" : "success"}>
-				{!row.linked ? "Setup required" : row.banned ? "Disabled" : "Active"}
+			<StatusBadge
+				tone={row.banned ? "danger" : !row.linked || row.passwordPending ? "warning" : "success"}
+			>
+				{row.banned
+					? "Disabled"
+					: !row.linked
+						? "Setup required"
+						: row.passwordPending
+							? "Invited"
+							: "Active"}
 			</StatusBadge>
 		),
 	},

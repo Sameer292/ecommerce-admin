@@ -35,7 +35,13 @@ test("recovery verifies a one-time link before letting staff choose a password",
 	if (createError || !account.user) throw new Error("Couldn’t create the local password fixture.");
 	const { id } = account.user;
 	try {
-		await database`insert into commerce_admin.staff_user (id, auth_user_id, name, email) values (${id}, ${id}, 'Recovery test fixture', ${email})`;
+		await database`insert into commerce_admin.staff_user (id, auth_user_id, name, email, password_pending) values (${id}, ${id}, 'Recovery test fixture', ${email}, true)`;
+		await page.goto("/login");
+		await page.locator('input[name="email"]').fill(email);
+		await page.locator('input[name="password"]').fill(oldPassword);
+		await page.getByRole("button", { name: "Sign in", exact: true }).click();
+		await expect(page.getByRole("link", { name: "Request a new password link" })).toBeVisible();
+		expect((await page.request.get("/api/reports/sales")).status()).toBe(401);
 		const { data, error } = await auth.admin.generateLink({ type: "recovery", email });
 		if (error || !data.properties.hashed_token)
 			throw new Error("Couldn’t create the local recovery link.");

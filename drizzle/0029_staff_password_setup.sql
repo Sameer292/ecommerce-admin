@@ -1,0 +1,1 @@
+ALTER TABLE "commerce_admin"."staff_user" ADD COLUMN "password_pending" boolean DEFAULT false NOT NULL;

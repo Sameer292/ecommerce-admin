@@ -17,12 +17,13 @@ export const findActiveStaff = async (authUserId: string) => {
 			name: user.name,
 			role: user.role,
 			banned: user.banned,
+			passwordPending: user.passwordPending,
 		})
 		.from(user)
 		.where(eq(user.authUserId, authUserId));
 	if (!staff || staff.banned || !isRole(staff.role)) return null;
-	const { id, email, name, role } = staff;
-	return { id, email, name, role };
+	const { id, email, name, role, passwordPending } = staff;
+	return { id, email, name, role, passwordPending };
 };
 
 const fetchStaffIdentity = async () => {
@@ -63,7 +64,9 @@ export const getStaffIdentity = () => {
 
 export const getStaff = async () => {
 	const identity = await getStaffIdentity();
-	return identity?.assured && !identity.passwordGrant ? identity.staff : null;
+	if (!identity?.assured || identity.passwordGrant || identity.staff.passwordPending) return null;
+	const { id, email, name, role } = identity.staff;
+	return { id, email, name, role };
 };
 
 export const requireStaff = async (permission: Permission = "read") => {

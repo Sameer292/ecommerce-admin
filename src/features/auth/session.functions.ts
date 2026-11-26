@@ -6,6 +6,7 @@ export const readSignInStep = createServerFn().handler(async () => {
 	const identity = await getStaffIdentity();
 	if (!identity) return "signin";
 	if (identity.passwordGrant && (identity.assured || !identity.hasFactor)) return "password";
+	if (identity.staff.passwordPending && !identity.passwordGrant) return "password";
 	return identity.assured ? "ready" : "mfa";
 });
 

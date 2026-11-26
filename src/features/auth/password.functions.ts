@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { enum as ZEnum, object as ZObject, string as ZString, uuid as ZUuid } from "zod";
 import { db } from "@/db/client.server";
 import { staffPasswordGrants, user } from "@/db/schema/auth";
@@ -67,7 +67,7 @@ export const redeemStaffPasswordLink = createServerFn({ method: "POST" })
 
 export const readPasswordGrant = createServerFn().handler(async () => {
 	const identity = await getStaffIdentity();
-	if (!identity?.passwordGrant) return "missing";
+	if (!identity?.passwordGrant) return identity?.staff.passwordPending ? "link-needed" : "missing";
 	if (identity.passwordGrant.getTime() <= Date.now()) return "expired";
 	return identity.hasFactor && !identity.assured ? "mfa" : "ready";
 });
@@ -104,6 +104,10 @@ export const setStaffPasswordFromLink = createServerFn({ method: "POST" })
 					throw new ActionError(
 						"Your password changed. Sign out and sign in with the new password.",
 					);
+				await transaction
+					.update(user)
+					.set({ passwordPending: false, updatedAt: sql`now()`, version: sql`${user.version} + 1` })
+					.where(and(eq(user.id, identity.staff.id), eq(user.passwordPending, true)));
 				await transaction.delete(staffPasswordGrants).where(scope);
 			});
 		}),

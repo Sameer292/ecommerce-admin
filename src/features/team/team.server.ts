@@ -14,6 +14,7 @@ const columns = {
 	email: user.email,
 	role: user.role,
 	banned: user.banned,
+	passwordPending: user.passwordPending,
 	version: user.version,
 	authUserId: user.authUserId,
 	createdAt: user.createdAt,
@@ -69,6 +70,7 @@ export const editStaffAccount = ({ id, role, status, version }: EditStaffValues,
 					and(
 						eq(user.role, "superuser"),
 						isNotNull(user.authUserId),
+						eq(user.passwordPending, false),
 						or(eq(user.banned, false), isNull(user.banned)),
 					),
 				);

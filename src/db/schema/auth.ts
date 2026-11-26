@@ -15,6 +15,7 @@ export const user = commerce.table("staff_user", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	role: text().default("viewer").notNull(),
 	version: integer().notNull().default(0),
+	passwordPending: boolean("password_pending").notNull().default(false),
 	banned: boolean().default(false),
 	banReason: text("ban_reason"),
 	banExpires: timestamp("ban_expires", { withTimezone: true }),
