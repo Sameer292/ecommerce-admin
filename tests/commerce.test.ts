@@ -36,10 +36,10 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		timeZone: "America/New_York",
 	});
 	const trend = buildTrend(
-		new Map([
-			["2026-03-08", 200],
-			["2026-03-09", 800],
-		]),
+		[
+			{ date: "2026-03-08", sales: 200, orders: 3, customers: 1 },
+			{ date: "2026-03-09", sales: 800, orders: 4, customers: 2 },
+		],
 		window,
 	);
 	assert.equal(trend.length, 7);
@@ -47,20 +47,32 @@ test("dashboard periods use the store's calendar day and fill missing dates", ()
 		date: "2026-03-08",
 		through: "2026-03-08",
 		sales: 200,
+		orders: 3,
+		customers: 1,
 		partial: true,
 	});
 	assert.deepEqual(trend[0], {
 		date: "2026-03-02",
 		through: "2026-03-02",
 		sales: 0,
+		orders: 0,
+		customers: 0,
 		partial: false,
 	});
-	const weekly = buildTrend(new Map(), reportWindow(90, "America/New_York", now));
+	const weekly = buildTrend(
+		[
+			{ date: "2026-03-03", sales: 200, orders: 3, customers: 1 },
+			{ date: "2026-03-08", sales: 300, orders: 5, customers: 2 },
+		],
+		reportWindow(90, "America/New_York", now),
+	);
 	assert.equal(weekly.length, 13);
 	assert.deepEqual(weekly[12], {
 		date: "2026-03-03",
 		through: "2026-03-08",
-		sales: 0,
+		sales: 500,
+		orders: 8,
+		customers: 3,
 		partial: true,
 	});
 });
@@ -71,7 +83,7 @@ test("custom reports compare equal inclusive calendar ranges", () => {
 	assert.equal(window.currentFrom, "2026-03-07");
 	assert.equal(window.from, "2026-03-04");
 	assert.equal(window.to, "2026-03-10");
-	assert.equal(buildTrend(new Map(), window).length, 3);
+	assert.equal(buildTrend([], window).length, 3);
 	assert.equal(
 		customReportRangeSchema.safeParse({ from: range.through, through: range.from }).success,
 		false,

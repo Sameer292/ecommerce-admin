@@ -10,6 +10,7 @@ import { getStoreSettings } from "@/features/settings/settings.server";
 import { countOrderSyncFailures } from "@/features/store-integration/order-sync.server";
 import { getAnalytics } from "./analytics.server";
 import { overviewSearchSchema, resolveReportRange } from "./overview-validation";
+import { buildTrend } from "./report-dates";
 
 const watchStock = async () => {
 	const where = and(eq(products.status, "active"), lowStock);
@@ -46,7 +47,7 @@ export const readOverview = createServerFn()
 		]);
 		return {
 			metrics: analytics.metrics,
-			trend: analytics.trend,
+			trend: buildTrend(analytics.rows, analytics.window),
 			window: analytics.window,
 			orders,
 			stock,

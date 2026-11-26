@@ -2,7 +2,7 @@ import { and, gte, inArray, lt, sql, type SQLWrapper } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { customers } from "@/db/schema/customers";
 import { orders, paymentEvents } from "@/db/schema/orders";
-import { addDays, buildTrend, daysBetween, reportWindow } from "./report-dates";
+import { addDays, daysBetween, reportWindow } from "./report-dates";
 import type { DateWindow, ReportRange } from "./overview.types";
 
 const midnight = (date: string, timeZone: string) =>
@@ -95,6 +95,5 @@ export const getAnalytics = async (range: ReportRange, timeZone: string, now = n
 			? Math.round(metrics.sales.previous / metrics.paidOrders.previous)
 			: 0,
 	};
-	const revenue = new Map(daily.map(({ date, sales }) => [date, sales]));
-	return { metrics: { ...metrics, average }, trend: buildTrend(revenue, window), window, rows };
+	return { metrics: { ...metrics, average }, window, rows };
 };

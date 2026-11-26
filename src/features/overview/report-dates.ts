@@ -1,4 +1,4 @@
-import type { DateWindow, ReportRange, RevenuePoint } from "./overview.types";
+import type { DateWindow, ReportRange, TrendDay, TrendPoint } from "./overview.types";
 
 const toDateKey = (date: Date, timeZone: string) => {
 	const formatter = new Intl.DateTimeFormat("en-US", {
@@ -44,7 +44,8 @@ export const reportDate = (dateKey: string) =>
 		new Date(`${dateKey}T00:00:00Z`),
 	);
 
-export const buildTrend = (revenue: Map<string, number>, window: DateWindow): RevenuePoint[] => {
+export const buildTrend = (rows: TrendDay[], window: DateWindow): TrendPoint[] => {
+	const daily = new Map(rows.map((row) => [row.date, row]));
 	const days = daysBetween(window.currentFrom, window.to);
 	const interval = days > 30 ? 7 : 1;
 	return Array.from({ length: Math.ceil(days / interval) }, (_, index) => {
@@ -52,14 +53,18 @@ export const buildTrend = (revenue: Map<string, number>, window: DateWindow): Re
 		const end = Math.min(offset + interval, days);
 		const date = addDays(window.currentFrom, offset);
 		const through = addDays(window.currentFrom, end - 1);
-		let sales = 0;
+		const totals = { orders: 0, sales: 0, customers: 0 };
 		for (let day = offset; day < end; day++) {
-			sales += revenue.get(addDays(window.currentFrom, day)) ?? 0;
+			const row = daily.get(addDays(window.currentFrom, day));
+			if (!row) continue;
+			totals.orders += row.orders;
+			totals.sales += row.sales;
+			totals.customers += row.customers;
 		}
 		return {
 			date,
 			through,
-			sales,
+			...totals,
 			partial: end - offset < interval || (date <= window.today && window.today <= through),
 		};
 	});
