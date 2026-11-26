@@ -7,9 +7,8 @@ import { getSupabaseAuth } from "./supabase.server";
 export const readSignInStep = createServerFn().handler(async () => {
 	const identity = await getStaffIdentity();
 	if (!identity) return "signin";
-	if (identity.passwordGrant && (identity.assured || !identity.hasFactor)) return "password";
-	if (identity.staff.passwordPending && !identity.passwordGrant) return "password";
-	return identity.assured ? "ready" : "mfa";
+	if (identity.passwordGrant || identity.staff.passwordPending) return "password";
+	return "ready";
 });
 
 export const readWorkspace = createServerFn().handler(async () => {

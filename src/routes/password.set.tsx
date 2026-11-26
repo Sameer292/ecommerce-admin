@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AdminForm } from "@/components/admin/admin-form";
 import { TextField } from "@/components/admin/form-fields";
@@ -51,11 +51,7 @@ const PasswordSet = () => {
 };
 
 export const Route = createFileRoute("/password/set")({
-	loader: async () => {
-		const grant = await readPasswordGrant();
-		if (grant === "mfa") throw redirect({ to: "/verify", search: { returnTo: "/password/set" } });
-		return grant;
-	},
+	loader: () => readPasswordGrant(),
 	headers: () => ({ "Cache-Control": "no-store" }),
 	component: PasswordSet,
 });

@@ -5,7 +5,7 @@ import postgres from "postgres";
 const localAddress = (address: string) =>
 	["localhost", "127.0.0.1"].includes(new URL(address).hostname);
 
-test("recovery verifies the staff link and staff can revoke another browser", async ({
+test("owners can reset their password without a second factor and revoke another browser", async ({
 	page,
 	browser,
 	baseURL,
@@ -38,7 +38,7 @@ test("recovery verifies the staff link and staff can revoke another browser", as
 	if (createError || !account.user) throw new Error("Couldn’t create the local password fixture.");
 	const { id } = account.user;
 	try {
-		await database`insert into commerce_admin.staff_user (id, auth_user_id, name, email, password_pending) values (${id}, ${id}, 'Recovery test fixture', ${email}, true)`;
+		await database`insert into commerce_admin.staff_user (id, auth_user_id, name, email, role, password_pending) values (${id}, ${id}, 'Recovery test fixture', ${email}, 'superuser', true)`;
 		await page.goto("/login");
 		await page.locator('input[name="email"]').fill(email);
 		await page.locator('input[name="password"]').fill(oldPassword);

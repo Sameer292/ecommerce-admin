@@ -23,5 +23,5 @@ subject = "Reset your staff password"
 content_path = "./supabase/templates/staff-recovery.html"
 
 [auth.mfa.totp]
-enroll_enabled = true
-verify_enabled = true
+enroll_enabled = false
+verify_enabled = false

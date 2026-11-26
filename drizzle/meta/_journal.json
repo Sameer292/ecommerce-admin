@@ -246,6 +246,13 @@
       "when": 1795663425039,
       "tag": "0034_catalog_variants",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1795693013380,
+      "tag": "0035_remove_staff_mfa",
+      "breakpoints": true
     }
   ]
 }

@@ -18,7 +18,6 @@ export const Route = createFileRoute("/login")({
 	beforeLoad: async ({ search }) => {
 		const step = await readSignInStep();
 		if (step === "ready") throw redirect({ href: search.returnTo ?? "/" });
-		if (step === "mfa") throw redirect({ to: "/verify", search });
 		if (step === "password") throw redirect({ to: "/password/set" });
 	},
 	component: LoginPage,
