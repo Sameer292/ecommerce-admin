@@ -1,8 +1,9 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { pageSearchDefaults } from "@/lib/pagination";
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
 import { NewRecord } from "@/components/admin/new-record";
 import { PageHeading } from "@/components/admin/page-heading";
+import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
 import { productSearchSchema } from "@/features/catalog/catalog-validation";
 import { ProductList } from "@/features/catalog/product-list";
@@ -19,6 +20,11 @@ const ProductsPage = () => {
 				title="Products"
 				description="Manage items, pricing, and visibility across your catalog."
 			>
+				{can(staff.role, "manageCommerce") && (
+					<Link to="/product-import" className={buttonVariants({ variant: "outline", size: "lg" })}>
+						Catalog CSV
+					</Link>
+				)}
 				{can(staff.role, "manageCommerce") && <NewRecord to="/products/new" label="Add product" />}
 			</PageHeading>
 			<ProductList

@@ -3,24 +3,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
-import { NotesField, TextField } from "@/components/admin/form-fields";
+import { NotesField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
 import type { Category } from "./catalog.types";
+import { CatalogNameFields } from "./catalog-name-fields";
 import { writeCategory } from "./categories.functions";
 import { CategoryIconField } from "./category-icon-field";
 
 const CategoryFields = ({ category }: { category?: Category }) => (
 	<FormSection title="Category details">
-		<TextField name="name" label="Name" defaultValue={category?.name} maxLength={120} required />
-		<TextField
-			name="slug"
-			label="Slug"
-			defaultValue={category?.slug}
-			maxLength={100}
-			required
-			pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-			hint="Lowercase letters, numbers, and hyphens."
-		/>
+		<CatalogNameFields initialName={category?.name} initialSlug={category?.slug} />
 		<CategoryIconField icon={category?.icon} />
 		<NotesField
 			name="description"

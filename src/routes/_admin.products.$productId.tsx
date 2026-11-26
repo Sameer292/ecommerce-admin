@@ -7,6 +7,7 @@ import { DetailHeading } from "@/components/admin/detail-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
 import { ProductForm } from "@/features/catalog/product-form";
+import { ProductVariants } from "@/features/catalog/product-variants";
 import { readProduct, removeProduct } from "@/features/catalog/products.functions";
 
 const ProductActions = ({
@@ -14,11 +15,13 @@ const ProductActions = ({
 	name,
 	editable,
 	hasHistory,
+	published,
 }: {
 	id: string;
 	name: string;
 	editable: boolean;
 	hasHistory: boolean;
+	published: boolean;
 }) => {
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
@@ -33,14 +36,25 @@ const ProductActions = ({
 				View inventory
 			</Link>
 			{editable && (
+				<Link
+					to="/products/new"
+					search={{ duplicate: id, returnTo: returnHref }}
+					className={buttonVariants({ variant: "outline", size: "lg" })}
+				>
+					Duplicate as draft
+				</Link>
+			)}
+			{editable && (
 				<DeleteRecord
 					id={id}
 					record="product"
 					name={name}
 					blockedReason={
-						hasHistory
-							? "This product has order or inventory history. Archive it to retain its records."
-							: undefined
+						published
+							? "Archive this published product to retain its storefront links."
+							: hasHistory
+								? "This product has order or inventory history. Archive it to retain its records."
+								: undefined
 					}
 					onDelete={(data) => remove({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
@@ -51,7 +65,7 @@ const ProductActions = ({
 };
 
 const ProductPage = () => {
-	const { product, categories, hasHistory } = Route.useLoaderData();
+	const { product, categories, hasHistory, managedImage, variants } = Route.useLoaderData();
 	const { staff, store } = Route.useRouteContext();
 	const editable = can(staff.role, "manageCommerce");
 	return (
@@ -67,15 +81,34 @@ const ProductPage = () => {
 					name={product.name}
 					editable={editable}
 					hasHistory={hasHistory}
+					published={Boolean(product.publishedAt)}
 				/>
 			</DetailHeading>
+			{product.variantOf && (
+				<Link
+					to="/products/$productId"
+					params={{ productId: product.variantOf }}
+					className="w-fit text-sm font-medium underline"
+				>
+					View parent product
+				</Link>
+			)}
 			<ProductForm
 				key={product.id}
 				product={product}
+				managedImage={managedImage}
 				categories={categories}
 				currency={store.currency}
 				editable={editable}
 			/>
+			{!product.variantOf && (
+				<ProductVariants
+					id={product.id}
+					rows={variants}
+					currency={store.currency}
+					editable={editable}
+				/>
+			)}
 		</>
 	);
 };

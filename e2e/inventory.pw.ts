@@ -14,7 +14,7 @@ test("opens the low-stock queue with publication and threshold visible", async (
 
 test("previews a physical count before it can be recorded", async ({ page }) => {
 	await signIn(page, "/inventory?q=Alpine");
-	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 	await page.getByRole("combobox", { name: "Adjustment type" }).selectOption("stocktake");
 	await page.getByRole("spinbutton", { name: "Quantity" }).fill("20");
 	await expect(page.getByText(/On hand \d+ → 20 units/)).toBeVisible();

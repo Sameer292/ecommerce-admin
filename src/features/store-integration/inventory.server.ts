@@ -42,13 +42,28 @@ export const applyStockMovement = ({
 			return false;
 		}
 		const matching = await transaction
-			.select({ id: products.id, sku: products.sku, status: products.status, ...stockLevelColumns })
+			.select({
+				id: products.id,
+				sku: products.sku,
+				status: products.status,
+				variantOf: products.variantOf,
+				...stockLevelColumns,
+			})
 			.from(products)
 			.where(inArray(products.sku, [...quantities.keys()]))
 			.orderBy(products.id)
 			.for("update");
 		if (matching.length !== lines.length)
 			throw new IntegrationError(404, "One or more inventory SKUs were not found.");
+		const parentIds = matching.flatMap(({ variantOf }) => (variantOf ? [variantOf] : []));
+		const activeParents =
+			operation === "reserve" && parentIds.length
+				? await transaction
+						.select({ id: products.id })
+						.from(products)
+						.where(and(inArray(products.id, parentIds), eq(products.status, "active")))
+				: [];
+		const sellableParents = new Set(activeParents.map(({ id }) => id));
 		const reservations = await transaction
 			.select({ productId: stockReservations.productId, quantity: stockReservations.quantity })
 			.from(stockReservations)
@@ -64,10 +79,15 @@ export const applyStockMovement = ({
 		const heldByProduct = new Map(
 			reservations.map(({ productId, quantity }) => [productId, quantity]),
 		);
-		for (const { id: productId, sku, status, ...before } of matching) {
+		for (const { id: productId, sku, status, variantOf, ...before } of matching) {
 			const quantity = quantities.get(sku) ?? 0;
 			const held = heldByProduct.get(productId) ?? 0;
-			if (operation === "reserve" && (status !== "active" || quantity > availableUnits(before)))
+			if (
+				operation === "reserve" &&
+				(status !== "active" ||
+					(variantOf && !sellableParents.has(variantOf)) ||
+					quantity > availableUnits(before))
+			)
 				throw new IntegrationError(409, `Insufficient sellable stock for ${sku}.`);
 			if (operation !== "reserve" && quantity > held)
 				throw new IntegrationError(409, `The order does not hold that quantity of ${sku}.`);

@@ -7,37 +7,41 @@ import { FormSection } from "@/components/admin/form-section";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
 import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
+import { CatalogNameFields } from "./catalog-name-fields";
+import { ProductPublication, type PublicationFields } from "./product-publication";
+import { ProductImageField } from "./product-image-field";
 import { productStatuses, productStatusLabels } from "./catalog-options";
-import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
 import { writeProduct } from "./products.functions";
 
+type ProductDefaults = Pick<
+	Product,
+	| "name"
+	| "sku"
+	| "description"
+	| "categoryId"
+	| "imageUrl"
+	| "priceMinor"
+	| "lowStockThreshold"
+	| "status"
+> & { slug?: string; publishedAt?: Date | null };
+
 type ProductFormProps = {
 	product?: Product;
+	draft?: ProductDefaults & { managedImage?: string; imageSourceId?: string; variantOf?: string };
+	managedImage?: string;
 	categories: CategoryOption[];
 	currency: string;
 	editable: boolean;
 };
 
-const ProductIdentifiers = ({ product }: Pick<ProductFormProps, "product">) => (
-	<div className="grid gap-4 sm:grid-cols-2">
-		<TextField name="sku" label="SKU" maxLength={80} defaultValue={product?.sku} required />
-		<TextField
-			name="slug"
-			label="Slug"
-			maxLength={100}
-			defaultValue={product?.slug}
-			required
-			pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-			hint="Lowercase letters, numbers, and hyphens."
-		/>
-	</div>
-);
-
 const ProductCategory = ({
 	product,
 	categories,
-}: Pick<ProductFormProps, "product" | "categories">) => (
+}: {
+	product?: ProductDefaults;
+	categories: CategoryOption[];
+}) => (
 	<SelectField name="categoryId" label="Category" defaultValue={product?.categoryId ?? ""}>
 		<NativeSelectOption value="">Uncategorized</NativeSelectOption>
 		{categories.map(({ id, name }) => (
@@ -51,10 +55,29 @@ const ProductCategory = ({
 const ProductDetails = ({
 	product,
 	categories,
-}: Pick<ProductFormProps, "product" | "categories">) => (
+}: {
+	product?: ProductDefaults;
+	categories: CategoryOption[];
+}) => (
 	<FormSection title="Product details">
-		<TextField name="name" label="Name" maxLength={120} defaultValue={product?.name} required />
-		<ProductIdentifiers product={product} />
+		<CatalogNameFields
+			initialName={product?.name}
+			initialSlug={product?.slug}
+			published={Boolean(product?.publishedAt)}
+		/>
+		<TextField
+			name="sku"
+			label="SKU"
+			maxLength={80}
+			defaultValue={product?.sku}
+			readOnly={Boolean(product?.publishedAt)}
+			hint={
+				product?.publishedAt
+					? "Published SKUs are retained for order and inventory integrations."
+					: undefined
+			}
+			required
+		/>
 		<NotesField
 			name="description"
 			label="Description"
@@ -62,20 +85,16 @@ const ProductDetails = ({
 			defaultValue={product?.description}
 		/>
 		<ProductCategory product={product} categories={categories} />
-		<TextField
-			name="imageUrl"
-			label="Image URL"
-			type="url"
-			pattern={httpsImageUrlPattern}
-			placeholder="https://"
-			hint="Use an HTTPS image URL."
-			maxLength={2000}
-			defaultValue={product?.imageUrl}
-		/>
 	</FormSection>
 );
 
-const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product" | "currency">) => (
+const ProductSettings = ({
+	product,
+	currency,
+}: {
+	product?: ProductDefaults;
+	currency: string;
+}) => (
 	<FormSection title="Pricing and availability">
 		<TextField
 			name="price"
@@ -105,8 +124,26 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 	</FormSection>
 );
 
-export const ProductForm = ({ product, categories, currency, editable }: ProductFormProps) => {
+export const ProductForm = ({
+	product,
+	draft,
+	managedImage,
+	categories,
+	currency,
+	editable,
+}: ProductFormProps) => {
 	const [version] = useState(product?.version);
+	const defaults = product ?? draft;
+	const variantOf = product?.variantOf ?? draft?.variantOf;
+	const storedImage = managedImage ?? draft?.managedImage ?? "";
+	const [photo, setPhoto] = useState(storedImage || defaults?.imageUrl || "");
+	const [publication, setPublication] = useState<PublicationFields>(() => ({
+		name: defaults?.name ?? "",
+		description: defaults?.description ?? "",
+		categoryId: defaults?.categoryId ?? "",
+		price: defaults ? moneyInput(defaults.priceMinor, currency) : "",
+		status: defaults?.status ?? "draft",
+	}));
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
 	const save = useServerFn(writeProduct);
@@ -121,10 +158,54 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 			successMessage={product ? "Product saved." : "Product created."}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
+			{variantOf && <input type="hidden" name="variantOf" value={variantOf} />}
+			{draft?.imageSourceId && (
+				<input type="hidden" name="imageSourceId" value={draft.imageSourceId} />
+			)}
 			{product && <input type="hidden" name="version" value={version} />}
-			<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-				<ProductDetails product={product} categories={categories} />
-				<ProductSettings product={product} currency={currency} />
+			<div
+				className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"
+				onChange={(event) => {
+					const field = event.target;
+					if (
+						(field instanceof HTMLInputElement ||
+							field instanceof HTMLSelectElement ||
+							field instanceof HTMLTextAreaElement) &&
+						Object.hasOwn(publication, field.name)
+					) {
+						const { name, value } = field;
+						setPublication((previous) => ({ ...previous, [name]: value }));
+					}
+				}}
+			>
+				<div className="flex min-w-0 flex-col gap-4">
+					<ProductDetails product={defaults} categories={categories} />
+					{variantOf && (
+						<FormSection title="Variant options">
+							<NotesField
+								name="variantOptions"
+								label="Options, one per line"
+								placeholder={"Size: Medium\nColor: Blue"}
+								maxLength={580}
+								rows={4}
+								required
+								defaultValue={product?.variantOptions
+									.map(({ name, value }) => `${name}: ${value}`)
+									.join("\n")}
+							/>
+						</FormSection>
+					)}
+					<ProductImageField
+						external={defaults?.imageUrl ?? ""}
+						managed={storedImage}
+						editable={editable}
+						onPreview={setPhoto}
+					/>
+				</div>
+				<div className="flex min-w-0 flex-col gap-4">
+					<ProductSettings product={defaults} currency={currency} />
+					<ProductPublication fields={publication} photo={photo} currency={currency} />
+				</div>
 			</div>
 		</AdminForm>
 	);

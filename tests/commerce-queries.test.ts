@@ -27,6 +27,11 @@ test("commerce queries preserve results and profile large catalogs, orders and c
 			  CASE WHEN n=1 THEN 'Needle 100%_\\ only' ELSE 'Customer '||n END,
 			  CASE WHEN n=2 THEN 'needle@example.test' ELSE 'person'||n||'@example.test' END
 			FROM generate_series(1,10000) n;
+		`);
+		// Keep audit-triggered fixture writes within the same query deadline as production.
+		for (let start = 1; start <= 100_000; start += 10_000) {
+			await connection.unsafe(
+				`
 			INSERT INTO commerce_admin.orders
 			  (id, number, customer_id, status, payment_status, paid_at, subtotal_minor, total_minor, created_at)
 			SELECT md5(('order-'||n)::text)::uuid,
@@ -36,7 +41,12 @@ test("commerce queries preserve results and profile large catalogs, orders and c
 			  (CASE n%3 WHEN 0 THEN 'paid' WHEN 1 THEN 'pending' ELSE 'refunded' END)::commerce_admin.payment_status,
 			  now(), (n%19+1)*100, (n%19+1)*100,
 			  '2026-01-01'::timestamptz + n * interval '1 second'
-			FROM generate_series(1,100000) n;
+			FROM generate_series($1::int,$2::int) n;
+			`,
+				[start, start + 9_999],
+			);
+		}
+		await connection.unsafe(`
 			UPDATE commerce_admin.orders SET payment_status='paid', subtotal_minor=2000000000, total_minor=2000000000
 			WHERE number IN ('WEB-needle-000001', 'WEB-009999');
 		`);
@@ -46,12 +56,19 @@ test("commerce queries preserve results and profile large catalogs, orders and c
 			INSERT INTO commerce_admin.categories (id, name, slug)
 			SELECT md5(('category-'||n)::text)::uuid, 'Category '||lpad(n::text,4,'0'), 'category-'||n
 			FROM generate_series(1,1000) n;
+		`);
+		for (let start = 1; start <= 25_000; start += 5_000) {
+			await connection.unsafe(
+				`
 			INSERT INTO commerce_admin.products (name, sku, slug, price_minor, category_id)
 			SELECT (CASE WHEN n%2=0 THEN 'Catalog' ELSE 'CATALOG' END)||' item '||lpad(n::text,6,'0'),
 				'SCALE-'||lpad(n::text,6,'0'), 'scale-'||n, n,
 				md5(('category-'||(((n-1)%1000)+1))::text)::uuid
-			FROM generate_series(1,25000) n;
-		`);
+			FROM generate_series($1::int,$2::int) n;
+			`,
+				[start, start + 4_999],
+			);
+		}
 		await connection.unsafe("VACUUM ANALYZE commerce_admin.products");
 		const { listProducts } = await import("../src/features/catalog/products.server");
 		const { categoryOptions } = await import("../src/features/catalog/categories.server");

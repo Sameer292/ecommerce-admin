@@ -52,6 +52,7 @@ Issue scoped keys from Settings → Integration credentials as a superuser. Copy
 | Endpoint | Behavior |
 | --- | --- |
 | `GET /api/store/catalog` | Lists active products, prices, and categories. `stock` is physical on hand. `availableStock` is sellable inventory once the admin inventory authority is enabled. Accepts `page`, `q`, and a `category` UUID. |
+| `GET /api/store/catalog?slug=example` | Looks up a published product by its current or former slug. Redirect storefront pages to `canonicalSlug` when `redirected` is true. |
 | `POST /api/store/inventory` | Atomically reserves, releases, or fulfills stock for one checkout or order and up to 25 SKUs. |
 | `GET /api/store/inventory/alerts` | Pages through unacknowledged replenishment alerts for a server-side notification monitor. |
 | `GET /api/store/orders?number=WEB-1042` | Returns order and payment status, the first tracking number, an ISO update timestamp, and packages with carrier, service, tracking, and dispatch time. Returns 404 until the order is imported. |
@@ -80,6 +81,14 @@ Import accepts an optional `paidAt` for already-paid orders. Other optional amou
 Send inventory events from the storefront backend with a stable UUID `id`, the checkout or order `number`, an `operation` of `reserve`, `release`, or `fulfill`, and `lines` with `{ "sku": "NOTEBOOK-01", "quantity": 2 }`. Reserve before confirming checkout. Release on expiry, payment abandonment, or cancellation and fulfill reserved units at dispatch. A fulfillment removes the shipped units from both on-hand and reserved balances. Use the same `number` for that checkout throughout and one event ID per distinct action. Identical retries return 200. Insufficient stock, a conflicting event ID, or releasing another checkout's units returns 409 and applies no lines. A payment import or refund alone does not move units. Staff can put sellable returns back on hand when receiving them.
 
 Before setting `STORE_INVENTORY_AUTHORITY=admin`, reconcile on-hand counts, seed any outstanding reservations through the inventory endpoint, and switch the checkout to reserve through this API. During cutover, `inventoryAuthority` is `unverified` and the catalog returns `availableStock: null`. Use a successful reservation, rather than a catalog read, to confirm availability at checkout.
+
+Published SKUs remain fixed. Changing a published slug saves the former slug as an alias. Use the canonical slug from the lookup endpoint for storefront redirects. Archive published products to take them off sale while retaining their identifiers.
+
+Upload a PNG, JPEG, or WebP product image up to 3 MB in the product form. The console creates the public `commerce-product-images` Supabase Storage bucket on the first upload. Staff can preview, replace, or unlink an image. Existing HTTPS image URLs still work. Unlinking leaves the file in Storage so other products that share it can still display it.
+
+Variants have their own SKU, price, image, and balances. Add them from the parent product and manage their quantities in Inventory. The published catalog includes active variants inside the parent's `variants` array. The parent SKU remains available for existing standalone purchases. Use the selected variant's SKU in reservations and order lines. Archiving a parent hides its variants and blocks new reservations while allowing existing reservations to be released or fulfilled.
+
+Managers can export the catalog or preview and apply CSV changes from Products → Catalog CSV. Use the exported headers and file currency. Choose create-only to flag existing SKUs or create-or-update to match by SKU. An import applies together after validation. Add new parent products before importing their variant rows. Stock stays in Inventory, and existing managed images remain attached when the external image URL column is blank.
 
 Inventory opens one replenishment alert when an active product reaches its threshold. It resolves the alert if availability recovers or the product becomes inactive. A later drop opens a fresh alert. Managers can acknowledge alerts and review incoming stock from Inventory → Replenishment alerts. To notify staff outside the console, poll `GET /api/store/inventory/alerts?page=1` from the store's scheduled monitor. Page through the results, send each alert ID to the chosen channel once, and persist sent IDs across monitor restarts.
 

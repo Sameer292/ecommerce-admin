@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	check,
+	index,
+	integer,
+	jsonb,
+	text,
+	timestamp,
+	unique,
+	uuid,
+	type AnyPgColumn,
+} from "drizzle-orm/pg-core";
 import {
 	categoryIcons,
 	defaultCategoryIcon,
@@ -33,10 +43,20 @@ export const products = commerce.table(
 		sku: text().notNull().unique(),
 		description: text().notNull().default(""),
 		imageUrl: text("image_url").notNull().default(""),
+		imageKey: text("image_key").notNull().default(""),
 		categoryId: uuid("category_id").references(() => categories.id, {
 			onDelete: "restrict",
 		}),
 		status: productStatus().notNull().default("draft"),
+		publishedAt: timestamp("published_at", { withTimezone: true }),
+		variantOf: uuid("variant_of").references((): AnyPgColumn => products.id, {
+			onDelete: "restrict",
+		}),
+		variantKey: text("variant_key"),
+		variantOptions: jsonb("variant_options")
+			.$type<{ name: string; value: string }[]>()
+			.notNull()
+			.default([]),
 		priceMinor: integer("price_minor").notNull(),
 		stock: integer().notNull().default(0),
 		reservedStock: integer("reserved_stock").notNull().default(0),
@@ -48,6 +68,11 @@ export const products = commerce.table(
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
+		unique().on(table.variantOf, table.variantKey),
+		check(
+			"products_variant_details",
+			sql`(${table.variantOf} IS NULL AND ${table.variantKey} IS NULL AND jsonb_array_length(${table.variantOptions}) = 0) OR (${table.variantOf} IS NOT NULL AND ${table.variantOf} <> ${table.id} AND ${table.variantKey} IS NOT NULL AND jsonb_array_length(${table.variantOptions}) BETWEEN 1 AND 5)`,
+		),
 		index("products_name_id_index").on(sql`lower(${table.name})`, table.id),
 		index("products_category_id_name_id_index").on(
 			table.categoryId,
@@ -75,3 +100,14 @@ export const availableStock =
 	sql<number>`${products.stock} - ${products.reservedStock} - ${products.damagedStock}`.mapWith(
 		Number,
 	);
+
+export const productSlugs = commerce.table(
+	"product_slugs",
+	{
+		slug: text().primaryKey(),
+		productId: uuid("product_id")
+			.notNull()
+			.references(() => products.id, { onDelete: "cascade" }),
+	},
+	(table) => [index().on(table.productId)],
+);

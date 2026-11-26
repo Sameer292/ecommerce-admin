@@ -1,0 +1,1 @@
+ALTER TABLE "commerce_admin"."products" ADD COLUMN "image_key" text DEFAULT '' NOT NULL;

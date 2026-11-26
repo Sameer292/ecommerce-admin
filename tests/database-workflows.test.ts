@@ -740,6 +740,166 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			await checkIntegrationToken(storefrontRequest(replacement), "catalog:read"),
 			undefined,
 		);
+		const { updateProductsInBulk } = await import("../src/features/catalog/products.server");
+		const selected = await connection<
+			{ id: string; version: number }[]
+		>`select id, version from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR')`;
+		assert.equal(selected.length, 2);
+		await updateProductsInBulk(
+			{ selected, status: "archived", categoryId: "keep" },
+			"stock-operator",
+		);
+		await assert.rejects(
+			updateProductsInBulk({ selected, status: "active", categoryId: "" }, "stock-operator"),
+			/selected product changed/,
+		);
+		assert.equal(
+			(
+				await connection`select id from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR') and status = 'archived'`
+			).length,
+			2,
+		);
+		const [published] =
+			await connection`insert into commerce_admin.products (name, slug, sku, price_minor, status) values ('Slug fixture', 'original-slug', 'PUBLISHED-SKU', 1000, 'active') returning id`;
+		await connection`update commerce_admin.products set slug = 'canonical-slug' where id = ${published.id}`;
+		await assert.rejects(
+			connection`update commerce_admin.products set sku = 'REPLACEMENT-SKU' where id = ${published.id}`,
+			{ code: "23514" },
+		);
+		await assert.rejects(
+			connection`insert into commerce_admin.products (name, slug, sku, price_minor) values ('Different item', 'original-slug', 'OTHER-SKU', 1200)`,
+			{ code: "23505" },
+		);
+		const { handleStoreCatalog } = await import("../src/features/store-integration/catalog.server");
+		const aliasResponse = await handleStoreCatalog({
+			request: new Request("http://localhost/api/store/catalog?slug=original-slug", {
+				headers: { authorization: `Bearer ${replacement}` },
+			}),
+		});
+		assert.equal(aliasResponse.status, 200);
+		const alias = await aliasResponse.json();
+		assert.equal(alias.canonicalSlug, "canonical-slug");
+		assert.equal(alias.redirected, true);
+		assert.equal(alias.item.sku, "PUBLISHED-SKU");
+
+		const { saveProduct, listProductVariants } = await import(
+			"../src/features/catalog/products.server"
+		);
+		const variant = {
+			id: undefined,
+			name: "Fixture · Blue small",
+			slug: "fixture-blue-small",
+			sku: "FIXTURE-BLUE-S",
+			description: "",
+			imageUrl: "https://example.test/blue.jpg",
+			categoryId: null,
+			status: "active",
+			price: "25.00",
+			lowStockThreshold: 2,
+			variantOf: published.id,
+			variantOptions: [
+				{ name: "Size", value: "Small" },
+				{ name: "Color", value: "Blue" },
+			],
+		} as const;
+		await saveProduct(
+			{ ...variant, variantOptions: [...variant.variantOptions] },
+			"stock-operator",
+		);
+		const { databaseCode } = await import("../src/server/db-errors.server");
+		await assert.rejects(
+			saveProduct(
+				{
+					...variant,
+					sku: "FIXTURE-DUPLICATE",
+					slug: "fixture-duplicate",
+					variantOptions: [
+						{ name: "color", value: "BLUE" },
+						{ name: "SIZE", value: "small" },
+					],
+				},
+				"stock-operator",
+			),
+			(error: unknown) => databaseCode(error) === "23505",
+		);
+		const [savedVariant] = await listProductVariants(published.id);
+		await adjustStock({
+			id: crypto.randomUUID(),
+			productId: savedVariant.id,
+			delta: 5,
+			reason: "Fixture stock",
+			staffId: "stock-operator",
+		});
+		const stockRequest = {
+			id: crypto.randomUUID(),
+			number: "WITH-VARIANT",
+			operation: "reserve",
+			lines: [{ sku: variant.sku, quantity: 2 }],
+		} as const;
+		await applyStockMovement({ ...stockRequest, lines: [...stockRequest.lines] });
+		const request = (slug: string) =>
+			new Request(`http://localhost/api/store/catalog?slug=${slug}`, {
+				headers: { authorization: `Bearer ${replacement}` },
+			});
+		const listing = await (await handleStoreCatalog({ request: request("canonical-slug") })).json();
+		assert.equal(listing.item.stock, 0);
+		assert.equal(listing.item.variants[0].sku, variant.sku);
+		assert.equal(listing.item.variants[0].stock, 5);
+		assert.equal(listing.item.variants[0].priceMinor, 2500);
+		await connection`update commerce_admin.products set status = 'archived' where id = ${published.id}`;
+		assert.equal((await handleStoreCatalog({ request: request(variant.slug) })).status, 404);
+		await assert.rejects(
+			applyStockMovement({
+				...stockRequest,
+				id: crypto.randomUUID(),
+				lines: [...stockRequest.lines],
+			}),
+			{ status: 409 },
+		);
+		const { prepareCatalogImport, applyCatalogImport, exportCatalogCsv } = await import(
+			"../src/features/catalog/catalog-csv.server"
+		);
+		const { catalogCsvCell, catalogCsvHeaders } = await import(
+			"../src/features/catalog/catalog-csv"
+		);
+		const header = catalogCsvHeaders.join(",");
+		const fixture = [
+			"CSV-TEST",
+			"CSV sample",
+			"csv-sample",
+			"13.25",
+			"USD",
+			"draft",
+			"",
+			'Contains a comma, a quote " and a\nsecond line.',
+			"",
+			"5",
+			"",
+			"",
+		];
+		const rowCsv = (row: string[]) => `${header}\r\n${row.map(catalogCsvCell).join(",")}\r\n`;
+		const text = rowCsv(fixture);
+		const review = await prepareCatalogImport(text, "create", "USD");
+		assert.deepEqual(review.rows[0].errors, []);
+		await applyCatalogImport(text, "create", review.digest, "stock-operator");
+		const [csvProduct] =
+			await connection`select price_minor, description, stock from commerce_admin.products where sku = 'CSV-TEST'`;
+		assert.equal(csvProduct.price_minor, 1325);
+		assert.equal(csvProduct.description, fixture[7]);
+		assert.equal(csvProduct.stock, 0);
+		assert.match(
+			(await prepareCatalogImport(text, "create", "USD")).rows[0].errors.join(" "),
+			/SKU exists/,
+		);
+		const updatedCsv = rowCsv(["CSV-TEST", "=Escaped sample", ...fixture.slice(2)]);
+		const approved = await prepareCatalogImport(updatedCsv, "upsert", "USD");
+		await applyCatalogImport(updatedCsv, "upsert", approved.digest, "stock-operator");
+		await assert.rejects(
+			applyCatalogImport(updatedCsv, "upsert", approved.digest, "stock-operator"),
+			/catalog changed/,
+		);
+		const exportedCsv = await new Response(await exportCatalogCsv()).text();
+		assert.match(exportedCsv, /"CSV-TEST","'=Escaped sample"/);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
