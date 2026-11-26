@@ -9,7 +9,7 @@ The workspace covers catalog, order fulfillment, inventory, customers, and staff
 1. Install dependencies with `bun install`. Use Node.js 22.12 or newer and a running Docker engine.
 2. Create a loopback-only Docker network with `docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 ecommerce-admin-supabase-local`. Run `npx supabase start --network-id ecommerce-admin-supabase-local` to start the local project. [Supabase CLI setup](https://supabase.com/docs/guides/local-development)
 3. Copy `.env.example` to `.env`. Set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, and `DATABASE_URL` from `npx supabase status`. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and optionally `ADMIN_NAME` for the first superuser.
-4. Run `bun run db:migrate` and `bun run admin:create`. Remove the bootstrap password from `.env` after creating the account.
+4. Run `bun run db:migrate`, `bun run db:lock-currency`, and `bun run admin:create`. Remove the bootstrap password from `.env` after creating the account.
 5. Optionally run `bun run db:seed` for sample products, categories, customers, and orders. The seed preserves existing records when rerun.
 6. Run `bun run dev` and open http://localhost:3000.
 
@@ -30,13 +30,13 @@ Staff sign in with email and password and can change their own password. Superus
 - `bun run db:migrate` uses `DATABASE_MIGRATION_URL` when set and falls back to `DATABASE_URL`. If the runtime uses the transaction pooler, give migrations a direct or session pooler URL.
 - Order and customer substring search uses `pg_trgm` GIN indexes, installed by the migrations. Very short or broad search terms can still require scans.
 - Enable email/password sign-in. For an admin-only Supabase project, turn off account signups in Authentication settings. Keep `commerce_admin` and `commerce_admin_legacy_auth` outside the exposed schemas in the Supabase Data API.
-- Set `STORE_NAME`, `STORE_TIME_ZONE`, and `STORE_CURRENCY` before loading records. Superusers can update the name, reporting time zone, and contact email from Settings. Amounts are stored as integer minor units of the configured currency.
-- Run `bun run db:migrate` and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
+- Set `STORE_CURRENCY` explicitly and lock it before serving the application. For an existing store, confirm the currency used for its stored prices and orders, then run `bun run db:lock-currency` with that currency on the target database. The lock leaves amounts intact and rejects attempts to overwrite the currency. The application and storefront API read the locked currency from PostgreSQL. Superusers can update the name, reporting time zone, and contact email from Settings.
+- Run `bun run db:migrate`, `bun run db:lock-currency`, and `bun run admin:create`. Build with `bun run build` and serve with `bun run start` behind HTTPS. The runtime accepts `PORT` and `HOST`.
 - Production builds generate gzip and Brotli static assets. HTML uses streaming gzip when the client accepts it.
 
 ### Moving an existing deployment
 
-Back up the old database. When moving databases, restore the `commerce_admin` and `drizzle` schemas in the destination Supabase PostgreSQL database before running `bun run db:migrate`. The migration preserves catalog, orders, stock history, and staff profiles. It archives the old authentication tables in a private schema.
+Use the [backup and restore runbook](docs/backup-restore.md) before moving a database. For a commerce-only migration, restore the `commerce_admin` and `drizzle` schemas in the destination Supabase PostgreSQL database before running `bun run db:migrate`. The migration preserves catalog, orders, stock history, and staff profiles. It archives the old authentication tables in a private schema.
 
 Provision the first superuser with the same email and a new password. Then provision the other staff accounts from Team using their existing email and role with a new password. This links the existing profile and preserves its audit history. Earlier passwords and sessions need to be replaced with Supabase credentials.
 
@@ -75,10 +75,18 @@ Run `bun run check`, `bun run typecheck`, `bun test`, and `bun run build`. Gener
 
 Run `TEST_DATABASE=1 bun test tests/database.test.ts` with the configured database to check concurrent queries, the 15-second query timeout, and recovery after cancellation. This check only runs reads and takes about 15 seconds. The shared client also limits connection and pool queue waits to 10 seconds and disables query pipelining for compatibility with older Supavisor transaction poolers.
 
-Run `TEST_QUERY_DATABASE_URL=postgresql://... bun test tests/commerce-queries.test.ts` against an empty disposable database on local Supabase to check search results, spending totals, and query plans with 100,000 orders and 10,000 customers. This test applies the migrations and writes fixtures; discard the test database afterward.
+Run `TEST_QUERY_DATABASE_URL=postgresql://... bun test tests/commerce-queries.test.ts` against an empty disposable database on local Supabase to profile search, sorting, deep pagination, category options, and customer spending. It applies the migrations and loads 100,000 orders, 10,000 customers, 25,000 products, and 1,000 categories. Discard the test database afterward.
 
 Run `TEST_TEAM_DATABASE_URL=postgresql://... bun test tests/team-access.test.ts` against an empty disposable database on local Supabase to check staff revocation and last-superuser protection under concurrent edits. This test applies the migrations and writes staff fixtures.
 
 Run `TEST_PAYMENT_DATABASE_URL=postgresql://... bun test tests/payment.test.ts` against an empty disposable local database to check that payment retries preserve the recorded timestamp and reject conflicting timestamps.
 
 Run `TEST_EDIT_DATABASE_URL=postgresql://... bun test tests/edit-conflicts.test.ts` against an empty disposable local database to verify that competing saves cannot overwrite category, product, customer, settings, or staff edits.
+
+Run `TEST_WORKFLOW_DATABASE_URL=postgresql://... bun test tests/database-workflows.test.ts` against an empty disposable database to check concurrent stock changes, order retries, write rollback, and payment transitions. A standalone PostgreSQL instance needs the cluster roles `anon` and `authenticated` for the Supabase permissions migration. CI runs this suite alongside the payment, edit-conflict, and staff-access suites, each with a fresh database.
+
+For browser regression tests, seed a disposable local Supabase workspace with `bun run db:seed`. Create a superuser and a viewer for the fixtures, then set `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_VIEWER_EMAIL`, and `E2E_VIEWER_PASSWORD`. Start the local app, run `bunx playwright install chromium`, then run `bun run test:e2e`. Set `E2E_BASE_URL` if the local app uses a different port.
+
+CI provisions a disposable Supabase workspace for the same browser suite. It runs WCAG A/AA checks in both themes with the category icon picker and product delete dialog open.
+
+Point uptime monitoring at `GET /api/health`. It returns 200 when PostgreSQL accepts a query and 503 if the query fails. Match the `X-Request-Id` response header or error reference to server logs.

@@ -29,7 +29,7 @@ const StoreFields = ({ store }: { store: StoreSettings }) => (
 			label="Currency"
 			defaultValue={store.currency}
 			readOnly
-			hint="Configured for this deployment."
+			hint="Locked to the currency used for existing prices and orders."
 		/>
 	</>
 );

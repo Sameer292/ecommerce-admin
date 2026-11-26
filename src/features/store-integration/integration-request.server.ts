@@ -1,5 +1,5 @@
-import type { ZodType } from "zod";
-import { databaseCode } from "@/server/db-errors.server";
+import type { ZodType as ZType } from "zod";
+import { logRequestFailure } from "@/server/request-diagnostics.server";
 import { checkIntegrationToken } from "./integration-auth.server";
 
 export class IntegrationError extends Error {
@@ -48,13 +48,13 @@ export const integrationError = (error: unknown) => {
 	if (error instanceof IntegrationError) {
 		return Response.json({ error: error.message }, { status: error.status });
 	}
-	console.error("Store integration failed", { code: databaseCode(error) });
-	return Response.json({ error: "Request could not be completed." }, { status: 500 });
+	const requestId = logRequestFailure("store integration", error);
+	return Response.json({ error: "Request could not be completed.", requestId }, { status: 500 });
 };
 
 export const withIntegrationBody = async <Input>(
 	request: Request,
-	schema: ZodType<Input>,
+	schema: ZType<Input>,
 	handle: (data: Input) => Promise<Response>,
 ) => {
 	const blocked = checkIntegrationToken(request);

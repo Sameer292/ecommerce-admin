@@ -7,7 +7,7 @@ import { orderItems } from "@/db/schema/orders";
 import { parseMoneyInput } from "@/lib/money";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import type { InventorySearch } from "@/features/inventory/inventory.types";
-import { env } from "@/server/env.server";
+import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
 import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
 
@@ -94,9 +94,9 @@ export const productHasHistory = async (id: string) => {
 };
 
 export const saveProduct = async ({ id, price, version, ...values }: ProductValues) => {
-	const priceMinor = parseMoneyInput(price, env.STORE_CURRENCY);
-	if (priceMinor === null)
-		throw new ActionError(`Enter a valid ${env.STORE_CURRENCY} price.`, "price");
+	const currency = await getStoreCurrency();
+	const priceMinor = parseMoneyInput(price, currency);
+	if (priceMinor === null) throw new ActionError(`Enter a valid ${currency} price.`, "price");
 
 	if (!id) return db.insert(products).values({ ...values, priceMinor });
 	const [updated] = await db

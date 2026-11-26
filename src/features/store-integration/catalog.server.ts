@@ -3,7 +3,7 @@ import { db } from "@/db/client.server";
 import { categories, products } from "@/db/schema/catalog";
 import { productSearchSchema } from "@/features/catalog/catalog-validation";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
-import { env } from "@/server/env.server";
+import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { checkIntegrationToken } from "./integration-auth.server";
 import { integrationError } from "./integration-request.server";
 
@@ -28,7 +28,7 @@ const publishedCatalog = async (request: Request) => {
 		category ? eq(products.categoryId, category) : undefined,
 		q ? or(ilike(products.name, pattern), ilike(products.sku, pattern)) : undefined,
 	);
-	const [items, total] = await Promise.all([
+	const [items, total, currency] = await Promise.all([
 		db
 			.select(publishedFields)
 			.from(products)
@@ -38,8 +38,9 @@ const publishedCatalog = async (request: Request) => {
 			.limit(pageSize)
 			.offset(pageOffset(page)),
 		db.$count(products, where),
+		getStoreCurrency(),
 	]);
-	return { items, page, pageSize, total, currency: env.STORE_CURRENCY };
+	return { items, page, pageSize, total, currency };
 };
 
 export const handleStoreCatalog = async ({ request }: { request: Request }) => {

@@ -1,6 +1,7 @@
 import type { ZodType as ZType } from "zod";
 import { databaseCode } from "./db-errors.server";
 import type { FieldErrors, MutationResult } from "./mutation.types";
+import { logRequestFailure } from "./request-diagnostics.server";
 
 export class ActionError extends Error {
 	constructor(
@@ -11,16 +12,18 @@ export class ActionError extends Error {
 	}
 }
 
-const getMutationError = (error: unknown, constraints?: Record<string, string>) => {
+const getMutationError = (
+	error: unknown,
+	operation: string,
+	constraints?: Record<string, string>,
+) => {
 	if (error instanceof ActionError) return error.message;
 	const code = databaseCode(error);
 	const message = typeof code === "string" ? constraints?.[code] : undefined;
 	if (message) return message;
-	console.error("Admin write failed", {
-		code,
-		name: error instanceof Error ? error.name : undefined,
-	});
-	return "Couldn’t save the change. Please try again.";
+	const requestId = logRequestFailure(operation, error);
+	const messageWithRetry = "Couldn’t save the change. Please try again.";
+	return requestId ? `${messageWithRetry} Reference ${requestId}.` : messageWithRetry;
 };
 
 export const mutate = async <Value>(
@@ -56,6 +59,9 @@ export const mutate = async <Value>(
 				fieldErrors: { [error.field]: error.message },
 			};
 		}
-		return { success: false, error: getMutationError(error, constraints) };
+		return {
+			success: false,
+			error: getMutationError(error, save.name || "admin form", constraints),
+		};
 	}
 };

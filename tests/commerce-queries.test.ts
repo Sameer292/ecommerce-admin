@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
 
-test("commerce queries preserve results and use indexes and one spending aggregate at import volume", {
+test("commerce queries preserve results and profile large catalogs, orders and customers", {
 	skip: !process.env.TEST_QUERY_DATABASE_URL,
 	timeout: 120_000,
 }, async () => {
@@ -42,6 +42,47 @@ test("commerce queries preserve results and use indexes and one spending aggrega
 		`);
 		await connection.unsafe("VACUUM ANALYZE commerce_admin.orders");
 		await connection.unsafe("VACUUM ANALYZE commerce_admin.customers");
+		await connection.unsafe(`
+			INSERT INTO commerce_admin.categories (id, name, slug)
+			SELECT md5(('category-'||n)::text)::uuid, 'Category '||lpad(n::text,4,'0'), 'category-'||n
+			FROM generate_series(1,1000) n;
+			INSERT INTO commerce_admin.products (name, sku, slug, price_minor, category_id)
+			SELECT (CASE WHEN n%2=0 THEN 'Catalog' ELSE 'CATALOG' END)||' item '||lpad(n::text,6,'0'),
+				'SCALE-'||lpad(n::text,6,'0'), 'scale-'||n, n,
+				md5(('category-'||(((n-1)%1000)+1))::text)::uuid
+			FROM generate_series(1,25000) n;
+		`);
+		await connection.unsafe("VACUUM ANALYZE commerce_admin.products");
+		const { listProducts } = await import("../src/features/catalog/products.server");
+		const { categoryOptions } = await import("../src/features/catalog/categories.server");
+		const productCases = [
+			{
+				label: "catalog substring search",
+				page: 1,
+				q: "ITEM 023333",
+				total: 1,
+				first: "SCALE-023333",
+			},
+			{
+				label: "lowercase name sort and deep offset",
+				page: 1000,
+				q: "",
+				total: 25000,
+				first: "SCALE-019981",
+			},
+		];
+		for (const { label, page, q, total, first } of productCases) {
+			const started = performance.now();
+			const result = await listProducts({ page, q, sort: "name.asc" });
+			assert.equal(result.total, total, label);
+			assert.equal(result.rows[0]?.sku, first, label);
+			console.log(`${label}: ${(performance.now() - started).toFixed(1)} ms`);
+		}
+		const started = performance.now();
+		const options = await categoryOptions();
+		assert.equal(options.length, 1000);
+		assert.equal(options[0]?.name, "Category 0001");
+		console.log(`load all category options: ${(performance.now() - started).toFixed(1)} ms`);
 		const { customers } = await import("../src/db/schema/customers");
 		const { orders } = await import("../src/db/schema/orders");
 		const { orderBySort } = await import("../src/db/sort.server");

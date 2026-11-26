@@ -2,6 +2,8 @@ import { connection, db } from "../src/db/client.server";
 import { categories, products } from "../src/db/schema/catalog";
 import { customers } from "../src/db/schema/customers";
 import { orderItems, orders } from "../src/db/schema/orders";
+import { getStoreCurrency } from "../src/features/settings/store-currency.server";
+import { env } from "../src/server/env.server";
 import { demoCategories, demoProducts } from "./demo/catalog";
 import { demoCustomers } from "./demo/customers";
 import { demoItems, demoOrders } from "./demo/orders";
@@ -9,6 +11,8 @@ import { demoItems, demoOrders } from "./demo/orders";
 try {
 	if (process.env.NODE_ENV === "production")
 		throw new Error("Demo seed is for development databases.");
+	if ((await getStoreCurrency()) !== env.STORE_CURRENCY)
+		throw new Error("Set STORE_CURRENCY to the locked currency before seeding.");
 	await db.transaction(async (transaction) => {
 		await transaction
 			.insert(categories)

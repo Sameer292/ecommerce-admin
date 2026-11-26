@@ -15,6 +15,8 @@ test("concurrent record edits preserve the first committed change", {
 		await connection.unsafe("CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY)");
 		const { migrate } = await import("drizzle-orm/postgres-js/migrator");
 		await migrate(db, { migrationsFolder: "./drizzle" });
+		const { lockStoreCurrency } = await import("../src/features/settings/store-currency.server");
+		await lockStoreCurrency("USD");
 		const [category] = await connection<{ id: string }[]>`
 			insert into commerce_admin.categories (name, slug) values ('Category', 'category') returning id
 		`;

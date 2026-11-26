@@ -13,3 +13,12 @@ export const storeSettings = commerce.table(
 	},
 	(table) => [check("store_settings_singleton", sql`${table.id} = 1`)],
 );
+
+export const storeCurrency = commerce.table(
+	"store_currency",
+	{ id: integer().primaryKey().default(1), currency: text().notNull() },
+	(table) => [
+		check("store_currency_singleton", sql`${table.id} = 1`),
+		check("store_currency_iso_code", sql`${table.currency} ~ '^[A-Z]{3}$'`),
+	],
+);
