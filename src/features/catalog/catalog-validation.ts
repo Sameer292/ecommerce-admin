@@ -12,7 +12,7 @@ import {
 import { maxMinorAmount } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
-import { optionalId } from "@/lib/validation";
+import { editVersionSchema, optionalId } from "@/lib/validation";
 import { categoryIcons, productStatuses } from "./catalog-options";
 
 export const categorySearchSchema = pageSearchSchema.extend({
@@ -65,22 +65,40 @@ const slug = ZString()
 
 const catalogFormSchema = ZObject({
 	id: optionalId,
-	name: ZString().trim().min(1, "Enter a category name.").max(120),
+	version: editVersionSchema.optional(),
 	slug,
 	description: ZString().trim().max(1_000),
 });
 
 export const categoryFormSchema = catalogFormSchema.extend({
+	name: ZString().trim().min(1, "Enter a category name.").max(120),
 	icon: ZEnum(categoryIcons, "Choose a category icon.").optional(),
 });
 
+export const httpsImageUrlPattern = "[Hh][Tt][Tt][Pp][Ss]://.+";
+const imageUrlError = "Enter an HTTPS image URL.";
+
 export const productFormSchema = catalogFormSchema.extend({
+	name: ZString().trim().min(1, "Enter a product name.").max(120),
 	sku: ZString()
 		.trim()
 		.min(1, "Enter a SKU.")
 		.max(80)
 		.transform((value) => value.toUpperCase()),
-	imageUrl: ZUnion([ZLiteral(""), ZUrl({ protocol: /^https$/ })]).pipe(ZString().max(2_000)),
+	imageUrl: ZString()
+		.trim()
+		.max(2_000)
+		.pipe(
+			ZUnion(
+				[
+					ZLiteral(""),
+					ZString()
+						.regex(new RegExp(`^${httpsImageUrlPattern}$`), imageUrlError)
+						.pipe(ZUrl({ protocol: /^https$/, error: imageUrlError })),
+				],
+				{ error: imageUrlError },
+			),
+		),
 	categoryId: ZUnion([ZUuid(), ZLiteral("")]).transform((value) => value || null),
 	status: ZEnum(productStatuses),
 	price: ZString().trim().min(1, "Enter a price.").max(24),

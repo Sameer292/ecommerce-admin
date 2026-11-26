@@ -5,6 +5,7 @@ import {
 	string as ZString,
 	union as ZUnion,
 } from "zod";
+import { editVersionSchema } from "@/lib/validation";
 
 export const timeZoneSchema = ZString()
 	.trim()
@@ -26,6 +27,7 @@ export const currencySchema = ZString().refine(
 );
 
 export const storeSettingsSchema = ZObject({
+	version: editVersionSchema,
 	name: ZString().trim().min(1, "Enter a store name.").max(80),
 	contactEmail: ZUnion([ZLiteral(""), ZEmail()]),
 	timeZone: timeZoneSchema,

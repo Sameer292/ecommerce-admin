@@ -1,6 +1,7 @@
 import { useListReturn } from "@/components/admin/record-link";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { NotesField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
@@ -41,6 +42,7 @@ export const CustomerForm = ({
 	customer?: Customer;
 	editable: boolean;
 }) => {
+	const [version] = useState(customer?.version);
 	const save = useServerFn(writeCustomer);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/customers");
@@ -52,6 +54,7 @@ export const CustomerForm = ({
 				submitLabel={customer ? "Save customer" : "Create customer"}
 			>
 				<input type="hidden" name="id" value={customer?.id ?? ""} />
+				{customer && <input type="hidden" name="version" value={version} />}
 				<CustomerFields customer={customer} />
 			</AdminForm>
 		</div>

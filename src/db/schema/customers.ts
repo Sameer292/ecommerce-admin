@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, index, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, index, integer, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { commerce } from "./namespace";
 
 export const customers = commerce.table(
@@ -10,6 +10,7 @@ export const customers = commerce.table(
 		email: text().notNull().unique(),
 		phone: text().notNull().default(""),
 		notes: text().notNull().default(""),
+		version: integer().notNull().default(0),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},

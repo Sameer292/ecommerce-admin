@@ -12,7 +12,12 @@ export const updatePayment = (input: PaymentUpdate) =>
 			.where(eq(orders.number, input.number))
 			.for("update");
 		if (!order) throw new IntegrationError(404, "Order not found.");
-		if (order.paymentStatus === input.status) return { id: order.id };
+		if (order.paymentStatus === input.status) {
+			if (input.status === "paid" && order.paidAt?.getTime() !== input.paidAt.getTime()) {
+				throw new IntegrationError(409, "Payment timestamp does not match the recorded payment.");
+			}
+			return { id: order.id };
+		}
 		const paid = input.status === "paid";
 		if ((paid && order.paymentStatus !== "pending") || (!paid && order.paymentStatus !== "paid")) {
 			throw new IntegrationError(409, "Invalid payment status transition.");

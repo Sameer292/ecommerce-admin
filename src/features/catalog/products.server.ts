@@ -84,17 +84,18 @@ export const findProduct = async (id: string) => {
 	return product;
 };
 
-export const saveProduct = async ({ id, price, ...values }: ProductValues) => {
+export const saveProduct = async ({ id, price, version, ...values }: ProductValues) => {
 	const priceMinor = parseMoneyInput(price, env.STORE_CURRENCY);
 	if (priceMinor === null) throw new ActionError(`Enter a valid ${env.STORE_CURRENCY} price.`);
 
 	if (!id) return db.insert(products).values({ ...values, priceMinor });
 	const [updated] = await db
 		.update(products)
-		.set({ ...values, priceMinor, updatedAt: new Date() })
-		.where(eq(products.id, id))
+		.set({ ...values, priceMinor, updatedAt: new Date(), version: sql`${products.version} + 1` })
+		.where(and(eq(products.id, id), eq(products.version, version ?? -1)))
 		.returning({ id: products.id });
-	if (!updated) throw new ActionError("This product no longer exists.");
+	if (!updated)
+		throw new ActionError("This product changed or was removed. Refresh before saving.");
 };
 
 export const deleteProduct = (id: string) => db.delete(products).where(eq(products.id, id));

@@ -9,6 +9,7 @@ export const storeSettings = commerce.table(
 		name: text().notNull(),
 		contactEmail: text("contact_email").notNull().default(""),
 		timeZone: text("time_zone").notNull(),
+		version: integer().notNull().default(0),
 	},
 	(table) => [check("store_settings_singleton", sql`${table.id} = 1`)],
 );

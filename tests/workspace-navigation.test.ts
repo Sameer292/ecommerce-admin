@@ -19,7 +19,13 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 	let authorized = true;
 	let workspace: Awaited<ReturnType<typeof readWorkspace>> = {
 		staff: { id: "staff-1", name: "Store owner", email: "owner@example.test", role: "superuser" },
-		store: { name: "Original store", contactEmail: "", timeZone: "UTC", currency: "USD" },
+		store: {
+			name: "Original store",
+			contactEmail: "",
+			timeZone: "UTC",
+			currency: "USD",
+			version: 0,
+		},
 	};
 	const originalFunctions = { ...(await import("../src/features/auth/session.functions")) };
 	mock.module("../src/features/auth/session.functions", () => ({

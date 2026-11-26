@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { storeSettings } from "@/db/schema/settings";
 import { env } from "@/server/env.server";
+import { ActionError } from "@/server/mutation.server";
 
 export const getStoreSettings = async () => {
 	const [settings] = await db.select().from(storeSettings).where(eq(storeSettings.id, 1));
@@ -11,11 +12,20 @@ export const getStoreSettings = async () => {
 		contactEmail: settings?.contactEmail ?? "",
 		timeZone: settings?.timeZone ?? env.STORE_TIME_ZONE,
 		currency: env.STORE_CURRENCY,
+		version: settings?.version ?? 0,
 	};
 };
 
-export const saveStoreSettings = (values: StoreSettingsValues) =>
-	db
-		.insert(storeSettings)
-		.values({ id: 1, ...values })
-		.onConflictDoUpdate({ target: storeSettings.id, set: values });
+export const saveStoreSettings = async ({ version, ...values }: StoreSettingsValues) => {
+	const next = { ...values, version: version + 1 };
+	const where = eq(storeSettings.version, version);
+	const [updated] =
+		version === 0
+			? await db
+					.insert(storeSettings)
+					.values(next)
+					.onConflictDoUpdate({ target: storeSettings.id, set: next, setWhere: where })
+					.returning({ id: storeSettings.id })
+			: await db.update(storeSettings).set(next).where(where).returning({ id: storeSettings.id });
+	if (!updated) throw new ActionError("Store settings changed. Refresh before saving.");
+};

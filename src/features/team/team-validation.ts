@@ -1,6 +1,7 @@
 import { enum as ZEnum, object as ZObject, string as ZString } from "zod";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
+import { editVersionSchema } from "@/lib/validation";
 import { staffEmailSchema, staffPasswordSchema } from "@/features/auth/auth-validation";
 import { roles } from "@/features/auth/permissions";
 
@@ -14,6 +15,7 @@ export const staffAccountSchema = ZObject({
 });
 
 export const editStaffSchema = staffIdSchema.extend({
+	version: editVersionSchema,
 	role: ZEnum(roles),
 	status: ZEnum(["active", "disabled"]),
 });
