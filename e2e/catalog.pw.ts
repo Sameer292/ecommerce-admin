@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { catalogCsvHeaders } from "../src/features/catalog/catalog-csv";
 import { signIn } from "./staff";
 
 test("suggests a new slug and keeps a customized slug as the name changes", async ({ page }) => {
@@ -85,4 +86,29 @@ test("adds an independent SKU and option values to a product", async ({ page }) 
 	await page.goto("/products?q=Alpine", { waitUntil: "domcontentloaded" });
 	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
 	await expect(page.getByRole("link", { name: `Size Large · Color Blue ${suffix}` })).toBeVisible();
+});
+
+test("previews, imports, and exports a catalog CSV with duplicate feedback", async ({ page }) => {
+	await signIn(page, "/products");
+	await page.getByRole("link", { name: "Catalog CSV" }).click();
+	const suffix = crypto.randomUUID().slice(0, 8);
+	const sku = `CSV-${suffix}`.toUpperCase();
+	const file = {
+		name: "catalog.csv",
+		mimeType: "text/csv",
+		buffer: Buffer.from(
+			`${catalogCsvHeaders.join(",")}\r\n${sku},CSV item ${suffix},csv-item-${suffix},12.50,USD,draft,,, ,5,,\r\n`,
+		),
+	};
+	await page.locator('input[name="file"]').setInputFiles(file);
+	await page.getByRole("button", { name: "Preview CSV" }).click();
+	await expect(page.getByRole("cell", { name: sku })).toBeVisible();
+	await page.getByRole("button", { name: "Import products" }).click();
+	await expect(page.getByText("Catalog import complete.")).toBeVisible();
+	const download = await page.request.get("/api/catalog/csv");
+	expect(download.status()).toBe(200);
+	expect(await download.text()).toContain(sku);
+	await page.getByRole("button", { name: "Preview CSV" }).click();
+	await expect(page.getByText("This SKU exists. Use update mode to edit it.")).toBeVisible();
+	await expect(page.getByRole("button", { name: "Import products" })).toHaveCount(0);
 });

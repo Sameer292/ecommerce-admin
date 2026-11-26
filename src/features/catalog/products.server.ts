@@ -11,7 +11,7 @@ import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import type { InventorySearch } from "@/features/inventory/inventory.types";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
-import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
+import type { Product, ProductSearch, ProductValues, StockFilter } from "./catalog.types";
 import type { bulkProductSchema } from "./catalog-validation";
 import { productImageUrl } from "./product-media.server";
 
@@ -122,63 +122,72 @@ export const productHasHistory = async (id: string) => {
 	return orders.length > 0 || stock.length > 0;
 };
 
-export const saveProduct = async (
-	{ id, price, version, variantOf, variantOptions, ...values }: ProductValues,
-	staffId?: string,
+export const saveProduct = async (values: ProductValues, staffId?: string, imageKey?: string) => {
+	const currency = await getStoreCurrency();
+	const priceMinor = parseMoneyInput(values.price, currency);
+	if (priceMinor === null) throw new ActionError(`Enter a valid ${currency} price.`, "price");
+	return inStaffAudit(staffId, (transaction) =>
+		persistProduct(transaction, values, priceMinor, imageKey),
+	);
+};
+
+export const productVariantKey = (variantOptions: Product["variantOptions"] | undefined) =>
+	variantOptions
+		? JSON.stringify(
+				variantOptions
+					.map(({ name, value }) => [
+						name.normalize("NFKC").toLowerCase(),
+						value.normalize("NFKC").toLowerCase(),
+					])
+					.sort(([left], [right]) => (left < right ? -1 : left === right ? 0 : 1)),
+			)
+		: undefined;
+
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export const persistProduct = async (
+	transaction: Transaction,
+	{ id, price: _price, version, variantOf, variantOptions, ...values }: ProductValues,
+	priceMinor: number,
 	imageKey?: string,
 ) => {
-	const currency = await getStoreCurrency();
-	const priceMinor = parseMoneyInput(price, currency);
-	if (priceMinor === null) throw new ActionError(`Enter a valid ${currency} price.`, "price");
-
-	return inStaffAudit(staffId, async (transaction) => {
-		const variantKey = variantOptions
-			? JSON.stringify(
-					variantOptions
-						.map(({ name, value }) => [
-							name.normalize("NFKC").toLowerCase(),
-							value.normalize("NFKC").toLowerCase(),
-						])
-						.sort(([left], [right]) => (left < right ? -1 : left === right ? 0 : 1)),
-				)
-			: undefined;
-		const variant = { variantOf, variantOptions, variantKey };
-		if (!id) {
-			if (variantOf) {
-				const [parent] = await transaction
-					.select({ variantOf: products.variantOf })
-					.from(products)
-					.where(eq(products.id, variantOf))
-					.for("update");
-				if (!parent || parent.variantOf)
-					throw new ActionError("Choose a parent product to add this variant.");
-				if ((await transaction.$count(products, eq(products.variantOf, variantOf))) >= 100)
-					throw new ActionError("A product can have up to 100 variants.");
-			}
-			return transaction.insert(products).values({ ...values, ...variant, priceMinor, imageKey });
+	const variantKey = productVariantKey(variantOptions);
+	const variant = { variantOf, variantOptions, variantKey };
+	if (!id) {
+		if (variantOf) {
+			const [parent] = await transaction
+				.select({ variantOf: products.variantOf })
+				.from(products)
+				.where(eq(products.id, variantOf))
+				.for("update");
+			if (!parent || parent.variantOf)
+				throw new ActionError("Choose a parent product to add this variant.");
+			if ((await transaction.$count(products, eq(products.variantOf, variantOf))) >= 100)
+				throw new ActionError("A product can have up to 100 variants.");
 		}
-		const [updated] = await transaction
-			.update(products)
-			.set({
-				...values,
-				variantOptions,
-				variantKey,
-				priceMinor,
-				imageKey,
-				updatedAt: new Date(),
-				version: sql`${products.version} + 1`,
-			})
-			.where(
-				and(
-					eq(products.id, id),
-					eq(products.version, version ?? -1),
-					variantOf ? eq(products.variantOf, variantOf) : undefined,
-				),
-			)
-			.returning({ id: products.id });
-		if (!updated)
-			throw new ActionError("This product changed or was removed. Refresh before saving.");
-	});
+		return transaction.insert(products).values({ ...values, ...variant, priceMinor, imageKey });
+	}
+	const [updated] = await transaction
+		.update(products)
+		.set({
+			...values,
+			variantOptions,
+			variantKey,
+			priceMinor,
+			imageKey,
+			updatedAt: new Date(),
+			version: sql`${products.version} + 1`,
+		})
+		.where(
+			and(
+				eq(products.id, id),
+				eq(products.version, version ?? -1),
+				variantOf ? eq(products.variantOf, variantOf) : undefined,
+			),
+		)
+		.returning({ id: products.id });
+	if (!updated)
+		throw new ActionError("This product changed or was removed. Refresh before saving.");
 };
 
 export const deleteProduct = (id: string, staffId?: string) =>

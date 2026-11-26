@@ -16,6 +16,7 @@ import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
 import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
 import { Route as AdminIntegrationsRouteImport } from './routes/_admin.integrations'
+import { Route as AdminProductImportRouteImport } from './routes/_admin.product-import'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/_admin.team'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -41,6 +42,7 @@ import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.n
 import { Route as AdminTeamIndexRouteImport } from './routes/_admin.team.index'
 import { Route as AdminTeamStaffIdRouteImport } from './routes/_admin.team.$staffId'
 import { Route as AdminTeamNewRouteImport } from './routes/_admin.team.new'
+import { Route as ApiCatalogCsvRouteImport } from './routes/api/catalog/csv'
 import { Route as ApiReportsSalesRouteImport } from './routes/api/reports/sales'
 import { Route as ApiStoreCatalogRouteImport } from './routes/api/store/catalog'
 import { Route as ApiStoreInventoryRouteImport } from './routes/api/store/inventory'
@@ -81,6 +83,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
 const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProductImportRoute = AdminProductImportRouteImport.update({
+  id: '/product-import',
+  path: '/product-import',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -212,6 +219,11 @@ const AdminTeamNewRoute = AdminTeamNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AdminTeamRoute,
 } as any)
+const ApiCatalogCsvRoute = ApiCatalogCsvRouteImport.update({
+  id: '/api/catalog/csv',
+  path: '/api/catalog/csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReportsSalesRoute = ApiReportsSalesRouteImport.update({
   id: '/api/reports/sales',
   path: '/api/reports/sales',
@@ -256,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
   '/integrations': typeof AdminIntegrationsRoute
+  '/product-import': typeof AdminProductImportRoute
   '/settings': typeof AdminSettingsRoute
   '/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -275,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
+  '/api/catalog/csv': typeof ApiCatalogCsvRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
@@ -295,6 +309,7 @@ export interface FileRoutesByTo {
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
   '/integrations': typeof AdminIntegrationsRoute
+  '/product-import': typeof AdminProductImportRoute
   '/settings': typeof AdminSettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/password/confirm': typeof PasswordConfirmRoute
@@ -314,6 +329,7 @@ export interface FileRoutesByTo {
   '/products/new': typeof AdminProductsNewRoute
   '/team/$staffId': typeof AdminTeamStaffIdRoute
   '/team/new': typeof AdminTeamNewRoute
+  '/api/catalog/csv': typeof ApiCatalogCsvRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
@@ -336,6 +352,7 @@ export interface FileRoutesById {
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
   '/_admin/audit': typeof AdminAuditRoute
   '/_admin/integrations': typeof AdminIntegrationsRoute
+  '/_admin/product-import': typeof AdminProductImportRoute
   '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -356,6 +373,7 @@ export interface FileRoutesById {
   '/_admin/products/new': typeof AdminProductsNewRoute
   '/_admin/team/$staffId': typeof AdminTeamStaffIdRoute
   '/_admin/team/new': typeof AdminTeamNewRoute
+  '/api/catalog/csv': typeof ApiCatalogCsvRoute
   '/api/reports/sales': typeof ApiReportsSalesRoute
   '/api/store/catalog': typeof ApiStoreCatalogRoute
   '/api/store/inventory': typeof ApiStoreInventoryRouteWithChildren
@@ -379,6 +397,7 @@ export interface FileRouteTypes {
     | '/access-denied'
     | '/audit'
     | '/integrations'
+    | '/product-import'
     | '/settings'
     | '/team'
     | '/api/health'
@@ -398,6 +417,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
+    | '/api/catalog/csv'
     | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/inventory'
@@ -418,6 +438,7 @@ export interface FileRouteTypes {
     | '/access-denied'
     | '/audit'
     | '/integrations'
+    | '/product-import'
     | '/settings'
     | '/api/health'
     | '/password/confirm'
@@ -437,6 +458,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/team/$staffId'
     | '/team/new'
+    | '/api/catalog/csv'
     | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/inventory'
@@ -458,6 +480,7 @@ export interface FileRouteTypes {
     | '/_admin/access-denied'
     | '/_admin/audit'
     | '/_admin/integrations'
+    | '/_admin/product-import'
     | '/_admin/settings'
     | '/_admin/team'
     | '/api/health'
@@ -478,6 +501,7 @@ export interface FileRouteTypes {
     | '/_admin/products/new'
     | '/_admin/team/$staffId'
     | '/_admin/team/new'
+    | '/api/catalog/csv'
     | '/api/reports/sales'
     | '/api/store/catalog'
     | '/api/store/inventory'
@@ -501,6 +525,7 @@ export interface RootRouteChildren {
   PasswordConfirmRoute: typeof PasswordConfirmRoute
   PasswordResetRoute: typeof PasswordResetRoute
   PasswordSetRoute: typeof PasswordSetRoute
+  ApiCatalogCsvRoute: typeof ApiCatalogCsvRoute
   ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
   ApiStoreInventoryRoute: typeof ApiStoreInventoryRouteWithChildren
@@ -558,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/integrations'
       fullPath: '/integrations'
       preLoaderRoute: typeof AdminIntegrationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/product-import': {
+      id: '/_admin/product-import'
+      path: '/product-import'
+      fullPath: '/product-import'
+      preLoaderRoute: typeof AdminProductImportRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/settings': {
@@ -735,6 +767,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamNewRouteImport
       parentRoute: typeof AdminTeamRoute
     }
+    '/api/catalog/csv': {
+      id: '/api/catalog/csv'
+      path: '/api/catalog/csv'
+      fullPath: '/api/catalog/csv'
+      preLoaderRoute: typeof ApiCatalogCsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reports/sales': {
       id: '/api/reports/sales'
       path: '/api/reports/sales'
@@ -807,6 +846,7 @@ interface AdminRouteChildren {
   AdminAccessDeniedRoute: typeof AdminAccessDeniedRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
+  AdminProductImportRoute: typeof AdminProductImportRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTeamRoute: typeof AdminTeamRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
@@ -832,6 +872,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAccessDeniedRoute: AdminAccessDeniedRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
+  AdminProductImportRoute: AdminProductImportRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTeamRoute: AdminTeamRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
@@ -874,6 +915,7 @@ const rootRouteChildren: RootRouteChildren = {
   PasswordConfirmRoute: PasswordConfirmRoute,
   PasswordResetRoute: PasswordResetRoute,
   PasswordSetRoute: PasswordSetRoute,
+  ApiCatalogCsvRoute: ApiCatalogCsvRoute,
   ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
   ApiStoreInventoryRoute: ApiStoreInventoryRouteWithChildren,

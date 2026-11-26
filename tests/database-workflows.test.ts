@@ -856,6 +856,50 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			}),
 			{ status: 409 },
 		);
+		const { prepareCatalogImport, applyCatalogImport, exportCatalogCsv } = await import(
+			"../src/features/catalog/catalog-csv.server"
+		);
+		const { catalogCsvCell, catalogCsvHeaders } = await import(
+			"../src/features/catalog/catalog-csv"
+		);
+		const header = catalogCsvHeaders.join(",");
+		const fixture = [
+			"CSV-TEST",
+			"CSV sample",
+			"csv-sample",
+			"13.25",
+			"USD",
+			"draft",
+			"",
+			'Contains a comma, a quote " and a\nsecond line.',
+			"",
+			"5",
+			"",
+			"",
+		];
+		const rowCsv = (row: string[]) => `${header}\r\n${row.map(catalogCsvCell).join(",")}\r\n`;
+		const text = rowCsv(fixture);
+		const review = await prepareCatalogImport(text, "create", "USD");
+		assert.deepEqual(review.rows[0].errors, []);
+		await applyCatalogImport(text, "create", review.digest, "stock-operator");
+		const [csvProduct] =
+			await connection`select price_minor, description, stock from commerce_admin.products where sku = 'CSV-TEST'`;
+		assert.equal(csvProduct.price_minor, 1325);
+		assert.equal(csvProduct.description, fixture[7]);
+		assert.equal(csvProduct.stock, 0);
+		assert.match(
+			(await prepareCatalogImport(text, "create", "USD")).rows[0].errors.join(" "),
+			/SKU exists/,
+		);
+		const updatedCsv = rowCsv(["CSV-TEST", "=Escaped sample", ...fixture.slice(2)]);
+		const approved = await prepareCatalogImport(updatedCsv, "upsert", "USD");
+		await applyCatalogImport(updatedCsv, "upsert", approved.digest, "stock-operator");
+		await assert.rejects(
+			applyCatalogImport(updatedCsv, "upsert", approved.digest, "stock-operator"),
+			/catalog changed/,
+		);
+		const exportedCsv = await new Response(await exportCatalogCsv()).text();
+		assert.match(exportedCsv, /"CSV-TEST","'=Escaped sample"/);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;
