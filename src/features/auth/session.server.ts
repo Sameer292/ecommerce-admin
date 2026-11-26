@@ -37,13 +37,10 @@ const fetchStaffIdentity = async () => {
 		await auth.signOut({ scope: "local" });
 		return null;
 	}
-	const hasFactor = Boolean(data.user.factors?.some((factor) => factor.status === "verified"));
-	const requireMfa = staff.role === "superuser" || hasFactor;
 	const result = await auth.getClaims();
 	const claims = result.data?.claims;
 	const sessionId = claims?.session_id;
 	if (!claims || typeof sessionId !== "string" || claims.sub !== data.user.id) return null;
-	const assured = !requireMfa || claims.aal === "aal2";
 	const session = await readLiveStaffSession(
 		data.user.id,
 		sessionId,
@@ -56,8 +53,6 @@ const fetchStaffIdentity = async () => {
 	}
 	return {
 		staff,
-		assured,
-		hasFactor,
 		sessionId,
 		authUserId: data.user.id,
 		passwordGrant: session.expiresAt,
@@ -77,7 +72,7 @@ export const getStaffIdentity = () => {
 
 export const getStaff = async () => {
 	const identity = await getStaffIdentity();
-	if (!identity?.assured || identity.passwordGrant || identity.staff.passwordPending) return null;
+	if (!identity || identity.passwordGrant || identity.staff.passwordPending) return null;
 	const { id, email, name, role } = identity.staff;
 	return { id, email, name, role };
 };

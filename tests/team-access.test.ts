@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
 test("only active superusers can edit access and concurrent revocations leave one active", {
@@ -28,6 +29,21 @@ test("only active superusers can edit access and concurrent revocations leave on
 				('unlinked', null, 'Unlinked', 'unlinked@example.test', 'superuser', false),
 				('manager', null, 'Manager', 'manager@example.test', 'manager', false)
 		`;
+		await connection.unsafe(`CREATE TABLE auth.mfa_factors (
+			id text PRIMARY KEY, user_id uuid NOT NULL, factor_type text NOT NULL
+		)`);
+		await connection`
+			insert into auth.mfa_factors (id, user_id, factor_type) values
+				('active-staff', ${first}, 'totp'),
+				('disabled-staff', ${second}, 'totp'),
+				('unrelated-user', '00000000-0000-0000-0000-000000000003', 'totp'),
+				('other-factor', ${first}, 'webauthn')
+		`;
+		await connection.unsafe(await readFile("drizzle/0035_remove_staff_mfa.sql", "utf8"));
+		assert.deepEqual(
+			(await connection`select id from auth.mfa_factors order by id`).map(({ id }) => id),
+			["other-factor", "unrelated-user"],
+		);
 		const { editStaffAccount, findStaffAccount, transferOwnership } = await import(
 			"../src/features/team/team.server"
 		);

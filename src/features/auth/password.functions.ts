@@ -69,7 +69,7 @@ export const readPasswordGrant = createServerFn().handler(async () => {
 	const identity = await getStaffIdentity();
 	if (!identity?.passwordGrant) return identity?.staff.passwordPending ? "link-needed" : "missing";
 	if (identity.passwordGrant.getTime() <= Date.now()) return "expired";
-	return identity.hasFactor && !identity.assured ? "mfa" : "ready";
+	return "ready";
 });
 
 export const setStaffPasswordFromLink = createServerFn({ method: "POST" })
@@ -79,8 +79,6 @@ export const setStaffPasswordFromLink = createServerFn({ method: "POST" })
 			const identity = await getStaffIdentity();
 			const expired = "This password session expired. Request a new link.";
 			if (!identity?.passwordGrant) throw new ActionError(expired);
-			if (identity.hasFactor && !identity.assured)
-				throw new ActionError("Verify your authenticator before changing your password.");
 			await db.transaction(async (transaction) => {
 				const scope = and(
 					eq(staffPasswordGrants.sessionId, identity.sessionId),
