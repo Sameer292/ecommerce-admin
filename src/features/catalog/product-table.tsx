@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { RecordLink } from "@/components/admin/record-link";
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, TableSorting } from "@/components/admin/list.types";
@@ -12,6 +13,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 			<RecordLink
 				to="/products/$productId"
 				params={{ productId: product.id }}
+				title={product.name}
 				className="font-medium hover:underline truncate"
 			>
 				{product.name}
@@ -24,6 +26,7 @@ const ProductName = ({ product }: { product: ProductListRow }) => (
 const productColumns = (currency: string, zone: string): Column<ProductListRow>[] => [
 	{
 		label: "Product",
+		className: "min-w-40",
 		sort: "name.asc",
 		cell: (product) => <ProductName product={product} />,
 	},
@@ -39,13 +42,13 @@ const productColumns = (currency: string, zone: string): Column<ProductListRow>[
 	{
 		label: "Price",
 		sort: "price.asc",
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (product) => formatMoney(product.priceMinor, currency),
 	},
 	{
 		label: "In stock",
 		sort: "stock.desc",
-		className: "tabular-nums text-center",
+		className: "text-right tabular-nums",
 		cell: (product) => formatCount(product.stock),
 	},
 	{
@@ -61,12 +64,14 @@ export const ProductTable = ({
 	currency,
 	zone,
 	filtered,
+	emptyAction,
 	sorting,
 }: {
 	rows: ProductListRow[];
 	currency: string;
 	zone: string;
 	filtered: boolean;
+	emptyAction?: ReactNode;
 	sorting: TableSorting;
 }) => (
 	<DataTable
@@ -74,6 +79,7 @@ export const ProductTable = ({
 		columns={productColumns(currency, zone)}
 		rows={rows}
 		label="Products"
+		emptyAction={emptyAction}
 		empty={filtered ? "No matching products" : "No products yet"}
 		emptyDescription={
 			filtered

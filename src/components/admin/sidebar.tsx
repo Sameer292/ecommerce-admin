@@ -5,7 +5,7 @@ import { Navigation } from "./navigation";
 import { SignOut } from "./sign-out";
 import { StoreMark } from "./store-mark";
 
-type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
+type Workspace = NonNullable<Awaited<ReturnType<typeof readWorkspace>>>;
 
 const StoreIdentity = ({ name, onNavigate }: { name: string; onNavigate?: () => void }) => (
 	<Link to="/" onClick={onNavigate} className="flex min-w-0 items-center gap-3 px-5 py-5">

@@ -1,6 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { orderSearchSchema } from "@/features/orders/order-validation";
 import { listOrders } from "@/features/orders/orders.server";
@@ -29,18 +29,20 @@ export const readCustomer = createServerFn()
 
 export const writeCustomer = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(customerFormSchema, data, saveCustomer, {
-			23505: "A customer already uses this email address.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(customerFormSchema, data, saveCustomer, {
+				23505: "A customer already uses this email address.",
+			}),
+		),
+	);
 
 export const removeCustomer = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(idSchema, data, ({ id }) => deleteCustomer(id), {
-			23503: "This customer has order history and must be retained.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(idSchema, data, ({ id }) => deleteCustomer(id), {
+				23503: "This customer has order history and must be retained.",
+			}),
+		),
+	);

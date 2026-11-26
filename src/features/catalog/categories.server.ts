@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, sql } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -13,7 +13,7 @@ const categorySortColumns = {
 	count: productCount,
 };
 
-export const listCategories = async ({ page, q, sort }: CategorySearch) => {
+export const listCategories = async ({ page, q, sort, perPage }: CategorySearch) => {
 	const where = q ? ilike(categories.name, searchPattern(q)) : undefined;
 	const [rows, total] = await Promise.all([
 		db
@@ -30,8 +30,8 @@ export const listCategories = async ({ page, q, sort }: CategorySearch) => {
 			.from(categories)
 			.where(where)
 			.orderBy(...orderBySort(categorySortColumns, sort ?? "name.asc", categories.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(perPage ?? pageSize)
+			.offset(pageOffset(page, perPage)),
 		db.$count(categories, where),
 	]);
 	return { rows, total };
@@ -44,7 +44,10 @@ export const categoryOptions = () =>
 		.orderBy(asc(categories.name), asc(categories.id));
 
 export const findCategory = async (id: string) => {
-	const [category] = await db.select().from(categories).where(eq(categories.id, id));
+	const [category] = await db
+		.select({ ...getTableColumns(categories), productCount })
+		.from(categories)
+		.where(eq(categories.id, id));
 	return category;
 };
 

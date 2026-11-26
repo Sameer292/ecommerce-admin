@@ -12,7 +12,7 @@ import { addStaffAccount, writeStaffAccount } from "./team.functions";
 import type { StaffAccount } from "./team.types";
 
 const RoleField = ({ selected, options }: { selected: Role; options: readonly Role[] }) => (
-	<SelectField name="role" label="Role" defaultValue={selected}>
+	<SelectField name="role" required label="Role" defaultValue={selected}>
 		{options.map((value) => (
 			<NativeSelectOption key={value} value={value}>
 				{roleLabels[value]}
@@ -62,7 +62,9 @@ export const NewStaffForm = () => {
 				<AdminForm
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
+					cancelHref={returnHref}
 					submitLabel="Create account"
+					successMessage="Staff account created."
 				>
 					<NewStaffFields />
 				</AdminForm>
@@ -82,6 +84,7 @@ const EditableAccess = ({ account, version }: { account: StaffAccount; version: 
 		/>
 		<SelectField
 			name="status"
+			required
 			label="Account access"
 			defaultValue={account.banned ? "disabled" : "active"}
 		>
@@ -102,6 +105,9 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 				<AdminForm
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
+					cancelHref={returnHref}
+					requireChanges
+					successMessage="Staff access saved."
 				>
 					<EditableAccess account={account} version={version} />
 				</AdminForm>

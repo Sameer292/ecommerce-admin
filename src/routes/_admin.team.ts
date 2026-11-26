@@ -3,6 +3,6 @@ import { can } from "@/features/auth/permissions";
 
 export const Route = createFileRoute("/_admin/team")({
 	beforeLoad: ({ context }) => {
-		if (!can(context.staff.role, "manageTeam")) throw redirect({ to: "/" });
+		if (!can(context.staff.role, "manageTeam")) throw redirect({ to: "/access-denied" });
 	},
 });

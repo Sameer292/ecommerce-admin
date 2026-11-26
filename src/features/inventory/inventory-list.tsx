@@ -1,9 +1,11 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { RecordLink } from "@/components/admin/record-link";
-import { DataTable } from "@/components/admin/data-table";
+import { Link } from "@tanstack/react-router";
+import { buttonVariants } from "@/components/ui/button";
+import { ClearFilters, DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { stockFilterLabels, stockFilters } from "@/features/catalog/catalog-options";
 import type { ProductListRow } from "@/features/catalog/catalog.types";
@@ -35,13 +37,13 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	// {
 	// 	label: "Threshold",
 	// 	sort: "threshold.asc",
-	// 	className: "tabular-nums text-center",
+	// 	className: "text-right tabular-nums",
 	// 	cell: (row) => formatCount(row.lowStockThreshold),
 	// },
 	{
 		label: "On hand",
 		sort: "stock.desc",
-		className: "tabular-nums font-medium text-center",
+		className: "text-right font-medium tabular-nums",
 		cell: (row) => formatCount(row.stock),
 	},
 ];
@@ -61,15 +63,12 @@ const InventoryFilters = ({
 		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
 		onClear={
-			search.q || search.stock ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined
+			search.q || search.stock
+				? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
+				: undefined
 		}
 	>
-		<NativeSelect
-			name="stock"
-			aria-label="Stock filter"
-			defaultValue={search.stock ?? ""}
-			className="h-9"
-		>
+		<NativeSelect name="stock" aria-label="Stock filter" defaultValue={search.stock ?? ""}>
 			<NativeSelectOption value="">All products</NativeSelectOption>
 			{stockFilters.map((stock) => (
 				<NativeSelectOption key={stock} value={stock}>
@@ -83,18 +82,26 @@ const InventoryFilters = ({
 export const InventoryList = ({ rows, total, search, onSearch }: InventoryListProps) => (
 	<div className="flex flex-col gap-4">
 		<InventoryFilters search={search} onSearch={onSearch} />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", inventorySearchSchema, onSearch)}
 			rows={rows}
 			columns={inventoryColumns}
 			label="Inventory"
-			empty="No matching inventory"
+			empty={search.q || search.stock ? "No matching inventory" : "No inventory yet"}
+			emptyAction={
+				search.q || search.stock ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : (
+					<Link to="/products" className={buttonVariants({ variant: "outline" })}>
+						View products
+					</Link>
+				)
+			}
 			emptyDescription="Check your filters or add products to your catalog."
 		/>
-		<PageControls
-			total={total}
-			page={search.page}
-			onPage={(page) => onSearch({ ...search, page })}
-		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
 	</div>
 );

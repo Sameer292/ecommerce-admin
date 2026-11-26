@@ -1,7 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { formDataSchema, idSchema } from "@/lib/validation";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
 import { categoryOptions } from "./categories.server";
 import { productFormSchema, productSearchSchema } from "./catalog-validation";
@@ -10,6 +10,7 @@ import {
 	findProduct,
 	highestProductPrice,
 	listProducts,
+	productHasHistory,
 	saveProduct,
 } from "./products.server";
 
@@ -34,26 +35,32 @@ export const readProduct = createServerFn()
 	.validator(idSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		const [product, categories] = await Promise.all([findProduct(data.id), categoryOptions()]);
+		const [product, categories, hasHistory] = await Promise.all([
+			findProduct(data.id),
+			categoryOptions(),
+			productHasHistory(data.id),
+		]);
 		if (!product) throw notFound();
-		return { product, categories };
+		return { product, categories, hasHistory };
 	});
 
 export const writeProduct = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(productFormSchema, data, saveProduct, {
-			23505: "A product already uses this SKU or slug.",
-			23503: "This category no longer exists.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(productFormSchema, data, saveProduct, {
+				23505: "A product already uses this SKU or slug.",
+				23503: "This category no longer exists.",
+			}),
+		),
+	);
 
 export const removeProduct = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(idSchema, data, ({ id }) => deleteProduct(id), {
-			23503: "This product has order or inventory history. Archive it to retain its records.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(idSchema, data, ({ id }) => deleteProduct(id), {
+				23503: "This product has order or inventory history. Archive it to retain its records.",
+			}),
+		),
+	);

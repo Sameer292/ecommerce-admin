@@ -14,7 +14,7 @@ export const RangeSelect = ({
 		value={range}
 		disabled={!useHydrated()}
 		aria-label="Reporting period"
-		className="h-9 min-w-32"
+		className="min-w-32"
 		onChange={(event) =>
 			onChange(overviewSearchSchema.parse({ range: event.currentTarget.value }).range)
 		}

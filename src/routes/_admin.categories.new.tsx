@@ -19,7 +19,7 @@ const NewCategoryPage = () => (
 export const Route = createFileRoute("/_admin/categories/new")({
 	validateSearch: listReturnSearchSchema,
 	beforeLoad: ({ context }) => {
-		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/categories" });
+		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/access-denied" });
 	},
 	component: NewCategoryPage,
 });

@@ -57,6 +57,7 @@ export const AdjustStockForm = (props: AdjustmentFormProps) => {
 				onSave={(data) => submit({ data })}
 				onSuccess={() => router.invalidate()}
 				submitLabel="Record adjustment"
+				successMessage="Stock adjustment recorded."
 			>
 				<AdjustmentFields {...props} />
 			</AdminForm>
@@ -75,7 +76,7 @@ const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 		label: "Change",
 		sort: "change.desc",
 		compact: true,
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (row) => (row.delta > 0 ? "+" : "") + formatCount(row.delta),
 	},
 	{

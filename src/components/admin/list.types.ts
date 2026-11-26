@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ListPageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 
 export type Column<Row> = {
@@ -19,10 +20,11 @@ export type DataTableProps<Row> = {
 	label: string;
 	empty: string;
 	emptyDescription?: string;
+	emptyAction?: ReactNode;
 	sorting?: TableSorting;
 };
 
-export type ListSearch = { page: number; q: string; sort?: Sort };
+export type ListSearch = { page: number; q: string; sort?: Sort; perPage?: ListPageSize };
 
 export type ListControlsProps<Search extends ListSearch> = {
 	search: Search;

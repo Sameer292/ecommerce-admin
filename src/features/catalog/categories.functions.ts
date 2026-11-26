@@ -1,7 +1,7 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { formDataSchema, idSchema } from "@/lib/validation";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
 import { categoryFormSchema, categorySearchSchema } from "./catalog-validation";
 import { deleteCategory, findCategory, listCategories, saveCategory } from "./categories.server";
@@ -24,18 +24,20 @@ export const readCategory = createServerFn()
 
 export const writeCategory = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(categoryFormSchema, data, saveCategory, {
-			23505: "A category already uses this slug.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(categoryFormSchema, data, saveCategory, {
+				23505: "A category already uses this slug.",
+			}),
+		),
+	);
 
 export const removeCategory = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageCommerce");
-		return mutate(idSchema, data, ({ id }) => deleteCategory(id), {
-			23503: "Move its products to another category before deleting this category.",
-		});
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageCommerce", () =>
+			mutate(idSchema, data, ({ id }) => deleteCategory(id), {
+				23503: "Move its products to another category before deleting this category.",
+			}),
+		),
+	);

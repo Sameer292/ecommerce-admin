@@ -19,7 +19,7 @@ const NewCustomerPage = () => (
 export const Route = createFileRoute("/_admin/customers/new")({
 	validateSearch: listReturnSearchSchema,
 	beforeLoad: ({ context }) => {
-		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/customers" });
+		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/access-denied" });
 	},
 	component: NewCustomerPage,
 });

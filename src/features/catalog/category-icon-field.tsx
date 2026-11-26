@@ -1,17 +1,20 @@
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useId, useState } from "react";
+import { useState, type ComponentProps } from "react";
+import { FormField } from "@/components/admin/form-fields";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { defaultCategoryIcon } from "./catalog-options";
 import type { Category } from "./catalog.types";
 import { categoryIconOptions } from "./category-icon";
 import { CategoryIconPicker } from "./category-icon-picker";
 
-const IconTrigger = ({ id, icon }: Pick<Category, "icon"> & { id: string }) => (
+const IconTrigger = ({
+	icon,
+	...props
+}: Pick<Category, "icon"> & ComponentProps<typeof PopoverTrigger>) => (
 	<PopoverTrigger
-		id={id}
+		{...props}
 		aria-label={`Icon, ${categoryIconOptions[icon].label}`}
 		render={<Button type="button" variant="outline" size="lg" className="w-full justify-start" />}
 	>
@@ -29,16 +32,21 @@ const IconTrigger = ({ id, icon }: Pick<Category, "icon"> & { id: string }) => (
 export const CategoryIconField = ({
 	icon = defaultCategoryIcon,
 }: Partial<Pick<Category, "icon">>) => {
-	const id = useId();
 	const [selected, setSelected] = useState(icon);
 	return (
-		<Field>
-			<FieldLabel htmlFor={id}>Icon</FieldLabel>
-			<input type="hidden" name="icon" value={selected} />
-			<Popover modal="trap-focus">
-				<IconTrigger id={id} icon={selected} />
-				<CategoryIconPicker selected={selected} onSelect={setSelected} />
-			</Popover>
-		</Field>
+		<FormField
+			label="Icon"
+			name="icon"
+			readOnlyValue={categoryIconOptions[selected].label}
+			render={(field) => (
+				<>
+					<input type="hidden" name="icon" value={selected} />
+					<Popover modal="trap-focus">
+						<IconTrigger {...field} icon={selected} />
+						<CategoryIconPicker selected={selected} onSelect={setSelected} />
+					</Popover>
+				</>
+			)}
+		/>
 	);
 };

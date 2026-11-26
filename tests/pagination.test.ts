@@ -4,7 +4,14 @@ import { isRedirect } from "@tanstack/react-router";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PageControls } from "../src/components/admin/page-controls";
-import { clampPage, lastPage, pageLimit, pageSize } from "../src/lib/pagination";
+import {
+	clampPage,
+	lastPage,
+	pageLimit,
+	pageOffset,
+	pageSearchSchema,
+	pageSize,
+} from "../src/lib/pagination";
 import { redirectInvalidPages } from "../src/lib/pagination-redirect";
 
 test("page bounds handle empty, exact, partial and maximum result sets", () => {
@@ -60,6 +67,33 @@ test("order item and activity pages recover together, including empty histories"
 	);
 });
 
+test("larger page sizes reflow counts and preserve the selected size on redirects", () => {
+	assert.equal(pageSearchSchema.parse({ perPage: 50 }).perPage, 50);
+	assert.equal(pageSearchSchema.parse({ perPage: 500 }).perPage, undefined);
+	assert.equal(pageOffset(2, 50), 50);
+	assert.equal(clampPage(999, 65, 50), 2);
+	assert.throws(
+		() => redirectInvalidPages("/products", { page: 999, perPage: 50 }, 65),
+		(error: unknown) => {
+			assert.ok(isRedirect(error));
+			assert.match(error.options.href ?? "", /page=2&perPage=50/);
+			return true;
+		},
+	);
+	const html = renderToStaticMarkup(
+		createElement(PageControls, {
+			total: 65,
+			page: 1,
+			size: 50,
+			onPage: () => {},
+			onSize: () => {},
+		}),
+	);
+	assert.match(html, /1–50 of 65/);
+	assert.match(html, /Last page/);
+	assert.match(html, /aria-label="Rows per page"/);
+});
+
 test("pagination shows the valid range, page count and direct first-page recovery", () => {
 	const html = renderToStaticMarkup(
 		createElement(PageControls, { total: 32, page: 2, onPage: () => {} }),
@@ -71,6 +105,7 @@ test("pagination shows the valid range, page count and direct first-page recover
 	const empty = renderToStaticMarkup(
 		createElement(PageControls, { total: 0, page: 1, onPage: () => {} }),
 	);
-	assert.match(empty, /0 results/);
+	assert.match(empty, /No results/);
+	assert.match(empty, /sr-only/);
 	assert.doesNotMatch(empty, /<button/);
 });

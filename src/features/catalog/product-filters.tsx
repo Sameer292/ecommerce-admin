@@ -23,12 +23,7 @@ export const hasProductFilters = ({
 	Boolean(q || status || category || minPriceMinor !== undefined || maxPriceMinor !== undefined);
 
 const ProductStatusFilter = ({ status }: Pick<ProductSearch, "status">) => (
-	<NativeSelect
-		name="status"
-		aria-label="Product status"
-		defaultValue={status ?? ""}
-		className="[&>select]:h-9"
-	>
+	<NativeSelect name="status" aria-label="Product status" defaultValue={status ?? ""}>
 		<NativeSelectOption value="">All statuses</NativeSelectOption>
 		{productStatuses.map((status) => (
 			<NativeSelectOption key={status} value={status}>
@@ -49,7 +44,7 @@ const CategoryFilter = ({
 		name="category"
 		aria-label="Product category"
 		defaultValue={category ?? ""}
-		className="max-w-48 [&>select]:h-9"
+		className="max-w-48"
 	>
 		<NativeSelectOption value="">All categories</NativeSelectOption>
 		{categories.map(({ id, name }) => (
@@ -76,7 +71,7 @@ export const ProductFilters = ({
 			onSearch={onSearch}
 			onClear={
 				hasProductFilters(search)
-					? () => onSearch({ q: "", page: 1, sort: search.sort })
+					? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
 					: undefined
 			}
 		>
