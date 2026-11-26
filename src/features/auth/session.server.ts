@@ -1,12 +1,13 @@
 import { redirect } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { staffPasswordGrants, user } from "@/db/schema/auth";
+import { user } from "@/db/schema/auth";
 import type { MutationResult } from "@/server/mutation.types";
 import type { Permission } from "./auth.types";
 import { can, isRole } from "./permissions";
 import { loginReturn } from "./login-return";
+import { readLiveStaffSession } from "./staff-sessions.server";
 import { getSupabaseAuth } from "./supabase.server";
 
 export const findActiveStaff = async (authUserId: string) => {
@@ -18,12 +19,13 @@ export const findActiveStaff = async (authUserId: string) => {
 			role: user.role,
 			banned: user.banned,
 			passwordPending: user.passwordPending,
+			sessionsValidAfter: user.sessionsValidAfter,
 		})
 		.from(user)
 		.where(eq(user.authUserId, authUserId));
 	if (!staff || staff.banned || !isRole(staff.role)) return null;
-	const { id, email, name, role, passwordPending } = staff;
-	return { id, email, name, role, passwordPending };
+	const { id, email, name, role, passwordPending, sessionsValidAfter } = staff;
+	return { id, email, name, role, passwordPending, sessionsValidAfter };
 };
 
 const fetchStaffIdentity = async () => {
@@ -42,13 +44,24 @@ const fetchStaffIdentity = async () => {
 	const sessionId = claims?.session_id;
 	if (!claims || typeof sessionId !== "string" || claims.sub !== data.user.id) return null;
 	const assured = !requireMfa || claims.aal === "aal2";
-	const [grant] = await db
-		.select({ expiresAt: staffPasswordGrants.expiresAt })
-		.from(staffPasswordGrants)
-		.where(
-			and(eq(staffPasswordGrants.sessionId, sessionId), eq(staffPasswordGrants.staffId, staff.id)),
-		);
-	return { staff, assured, hasFactor, sessionId, passwordGrant: grant?.expiresAt };
+	const session = await readLiveStaffSession(
+		data.user.id,
+		sessionId,
+		staff.id,
+		staff.sessionsValidAfter,
+	);
+	if (!session) {
+		await auth.signOut({ scope: "local" });
+		return null;
+	}
+	return {
+		staff,
+		assured,
+		hasFactor,
+		sessionId,
+		authUserId: data.user.id,
+		passwordGrant: session.expiresAt,
+	};
 };
 
 const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaffIdentity>>();

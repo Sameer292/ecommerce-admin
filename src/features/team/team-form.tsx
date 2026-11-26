@@ -91,7 +91,10 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 	const save = useServerFn(writeStaffAccount);
 	return (
 		<div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-			<FormSection title="Account access">
+			<FormSection
+				title="Account access"
+				description="Disable access if this account may be compromised. Confirm the staff member’s identity and secure their sign-in before re-enabling it."
+			>
 				<AdminForm
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}

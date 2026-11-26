@@ -92,7 +92,13 @@ export const editStaffAccount = ({ id, role, status, version }: EditStaffValues,
 			await setAuditActor(transaction, actorId);
 			await transaction
 				.update(user)
-				.set({ role, banned, updatedAt: new Date(), version: version + 1 })
+				.set({
+					role,
+					banned,
+					updatedAt: new Date(),
+					version: version + 1,
+					sessionsValidAfter: sql`CASE WHEN coalesce(${user.banned}, false) <> ${banned} THEN now() ELSE ${user.sessionsValidAfter} END`,
+				})
 				.where(eq(user.id, id));
 		},
 		{ isolationLevel: "read committed" },

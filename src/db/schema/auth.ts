@@ -16,6 +16,7 @@ export const user = commerce.table("staff_user", {
 	role: text().default("viewer").notNull(),
 	version: integer().notNull().default(0),
 	passwordPending: boolean("password_pending").notNull().default(false),
+	sessionsValidAfter: timestamp("sessions_valid_after", { withTimezone: true }),
 	banned: boolean().default(false),
 	banReason: text("ban_reason"),
 	banExpires: timestamp("ban_expires", { withTimezone: true }),

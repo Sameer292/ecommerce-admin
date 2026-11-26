@@ -1,0 +1,1 @@
+ALTER TABLE "commerce_admin"."staff_user" ADD COLUMN "sessions_valid_after" timestamp with time zone;

@@ -5,9 +5,12 @@ import postgres from "postgres";
 const localAddress = (address: string) =>
 	["localhost", "127.0.0.1"].includes(new URL(address).hostname);
 
-test("recovery verifies a one-time link before letting staff choose a password", async ({
+test("recovery verifies the staff link and staff can revoke another browser", async ({
 	page,
+	browser,
+	baseURL,
 }) => {
+	test.setTimeout(60_000);
 	const { DATABASE_URL, SUPABASE_URL, SUPABASE_SECRET_KEY } = process.env;
 	test.skip(
 		!DATABASE_URL || !SUPABASE_URL || !SUPABASE_SECRET_KEY,
@@ -63,6 +66,22 @@ test("recovery verifies a one-time link before letting staff choose a password",
 		await page.locator('input[name="password"]').fill(password);
 		await page.getByRole("button", { name: "Sign in", exact: true }).click();
 		await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+		const other = await browser.newPage({ baseURL });
+		try {
+			await other.goto("/login");
+			await other.locator('input[name="email"]').fill(email);
+			await other.locator('input[name="password"]').fill(password);
+			await other.getByRole("button", { name: "Sign in", exact: true }).click();
+			await expect(other.getByRole("heading", { name: "Overview" })).toBeVisible();
+			await page.goto("/settings", { waitUntil: "domcontentloaded" });
+			await expect(page.getByText("Other session", { exact: true })).toBeVisible();
+			await page.getByRole("button", { name: "Sign out other devices" }).click();
+			await expect(page.getByText("Other session", { exact: true })).toHaveCount(0);
+			expect((await other.request.get("/api/reports/sales")).status()).toBe(401);
+			expect((await page.request.get("/api/reports/sales")).status()).toBe(200);
+		} finally {
+			await other.close();
+		}
 	} finally {
 		await database`delete from commerce_admin.staff_user where id = ${id}`;
 		await auth.admin.deleteUser(id);
