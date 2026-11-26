@@ -7,6 +7,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
 import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
+import { CatalogNameFields } from "./catalog-name-fields";
 import { productStatuses, productStatusLabels } from "./catalog-options";
 import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
@@ -18,21 +19,6 @@ type ProductFormProps = {
 	currency: string;
 	editable: boolean;
 };
-
-const ProductIdentifiers = ({ product }: Pick<ProductFormProps, "product">) => (
-	<div className="grid gap-4 sm:grid-cols-2">
-		<TextField name="sku" label="SKU" maxLength={80} defaultValue={product?.sku} required />
-		<TextField
-			name="slug"
-			label="Slug"
-			maxLength={100}
-			defaultValue={product?.slug}
-			required
-			pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-			hint="Lowercase letters, numbers, and hyphens."
-		/>
-	</div>
-);
 
 const ProductCategory = ({
 	product,
@@ -53,8 +39,8 @@ const ProductDetails = ({
 	categories,
 }: Pick<ProductFormProps, "product" | "categories">) => (
 	<FormSection title="Product details">
-		<TextField name="name" label="Name" maxLength={120} defaultValue={product?.name} required />
-		<ProductIdentifiers product={product} />
+		<CatalogNameFields initialName={product?.name} initialSlug={product?.slug} />
+		<TextField name="sku" label="SKU" maxLength={80} defaultValue={product?.sku} required />
 		<NotesField
 			name="description"
 			label="Description"
