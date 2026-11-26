@@ -34,7 +34,7 @@ for (const theme of ["light", "dark"] as const) {
 			await expect(page.getByRole("searchbox", { name: "Search icons" })).toBeVisible();
 			await checkAccessibility(page);
 			await page.goto("/products?q=Alpine");
-			await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+			await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 			await page.getByRole("button", { name: "Delete", exact: true }).click();
 			await expect(page.getByRole("dialog", { name: /Delete Alpine Travel Mug/ })).toBeVisible();
 			await checkAccessibility(page);

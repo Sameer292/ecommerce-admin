@@ -15,7 +15,7 @@ test("suggests a new slug and keeps a customized slug as the name changes", asyn
 
 test("copies product content into a draft with a new SKU", async ({ page }) => {
 	await signIn(page, "/products?q=Alpine");
-	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 	await page.getByRole("link", { name: "Duplicate as draft" }).click();
 	await expect(page.locator('input[name="name"]')).toHaveValue(/Alpine Travel Mug copy/);
 	await expect(page.locator('input[name="sku"]')).toHaveValue("");
@@ -75,16 +75,21 @@ test("uploads and unlinks a product image", async ({ page }) => {
 
 test("adds an independent SKU and option values to a product", async ({ page }) => {
 	await signIn(page, "/products?q=Alpine");
-	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 	await page.getByRole("link", { name: "Add variant" }).click();
 	const suffix = crypto.randomUUID().slice(0, 8);
-	await page.locator('input[name="name"]').fill(`Travel Mug ${suffix}`);
+	const name = `Alpine Travel Mug variant ${suffix}`;
+	await page.locator('input[name="name"]').fill(name);
+	await expect(page.locator('input[name="slug"]')).toHaveValue(
+		`alpine-travel-mug-variant-${suffix}`,
+	);
 	await page.locator('input[name="sku"]').fill(`VARIANT-${suffix}`);
 	await page.locator('textarea[name="variantOptions"]').fill(`Size: Large\nColor: Blue ${suffix}`);
 	await page.getByRole("button", { name: "Create product" }).click();
 	await expect(page).toHaveURL(/\/products\/?$/);
 	await page.goto("/products?q=Alpine", { waitUntil: "domcontentloaded" });
-	await page.getByRole("link", { name: /Alpine Travel Mug/ }).click();
+	await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 	await expect(page.getByRole("link", { name: `Size Large · Color Blue ${suffix}` })).toBeVisible();
 });
 
