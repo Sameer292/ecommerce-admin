@@ -10,6 +10,7 @@ import {
 	paymentUpdateSchema,
 } from "./integration-validation";
 import { updatePayment } from "./payment.server";
+import { trackOrderSync } from "./order-sync.server";
 
 export const findStoreOrderStatus = async (number: string) => {
 	const [order] = await db
@@ -58,12 +59,20 @@ export const handleOrderStatus = async ({ request }: { request: Request }) => {
 };
 
 export const handleImportOrder = ({ request }: { request: Request }) =>
-	withIntegrationBody(request, importOrderSchema, async (input) => {
-		const { id, created } = await importOrder(input);
-		return Response.json({ id, number: input.number }, { status: created ? 201 : 200 });
-	});
+	withIntegrationBody(request, importOrderSchema, (input) =>
+		trackOrderSync(input.number, "import", async () => {
+			const { id, created } = await importOrder(input);
+			return Response.json({ id, number: input.number }, { status: created ? 201 : 200 });
+		}),
+	);
 
 export const handlePaymentUpdate = ({ request }: { request: Request }) =>
-	withIntegrationBody(request, paymentUpdateSchema, async (input) =>
-		Response.json({ ...(await updatePayment(input)), number: input.number, status: input.status }),
+	withIntegrationBody(request, paymentUpdateSchema, (input) =>
+		trackOrderSync(input.number, "payment", async () =>
+			Response.json({
+				...(await updatePayment(input)),
+				number: input.number,
+				status: input.status,
+			}),
+		),
 	);

@@ -12,12 +12,17 @@ import {
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { reportDate } from "./report-dates";
-import type { OverviewRange, RevenuePoint } from "./overview.types";
+import type { RevenuePoint } from "./overview.types";
 
-type RevenueProps = { points: RevenuePoint[]; currency: string; range: OverviewRange };
+type RevenueProps = { points: RevenuePoint[]; currency: string };
 type PlotProps = Pick<RevenueProps, "points" | "currency"> & {
 	selected: number;
 	onSelect: (index: number) => void;
+};
+
+const periodLabel = ({ date, through, partial }: RevenuePoint) => {
+	const period = date === through ? reportDate(date) : `${reportDate(date)}–${reportDate(through)}`;
+	return partial ? `${period} (partial)` : period;
 };
 
 const scale = (points: RevenuePoint[]) => {
@@ -85,8 +90,8 @@ const RevenuePlot = ({ points, currency, selected, onSelect }: PlotProps) => {
 						min={0}
 						max={points.length - 1}
 						value={selected}
-						aria-label="Chart date"
-						aria-valuetext={`${reportDate(point.date)}, ${formatMoney(point.sales, currency)}`}
+						aria-label="Chart period"
+						aria-valuetext={`${periodLabel(point)}, ${formatMoney(point.sales, currency)}`}
 						className="absolute inset-0 size-full touch-pan-y cursor-pointer opacity-0"
 						onChange={(event) => onSelect(Number(event.currentTarget.value))}
 						onPointerDown={(event) => {
@@ -102,7 +107,7 @@ const RevenuePlot = ({ points, currency, selected, onSelect }: PlotProps) => {
 			</div>
 			<div aria-hidden className="ml-18 flex justify-between text-xs text-muted-foreground">
 				<span>{reportDate(points[0].date)}</span>
-				<span>{reportDate(points[points.length - 1].date)}</span>
+				<span>{reportDate(points[points.length - 1].through)}</span>
 			</div>
 		</div>
 	);
@@ -115,18 +120,18 @@ const RevenueData = ({ points, currency }: Pick<RevenueProps, "points" | "curren
 			<TableCaption className="sr-only">Paid sales over time</TableCaption>
 			<TableHeader>
 				<TableRow>
-					<TableHead scope="col">Date</TableHead>
+					<TableHead scope="col">Period</TableHead>
 					<TableHead scope="col" className="text-right">
 						Paid sales
 					</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{points.map(({ date, sales }) => (
-					<TableRow key={date}>
-						<TableCell>{reportDate(date)}</TableCell>
+				{points.map((point) => (
+					<TableRow key={point.date}>
+						<TableCell>{periodLabel(point)}</TableCell>
 						<TableCell className="text-right tabular-nums">
-							{formatMoney(sales, currency)}
+							{formatMoney(point.sales, currency)}
 						</TableCell>
 					</TableRow>
 				))}
@@ -135,7 +140,7 @@ const RevenueData = ({ points, currency }: Pick<RevenueProps, "points" | "curren
 	</details>
 );
 
-export const RevenueChart = ({ points, currency, range }: RevenueProps) => {
+export const RevenueChart = ({ points, currency }: RevenueProps) => {
 	const [selection, select] = useState(0);
 	const selected = Math.min(selection, points.length - 1);
 	const point = points[selected];
@@ -145,12 +150,14 @@ export const RevenueChart = ({ points, currency, range }: RevenueProps) => {
 				<div className="flex flex-col gap-1">
 					<h2 className="font-heading text-lg font-semibold">Sales over time</h2>
 					<CardDescription>
-						{range === 90 ? "Paid sales by 7-day period" : "Paid sales by day"}
+						{points.some(({ date, through }) => date !== through)
+							? "Paid sales by 7-day period"
+							: "Paid sales by day"}
 					</CardDescription>
 				</div>
 				{point && (
 					<p className="shrink-0 text-sm text-muted-foreground">
-						{reportDate(point.date)} ·{" "}
+						{periodLabel(point)} ·{" "}
 						<strong className="text-foreground">{formatMoney(point.sales, currency)}</strong>
 					</p>
 				)}

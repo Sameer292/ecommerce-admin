@@ -73,7 +73,9 @@ const OrderFilters = ({
 		<NativeSelect name="view" aria-label="Order view" defaultValue={search.view ?? ""}>
 			<NativeSelectOption value="">All orders</NativeSelectOption>
 			<NativeSelectOption value="paid_to_fulfill">Paid and awaiting fulfillment</NativeSelectOption>
+			<NativeSelectOption value="to_fulfill">Ready for fulfillment</NativeSelectOption>
 			<NativeSelectOption value="overdue_unpaid">Unpaid for over 48 hours</NativeSelectOption>
+			<NativeSelectOption value="open_returns">Open returns</NativeSelectOption>
 		</NativeSelect>
 		<details className="w-full rounded-lg border bg-card p-3 text-sm">
 			<summary className="cursor-pointer font-medium">Date, total and shipping filters</summary>
@@ -83,7 +85,7 @@ const OrderFilters = ({
 					<NativeSelectOption value="awaiting_dispatch">Awaiting dispatch</NativeSelectOption>
 					<NativeSelectOption value="in_transit">In transit</NativeSelectOption>
 					<NativeSelectOption value="delivered">Delivered</NativeSelectOption>
-					<NativeSelectOption value="missing_tracking">Shipped without tracking</NativeSelectOption>
+					<NativeSelectOption value="missing_tracking">Missing tracking</NativeSelectOption>
 				</SelectField>
 				<TextField
 					name="placedFrom"

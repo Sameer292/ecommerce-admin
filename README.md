@@ -84,7 +84,9 @@ A return moves from requested to approved and received. Staff can restock sellab
 
 The storefront owns sending customer messages. Its background worker should poll the notification endpoint, look up the buyer by the returned order `number`, and use the job `id` as a durable idempotency key when sending. The job carries `kind`, `payload`, `claimId`, and `leaseUntil`. Acknowledge delivery before the lease expires. An expired claim becomes eligible for another worker, so keep the same send key across attempts even if acknowledgement is interrupted. Route shipping, cancellation, and refund messages for these events through this worker once enabled to avoid duplicate messages. Managers can see delivery status and retry failed jobs from the order page. The queue starts with new events after deployment.
 
-The dashboard counts paid order totals by payment date, excludes refunded orders from sales, and counts order placements by creation date. Reporting uses the configured store time zone.
+The dashboard retains paid sales in their original payment period. Refunds are reported on their own event dates and deducted from net in those periods. Older refunds with no known date remain in payment history and are excluded from dated reports. Order placements are counted by creation date in the configured store time zone. Staff can select up to 366 calendar days and export daily totals for the selected and preceding periods in minor units.
+
+The Overview work queue links to order filters and unresolved synchronization failures. Synchronization tracks the latest validated storefront order import and payment update per order number. It shows the HTTP status without the request body. Retrying successfully clears the failure. Requests rejected before validation and outages that stop PostgreSQL writes are visible through their HTTP responses and operational logs.
 
 ## Checks
 
