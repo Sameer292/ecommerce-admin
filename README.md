@@ -84,6 +84,8 @@ Before setting `STORE_INVENTORY_AUTHORITY=admin`, reconcile on-hand counts, seed
 
 Published SKUs remain fixed. Changing a published slug saves the former slug as an alias. Use the canonical slug from the lookup endpoint for storefront redirects. Archive published products to take them off sale while retaining their identifiers.
 
+Upload a PNG, JPEG, or WebP product image up to 3 MB in the product form. The console creates the public `commerce-product-images` Supabase Storage bucket on the first upload. Staff can preview, replace, or unlink an image. Existing HTTPS image URLs still work. Unlinking leaves the file in Storage so other products that share it can still display it.
+
 Inventory opens one replenishment alert when an active product reaches its threshold. It resolves the alert if availability recovers or the product becomes inactive. A later drop opens a fresh alert. Managers can acknowledge alerts and review incoming stock from Inventory → Replenishment alerts. To notify staff outside the console, poll `GET /api/store/inventory/alerts?page=1` from the store's scheduled monitor. Page through the results, send each alert ID to the chosen channel once, and persist sent IDs across monitor restarts.
 
 Fetch fulfillment status from the storefront backend when showing an order to its buyer. The storefront authenticates the buyer and checks ownership before looking up the order number. The admin endpoint uses the integration token and returns operational status without buyer details.

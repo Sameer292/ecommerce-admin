@@ -64,7 +64,7 @@ const ProductActions = ({
 };
 
 const ProductPage = () => {
-	const { product, categories, hasHistory } = Route.useLoaderData();
+	const { product, categories, hasHistory, managedImage } = Route.useLoaderData();
 	const { staff, store } = Route.useRouteContext();
 	const editable = can(staff.role, "manageCommerce");
 	return (
@@ -86,6 +86,7 @@ const ProductPage = () => {
 			<ProductForm
 				key={product.id}
 				product={product}
+				managedImage={managedImage}
 				categories={categories}
 				currency={store.currency}
 				editable={editable}

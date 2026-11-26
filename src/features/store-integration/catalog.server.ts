@@ -2,6 +2,7 @@ import { and, asc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { availableStock, categories, products, productSlugs } from "@/db/schema/catalog";
 import { productSearchSchema, publishedSlugSchema } from "@/features/catalog/catalog-validation";
+import { productImageUrl } from "@/features/catalog/product-media.server";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { env } from "@/server/env.server";
@@ -15,14 +16,20 @@ const publishedFields = {
 	description: products.description,
 	sku: products.sku,
 	imageUrl: products.imageUrl,
+	imageKey: products.imageKey,
 	priceMinor: products.priceMinor,
 	stock: products.stock,
 	availableStock,
 	category: { id: categories.id, name: categories.name, slug: categories.slug },
 };
 
-const publicStock = <Item extends { availableStock: number }>(item: Item) => ({
+const publicStock = <Item extends { availableStock: number; imageKey: string; imageUrl: string }>({
+	imageKey,
+	imageUrl,
+	...item
+}: Item) => ({
 	...item,
+	imageUrl: productImageUrl(imageKey, imageUrl),
 	availableStock: env.STORE_INVENTORY_AUTHORITY === "admin" ? item.availableStock : null,
 });
 

@@ -9,8 +9,8 @@ import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
 import { CatalogNameFields } from "./catalog-name-fields";
 import { ProductPublication, type PublicationFields } from "./product-publication";
+import { ProductImageField } from "./product-image-field";
 import { productStatuses, productStatusLabels } from "./catalog-options";
-import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
 import { writeProduct } from "./products.functions";
 
@@ -28,7 +28,8 @@ type ProductDefaults = Pick<
 
 type ProductFormProps = {
 	product?: Product;
-	draft?: ProductDefaults;
+	draft?: ProductDefaults & { managedImage?: string; imageSourceId?: string };
+	managedImage?: string;
 	categories: CategoryOption[];
 	currency: string;
 	editable: boolean;
@@ -84,16 +85,6 @@ const ProductDetails = ({
 			defaultValue={product?.description}
 		/>
 		<ProductCategory product={product} categories={categories} />
-		<TextField
-			name="imageUrl"
-			label="Image URL"
-			type="url"
-			pattern={httpsImageUrlPattern}
-			placeholder="https://"
-			hint="Use an HTTPS image URL."
-			maxLength={2000}
-			defaultValue={product?.imageUrl}
-		/>
 	</FormSection>
 );
 
@@ -136,17 +127,19 @@ const ProductSettings = ({
 export const ProductForm = ({
 	product,
 	draft,
+	managedImage,
 	categories,
 	currency,
 	editable,
 }: ProductFormProps) => {
 	const [version] = useState(product?.version);
 	const defaults = product ?? draft;
+	const storedImage = managedImage ?? draft?.managedImage ?? "";
+	const [photo, setPhoto] = useState(storedImage || defaults?.imageUrl || "");
 	const [publication, setPublication] = useState<PublicationFields>(() => ({
 		name: defaults?.name ?? "",
 		description: defaults?.description ?? "",
 		categoryId: defaults?.categoryId ?? "",
-		imageUrl: defaults?.imageUrl ?? "",
 		price: defaults ? moneyInput(defaults.priceMinor, currency) : "",
 		status: defaults?.status ?? "draft",
 	}));
@@ -164,6 +157,9 @@ export const ProductForm = ({
 			successMessage={product ? "Product saved." : "Product created."}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
+			{draft?.imageSourceId && (
+				<input type="hidden" name="imageSourceId" value={draft.imageSourceId} />
+			)}
 			{product && <input type="hidden" name="version" value={version} />}
 			<div
 				className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"
@@ -180,10 +176,18 @@ export const ProductForm = ({
 					}
 				}}
 			>
-				<ProductDetails product={defaults} categories={categories} />
+				<div className="flex min-w-0 flex-col gap-4">
+					<ProductDetails product={defaults} categories={categories} />
+					<ProductImageField
+						external={defaults?.imageUrl ?? ""}
+						managed={storedImage}
+						editable={editable}
+						onPreview={setPhoto}
+					/>
+				</div>
 				<div className="flex min-w-0 flex-col gap-4">
 					<ProductSettings product={defaults} currency={currency} />
-					<ProductPublication fields={publication} currency={currency} />
+					<ProductPublication fields={publication} photo={photo} currency={currency} />
 				</div>
 			</div>
 		</AdminForm>

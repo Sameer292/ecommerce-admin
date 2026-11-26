@@ -33,6 +33,7 @@ export const products = commerce.table(
 		sku: text().notNull().unique(),
 		description: text().notNull().default(""),
 		imageUrl: text("image_url").notNull().default(""),
+		imageKey: text("image_key").notNull().default(""),
 		categoryId: uuid("category_id").references(() => categories.id, {
 			onDelete: "restrict",
 		}),

@@ -1,8 +1,12 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { eq } from "drizzle-orm";
+import { db } from "@/db/client.server";
+import { products } from "@/db/schema/catalog";
 import { formDataSchema, idSchema } from "@/lib/validation";
 import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
+import { logRequestFailure } from "@/server/request-diagnostics.server";
 import { categoryOptions } from "./categories.server";
 import {
 	bulkProductSchema,
@@ -10,6 +14,8 @@ import {
 	productFormSchema,
 	productSearchSchema,
 } from "./catalog-validation";
+import type { ProductValues } from "./catalog.types";
+import { discardProductUpload, productImageUrl, uploadProductImage } from "./product-media.server";
 import {
 	deleteProduct,
 	findProduct,
@@ -43,6 +49,8 @@ export const readNewProduct = createServerFn()
 					description: source.description,
 					categoryId: source.categoryId,
 					imageUrl: source.imageUrl,
+					managedImage: productImageUrl(source.imageKey),
+					imageSourceId: source.imageKey ? source.id : undefined,
 					priceMinor: source.priceMinor,
 					lowStockThreshold: source.lowStockThreshold,
 					status: "draft" as const,
@@ -61,14 +69,39 @@ export const readProduct = createServerFn()
 			productHasHistory(data.id),
 		]);
 		if (!product) throw notFound();
-		return { product, categories, hasHistory };
+		return { product, categories, hasHistory, managedImage: productImageUrl(product.imageKey) };
 	});
+
+const saveProductImage = async (values: ProductValues, data: FormData, staffId: string) => {
+	const file = data.get("imageFile");
+	const removed = data.get("removeImage") === "yes";
+	const copy =
+		!values.id && !removed && !values.imageUrl
+			? idSchema.safeParse({ id: data.get("imageSourceId") })
+			: null;
+	const uploaded = file instanceof File && file.name ? await uploadProductImage(file) : undefined;
+	try {
+		const source = !uploaded && copy?.success ? await findProduct(copy.data.id) : undefined;
+		const key = uploaded ?? (removed || values.imageUrl ? "" : source?.imageKey);
+		await saveProduct({ ...values, imageUrl: uploaded ? "" : values.imageUrl }, staffId, key);
+	} catch (error) {
+		if (uploaded) {
+			try {
+				if (!(await db.$count(products, eq(products.imageKey, uploaded))))
+					await discardProductUpload(uploaded);
+			} catch (cleanupError) {
+				logRequestFailure("discard uncommitted product image", cleanupError);
+			}
+		}
+		throw error;
+	}
+};
 
 export const writeProduct = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
 		withStaffMutation("manageCommerce", (staff) =>
-			mutate(productFormSchema, data, (values) => saveProduct(values, staff.id), {
+			mutate(productFormSchema, data, (values) => saveProductImage(values, data, staff.id), {
 				23505: "A product already uses this SKU or slug.",
 				23514: "A published product’s SKU is fixed. Refresh before making changes.",
 				23503: "This category no longer exists.",

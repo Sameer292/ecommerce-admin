@@ -13,6 +13,7 @@ import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
 import type { ProductSearch, ProductValues, StockFilter } from "./catalog.types";
 import type { bulkProductSchema } from "./catalog-validation";
+import { productImageUrl } from "./product-media.server";
 
 export const lowStock = lte(availableStock, products.lowStockThreshold);
 
@@ -54,6 +55,7 @@ const columns = {
 	name: products.name,
 	sku: products.sku,
 	imageUrl: products.imageUrl,
+	imageKey: products.imageKey,
 	status: products.status,
 	version: products.version,
 	priceMinor: products.priceMinor,
@@ -79,7 +81,13 @@ export const listProducts = async (
 			.offset(pageOffset(search.page, search.perPage)),
 		db.$count(products, where),
 	]);
-	return { rows, total };
+	return {
+		rows: rows.map(({ imageKey, imageUrl, ...row }) => ({
+			...row,
+			imageUrl: productImageUrl(imageKey, imageUrl),
+		})),
+		total,
+	};
 };
 
 export const findProduct = async (id: string) => {
@@ -102,16 +110,23 @@ export const productHasHistory = async (id: string) => {
 export const saveProduct = async (
 	{ id, price, version, ...values }: ProductValues,
 	staffId?: string,
+	imageKey?: string,
 ) => {
 	const currency = await getStoreCurrency();
 	const priceMinor = parseMoneyInput(price, currency);
 	if (priceMinor === null) throw new ActionError(`Enter a valid ${currency} price.`, "price");
 
 	return inStaffAudit(staffId, async (transaction) => {
-		if (!id) return transaction.insert(products).values({ ...values, priceMinor });
+		if (!id) return transaction.insert(products).values({ ...values, priceMinor, imageKey });
 		const [updated] = await transaction
 			.update(products)
-			.set({ ...values, priceMinor, updatedAt: new Date(), version: sql`${products.version} + 1` })
+			.set({
+				...values,
+				priceMinor,
+				imageKey,
+				updatedAt: new Date(),
+				version: sql`${products.version} + 1`,
+			})
 			.where(and(eq(products.id, id), eq(products.version, version ?? -1)))
 			.returning({ id: products.id });
 		if (!updated)

@@ -6,7 +6,6 @@ export type PublicationFields = {
 	name: string;
 	description: string;
 	categoryId: string;
-	imageUrl: string;
 	price: string;
 	status: string;
 };
@@ -14,12 +13,13 @@ export type PublicationFields = {
 export const ProductPublication = ({
 	fields,
 	currency,
+	photo,
 }: {
 	fields: PublicationFields;
 	currency: string;
+	photo: string;
 }) => {
-	const { name, description, categoryId, imageUrl, price, status } = fields;
-	const photo = /^https:\/\//i.test(imageUrl) ? imageUrl : "";
+	const { name, description, categoryId, price, status } = fields;
 	const amount = parseMoneyInput(price, currency);
 	const warnings = [
 		!description.trim() && "Add a description.",
