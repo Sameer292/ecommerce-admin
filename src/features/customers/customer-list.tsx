@@ -6,6 +6,7 @@ import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
 import { formatDate, formatMoney } from "@/lib/format";
+import { CustomerContact } from "./customer-contact";
 import { customerSearchSchema } from "./customer-validation";
 import type { CustomerRow, CustomerSearch } from "./customer.types";
 
@@ -26,9 +27,13 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 	{
 		label: "Email",
 		sort: "email.asc",
-		cell: (row) => <span className="text-muted-foreground truncate">{row.email}</span>,
+		cell: (row) => <CustomerContact kind="email" value={row.email} />,
 	},
-	{ label: "Phone", className: "min-w-40", cell: (row) => row.phone || "—" },
+	{
+		label: "Phone",
+		className: "min-w-40",
+		cell: (row) => <CustomerContact kind="phone" value={row.phone} />,
+	},
 	{
 		label: "Added",
 		sort: "date.desc",
@@ -63,7 +68,7 @@ export const CustomerList = ({
 	<div className="flex flex-col gap-4">
 		<ListControls
 			search={search}
-			placeholder="Search customers"
+			placeholder="Search name, email, or phone"
 			readSearch={(form) => customerSearchSchema.parse(Object.fromEntries(form))}
 			onSearch={onSearch}
 			onClear={

@@ -1,0 +1,1 @@
+CREATE INDEX "customers_phone_search_index" ON "commerce_admin"."customers" USING gin ((regexp_replace("phone", '[^0-9]', '', 'g')) gin_trgm_ops);

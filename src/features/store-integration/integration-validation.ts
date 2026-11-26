@@ -47,6 +47,7 @@ const customer = ZObject({
 	name: ZString().trim().min(1).max(120),
 	email: ZString().trim().toLowerCase().max(254).pipe(ZEmail()),
 	phone: ZString().trim().max(40).default(""),
+	externalId: ZString().trim().min(1).max(120).optional(),
 });
 
 const externalId = ZString().trim().min(1).max(120);

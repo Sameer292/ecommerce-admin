@@ -50,6 +50,11 @@ export const recentOrders = () =>
 	orderRows().orderBy(desc(orders.createdAt), desc(orders.id)).limit(5);
 
 const awaitingDispatch = inArray(orders.status, ["pending", "processing"]);
+export const openOrder = inArray(orders.status, ["pending", "processing", "shipped"]);
+export const recentOpenCustomerOrders = (customerId: string) =>
+	orderRows(and(eq(orders.customerId, customerId), openOrder))
+		.orderBy(desc(orders.createdAt), desc(orders.id))
+		.limit(5);
 const orderPackages = db.select({ id: orderShipments.id }).from(orderShipments);
 const missingTracking = or(
 	and(

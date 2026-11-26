@@ -212,6 +212,7 @@ export const notificationStatus = commerce.enum("notification_status", [
 	"sending",
 	"sent",
 	"failed",
+	"suppressed",
 ]);
 export const notificationKind = commerce.enum("notification_kind", [
 	"shipping",

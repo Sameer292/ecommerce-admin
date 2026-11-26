@@ -7,7 +7,13 @@ import type { listOrderNotifications } from "./notifications.server";
 import { retryNotification } from "./orders.functions";
 
 const kinds = { shipping: "Shipping update", cancellation: "Cancellation", refund: "Refund" };
-const statuses = { pending: "Queued", sending: "Sending", sent: "Sent", failed: "Failed" };
+const statuses = {
+	pending: "Queued",
+	sending: "Sending",
+	sent: "Sent",
+	failed: "Failed",
+	suppressed: "Suppressed",
+};
 
 export const OrderNotifications = ({
 	notifications,

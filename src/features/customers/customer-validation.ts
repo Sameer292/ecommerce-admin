@@ -1,4 +1,10 @@
-import { email as ZEmail, object as ZObject, string as ZString } from "zod";
+import {
+	email as ZEmail,
+	literal as ZLiteral,
+	object as ZObject,
+	string as ZString,
+	uuid as ZUuid,
+} from "zod";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
 import { editVersionSchema, optionalId } from "@/lib/validation";
@@ -14,4 +20,18 @@ export const customerFormSchema = ZObject({
 
 export const customerSearchSchema = pageSearchSchema.extend({
 	sort: sortSchema("name", "email", "date", "purchases"),
+});
+
+export const mergeCustomerSchema = ZObject({
+	id: ZUuid(),
+	version: editVersionSchema,
+	targetEmail: ZString().trim().toLowerCase().max(254).pipe(ZEmail()),
+	reason: ZString().trim().min(1, "Enter a reason for the merge.").max(500),
+	confirm: ZLiteral("on", { error: "Confirm which customer profile will be kept." }),
+});
+
+export const anonymizeCustomerSchema = ZObject({
+	id: ZUuid(),
+	version: editVersionSchema,
+	confirmation: ZLiteral("ANONYMIZE", { error: "Type ANONYMIZE to confirm." }),
 });

@@ -586,6 +586,115 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		);
 		assert.ok(reopened);
 		assert.notEqual(reopened.id, beforeAck.id);
+
+		await connection`insert into commerce_admin.customers (name, email, phone) values ('Phone search', 'phone-search@example.test', '+977 (984) 123-4567')`;
+		const { listCustomers } = await import("../src/features/customers/customers.server");
+		assert.equal((await listCustomers({ page: 1, q: "9841234567" })).total, 1);
+		assert.equal(
+			(await listCustomers({ page: 1, q: "(984) 123-4567" })).rows[0].name,
+			"Phone search",
+		);
+		const { customerOrderSummary } = await import("../src/features/customers/customers.server");
+		const [reportCustomer] =
+			await connection`select customer_id from commerce_admin.orders where number = 'WEB-REPORT'`;
+		const summary = await customerOrderSummary(reportCustomer.customer_id);
+		assert.ok(summary.count > 0);
+		assert.ok(summary.openCount > 0);
+		assert.equal(summary.first.toISOString(), "2025-02-01T02:00:00.000Z");
+		assert.ok(summary.outstanding.some(({ number }) => number.startsWith("WEB-")));
+		const [noOrders] =
+			await connection`select id from commerce_admin.customers where email = 'phone-search@example.test'`;
+		const emptySummary = await customerOrderSummary(noOrders.id);
+		assert.equal(emptySummary.count, 0);
+		assert.equal(emptySummary.first, null);
+		assert.equal(emptySummary.average, null);
+
+		const primary = {
+			name: "Primary account",
+			email: "primary-identity@example.test",
+			phone: "",
+			externalId: "store-account-1",
+		};
+		const duplicate = {
+			name: "Duplicate account",
+			email: "duplicate-identity@example.test",
+			phone: "",
+			externalId: "store-account-2",
+		};
+		const firstOrder = await importOrder({ ...input, number: "IDENTITY-1", customer: primary });
+		const nextOrder = await importOrder({
+			...input,
+			number: "IDENTITY-2",
+			customer: { ...primary, email: "new-buyer-email@example.test" },
+		});
+		await assert.rejects(
+			importOrder({
+				...input,
+				number: "IDENTITY-CONFLICT",
+				customer: { ...primary, externalId: "different-account" },
+			}),
+			{ status: 409 },
+		);
+		const duplicateOrder = await importOrder({
+			...input,
+			number: "IDENTITY-3",
+			customer: duplicate,
+		});
+		const ordersByIdentity =
+			await connection`select id, customer_id, buyer_email from commerce_admin.orders where id in (${firstOrder.id}, ${nextOrder.id}, ${duplicateOrder.id})`;
+		const firstIdentity = ordersByIdentity.find(({ id }) => id === firstOrder.id);
+		const nextIdentity = ordersByIdentity.find(({ id }) => id === nextOrder.id);
+		const source = ordersByIdentity.find(({ id }) => id === duplicateOrder.id);
+		assert.ok(firstIdentity && nextIdentity && source);
+		assert.equal(firstIdentity.customer_id, nextIdentity.customer_id);
+		assert.equal(nextIdentity.buyer_email, "new-buyer-email@example.test");
+		const { mergeDuplicateCustomer } = await import("../src/features/customers/customers.server");
+		await mergeDuplicateCustomer(
+			{
+				id: source.customer_id,
+				targetEmail: primary.email,
+				version: 0,
+				reason: "Matched customer profiles",
+				confirm: "on",
+			},
+			"stock-operator",
+		);
+		const afterMerge = await importOrder({ ...input, number: "IDENTITY-4", customer: duplicate });
+		const relinked =
+			await connection`select customer_id from commerce_admin.orders where id in (${duplicateOrder.id}, ${afterMerge.id})`;
+		assert.equal(relinked.length, 2);
+		assert.ok(relinked.every(({ customer_id }) => customer_id === firstIdentity.customer_id));
+		assert.equal((await listCustomers({ page: 1, q: duplicate.email })).total, 0);
+
+		const { anonymizeCustomerData, exportCustomerData } = await import(
+			"../src/features/customers/customer-privacy.server"
+		);
+		const accountId = firstIdentity.customer_id;
+		const exported = await exportCustomerData(accountId);
+		assert.ok(exported);
+		assert.equal(exported.profiles.length, 2);
+		assert.equal(exported.identities.length, 2);
+		assert.equal(exported.orders.length, 4);
+		assert.ok(exported.orders.some(({ buyerEmail }) => buyerEmail === duplicate.email));
+		const redact = { id: accountId, version: 0, confirmation: "ANONYMIZE" } as const;
+		await assert.rejects(
+			anonymizeCustomerData(redact, "stock-operator"),
+			/Complete or cancel open orders/,
+		);
+		await updatePayment({ number: "IDENTITY-1", status: "paid", paidAt });
+		await connection`update commerce_admin.orders set status = 'cancelled', shipping_address = 'Private address', notes = 'Private note' where customer_id = ${accountId}`;
+		await connection`insert into commerce_admin.order_notifications (order_id, kind, payload) values (${firstOrder.id}, 'shipping', '{"trackingNumber":"PRIVATE-TRACKING"}')`;
+		await anonymizeCustomerData(redact, "stock-operator");
+		assert.equal(await exportCustomerData(accountId), null);
+		assert.equal((await listCustomers({ page: 1, q: primary.email })).total, 0);
+		const [preserved] =
+			await connection`select count(*)::int as count, sum(total_minor)::int as total, bool_and(buyer_email = '' and shipping_address = '' and notes = '') as removed from commerce_admin.orders where customer_id = ${accountId}`;
+		assert.deepEqual({ ...preserved }, { count: 4, total: 6000, removed: true });
+		const [suppressed] =
+			await connection`select status, payload from commerce_admin.order_notifications where order_id = ${firstOrder.id}`;
+		assert.deepEqual({ ...suppressed }, { status: "suppressed", payload: {} });
+		await updatePayment({ number: "IDENTITY-1", status: "refunded" });
+		assert.equal((await listOrderNotifications(firstOrder.id)).length, 1);
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

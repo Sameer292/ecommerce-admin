@@ -1,13 +1,19 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { useListReturn } from "@/components/admin/record-link";
 import { listReturnSearchSchema } from "@/lib/list-return";
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { PageControls } from "@/components/admin/page-controls";
+import { FormSection } from "@/components/admin/form-section";
+import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
+import { CustomerContact } from "@/features/customers/customer-contact";
+import { CustomerAnonymize } from "@/features/customers/customer-anonymize";
 import { CustomerForm } from "@/features/customers/customer-form";
+import { CustomerMerge } from "@/features/customers/customer-merge";
+import { CustomerSummary } from "@/features/customers/customer-summary";
 import { readCustomer, removeCustomer } from "@/features/customers/customers.functions";
 import { OrderTable } from "@/features/orders/order-table";
 import { orderSearchSchema } from "@/features/orders/order-validation";
@@ -47,12 +53,43 @@ const CustomerOrders = () => {
 };
 
 const CustomerPage = () => {
-	const { customer, orders } = Route.useLoaderData();
-	const { staff } = Route.useRouteContext();
+	const { customer, orders, summary } = Route.useLoaderData();
+	const { staff, store } = Route.useRouteContext();
 	const canEdit = can(staff.role, "manageCommerce");
 	const returnHref = useListReturn("/customers");
 	const remove = useServerFn(removeCustomer);
 	const navigate = Route.useNavigate();
+	if (customer.mergedInto)
+		return (
+			<>
+				<DetailHeading
+					title="Customer merged"
+					description="The orders and storefront identities for this profile moved to another customer."
+					back="/customers"
+					backLabel="Customers"
+				/>
+				<Link
+					to="/customers/$customerId"
+					params={{ customerId: customer.mergedInto }}
+					className="w-fit font-medium underline"
+				>
+					Open the customer profile that was kept
+				</Link>
+			</>
+		);
+	if (customer.anonymizedAt)
+		return (
+			<>
+				<DetailHeading
+					title="Anonymized customer"
+					description="Personal details have been removed."
+					back="/customers"
+					backLabel="Customers"
+				/>
+				<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
+				<CustomerOrders />
+			</>
+		);
 	return (
 		<>
 			<DetailHeading
@@ -61,6 +98,14 @@ const CustomerPage = () => {
 				back="/customers"
 				backLabel="Customers"
 			>
+				{canEdit && (
+					<a
+						className={buttonVariants({ variant: "outline" })}
+						href={`/api/customers/${customer.id}/export`}
+					>
+						Export customer data
+					</a>
+				)}
 				{canEdit && (
 					<DeleteRecord
 						id={customer.id}
@@ -74,8 +119,15 @@ const CustomerPage = () => {
 					/>
 				)}
 			</DetailHeading>
+			<FormSection title="Contact">
+				<CustomerContact kind="email" value={customer.email} copy />
+				{customer.phone && <CustomerContact kind="phone" value={customer.phone} copy />}
+			</FormSection>
 			<CustomerForm key={customer.id} customer={customer} editable={canEdit} />
+			<CustomerSummary summary={summary} currency={store.currency} zone={store.timeZone} />
 			<CustomerOrders />
+			{canEdit && <CustomerMerge customer={customer} />}
+			{canEdit && <CustomerAnonymize customer={customer} />}
 		</>
 	);
 };

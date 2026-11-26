@@ -142,7 +142,7 @@ export const updatePayment = (input: PaymentUpdate) =>
 			.onConflictDoNothing()
 			.returning({ id: paymentEvents.id });
 		if (!event) throw new IntegrationError(409, "This payment event is already recorded.");
-		if (refund) {
+		if (refund && order.buyerEmail) {
 			await transaction.insert(orderNotifications).values({
 				id: event.id,
 				orderId: order.id,
