@@ -21,3 +21,16 @@ test("copies product content into a draft with a new SKU", async ({ page }) => {
 	await expect(page.locator('input[name="slug"]')).toHaveValue("alpine-travel-mug-copy");
 	await expect(page.locator('select[name="status"]')).toHaveValue("draft");
 });
+
+test("previews entered product content and warns about missing publication details", async ({
+	page,
+}) => {
+	await signIn(page, "/products/new");
+	await page.locator('input[name="name"]').fill("Preview mug");
+	await page.locator('input[name="price"]').fill("15.00");
+	await page.locator('select[name="status"]').selectOption("active");
+	await expect(page.getByRole("heading", { name: "Preview mug" })).toBeVisible();
+	await expect(page.getByText("$15.00", { exact: true })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Review before publishing" })).toBeVisible();
+	await expect(page.getByText("Add a product image.", { exact: true })).toBeVisible();
+});

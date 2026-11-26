@@ -8,6 +8,7 @@ import { NotesField, SelectField, TextField } from "@/components/admin/form-fiel
 import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
 import { CatalogNameFields } from "./catalog-name-fields";
+import { ProductPublication, type PublicationFields } from "./product-publication";
 import { productStatuses, productStatusLabels } from "./catalog-options";
 import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
@@ -124,6 +125,15 @@ export const ProductForm = ({
 	editable,
 }: ProductFormProps) => {
 	const [version] = useState(product?.version);
+	const defaults = product ?? draft;
+	const [publication, setPublication] = useState<PublicationFields>(() => ({
+		name: defaults?.name ?? "",
+		description: defaults?.description ?? "",
+		categoryId: defaults?.categoryId ?? "",
+		imageUrl: defaults?.imageUrl ?? "",
+		price: defaults ? moneyInput(defaults.priceMinor, currency) : "",
+		status: defaults?.status ?? "draft",
+	}));
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
 	const save = useServerFn(writeProduct);
@@ -139,9 +149,26 @@ export const ProductForm = ({
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
 			{product && <input type="hidden" name="version" value={version} />}
-			<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-				<ProductDetails product={product ?? draft} categories={categories} />
-				<ProductSettings product={product ?? draft} currency={currency} />
+			<div
+				className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"
+				onChange={(event) => {
+					const field = event.target;
+					if (
+						(field instanceof HTMLInputElement ||
+							field instanceof HTMLSelectElement ||
+							field instanceof HTMLTextAreaElement) &&
+						Object.hasOwn(publication, field.name)
+					) {
+						const { name, value } = field;
+						setPublication((previous) => ({ ...previous, [name]: value }));
+					}
+				}}
+			>
+				<ProductDetails product={defaults} categories={categories} />
+				<div className="flex min-w-0 flex-col gap-4">
+					<ProductSettings product={defaults} currency={currency} />
+					<ProductPublication fields={publication} currency={currency} />
+				</div>
 			</div>
 		</AdminForm>
 	);
