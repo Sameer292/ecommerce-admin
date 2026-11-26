@@ -18,21 +18,21 @@ const itemColumns = (currency: string): Column<OrderItem>[] => [
 		label: "Quantity",
 		sort: "quantity.desc",
 		compact: true,
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (row) => formatCount(row.quantity),
 	},
 	{
 		label: "Unit price",
 		sort: "price.asc",
 		compact: true,
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor, currency),
 	},
 	{
 		label: "Total",
 		sort: "total.asc",
 		compact: true,
-		className: "tabular-nums",
+		className: "text-right tabular-nums",
 		cell: (row) => formatMoney(row.unitPriceMinor * row.quantity, currency),
 	},
 ];
@@ -96,6 +96,7 @@ export const OrderHistory = ({
 			columns={activityColumns(zone)}
 			label="Status activity"
 			empty="No status changes yet"
+			compactEmpty
 		/>
 		<PageControls total={total} page={page} onPage={onPage} />
 	</section>

@@ -1,15 +1,17 @@
 import { Menu01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Outlet, useHydrated } from "@tanstack/react-router";
+import { Outlet, useHydrated, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ToastProvider } from "@/components/ui/toast";
 import type { readWorkspace } from "@/features/auth/session.functions";
+import { navigationSection } from "./navigation";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { UnsavedChangesProvider } from "./unsaved-changes";
 
-type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
+type Workspace = NonNullable<Awaited<ReturnType<typeof readWorkspace>>>;
 
 const MobileNav = (workspace: Workspace) => {
 	const [open, setOpen] = useState(false);
@@ -30,17 +32,20 @@ const MobileNav = (workspace: Workspace) => {
 	);
 };
 
-const TopBar = (workspace: Workspace) => (
-	<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7">
-		<div className="flex min-w-0 items-center gap-2">
-			<div className="-ml-2 lg:hidden">
-				<MobileNav {...workspace} />
+const TopBar = (workspace: Workspace) => {
+	const section = useLocation({ select: ({ pathname }) => navigationSection(pathname) });
+	return (
+		<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7">
+			<div className="flex min-w-0 items-center gap-2">
+				<div className="-ml-2 lg:hidden">
+					<MobileNav {...workspace} />
+				</div>
+				<span className="truncate text-sm font-medium">{section}</span>
 			</div>
-			<span className="truncate text-sm font-medium">{workspace.store.name}</span>
-		</div>
-		<ThemeToggle />
-	</header>
-);
+			<ThemeToggle />
+		</header>
+	);
+};
 
 const AdminLayout = (workspace: Workspace) => (
 	<div className="min-h-svh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
@@ -68,6 +73,8 @@ const AdminLayout = (workspace: Workspace) => (
 
 export const AdminShell = (workspace: Workspace) => (
 	<UnsavedChangesProvider>
-		<AdminLayout {...workspace} />
+		<ToastProvider>
+			<AdminLayout {...workspace} />
+		</ToastProvider>
 	</UnsavedChangesProvider>
 );

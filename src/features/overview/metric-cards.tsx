@@ -36,15 +36,15 @@ type MetricCardProps = {
 };
 
 const MetricCard = ({ label, value, change, icon }: MetricCardProps) => (
-	<Card size="sm" className="min-w-0 gap-4 p-4 sm:p-5">
+	<Card size="sm" className="min-w-0 gap-1.5 p-3 sm:gap-4 sm:p-5">
 		<CardHeader className="flex flex-row items-center justify-between gap-2 px-0">
 			<h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
-			<div className="grid size-8 shrink-0 place-items-center rounded-lg border bg-muted/35 text-muted-foreground">
+			<div className="hidden size-8 shrink-0 place-items-center rounded-lg border bg-muted/35 text-muted-foreground sm:grid">
 				<HugeiconsIcon icon={icon} className="size-4" aria-hidden />
 			</div>
 		</CardHeader>
-		<CardContent className="flex flex-col gap-2 px-0">
-			<p className="font-heading text-2xl font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
+		<CardContent className="flex flex-col gap-1 px-0 sm:gap-2">
+			<p className="font-heading text-xl font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
 				{value}
 			</p>
 			<MetricChange {...change} />
@@ -86,7 +86,7 @@ export const MetricCards = ({
 	metrics: DashboardMetrics;
 	currency: string;
 }) => (
-	<div className="grid gap-3 min-[540px]:grid-cols-2 xl:grid-cols-4">
+	<div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
 		{metricCards(metrics, currency).map((metric) => (
 			<MetricCard key={metric.label} {...metric} />
 		))}

@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -15,31 +16,52 @@ import { AdminForm } from "./admin-form";
 type DeleteRecordProps = {
 	id: string;
 	record: string;
+	name: string;
+	blockedReason?: string;
 	onDelete: (data: FormData) => Promise<MutationResult>;
 	onSuccess: () => unknown;
 };
 
-export const DeleteRecord = ({ id, record, onDelete, onSuccess }: DeleteRecordProps) => (
+const CancelDelete = () => (
+	<DialogClose render={<Button type="button" variant="outline" size="lg" />}>Cancel</DialogClose>
+);
+
+export const DeleteRecord = ({
+	id,
+	record,
+	name,
+	blockedReason,
+	onDelete,
+	onSuccess,
+}: DeleteRecordProps) => (
 	<Dialog>
 		<DialogTrigger render={<Button variant="destructive" size="lg" />}>
 			<HugeiconsIcon icon={Delete02Icon} data-icon="inline-start" />
 			Delete
 		</DialogTrigger>
-		<DialogContent>
+		<DialogContent showCloseButton={false}>
 			<DialogHeader>
-				<DialogTitle>Delete {record}?</DialogTitle>
+				<DialogTitle>Delete {name}?</DialogTitle>
 				<DialogDescription>
-					This permanently removes the {record} from your store.
+					{blockedReason ?? `This permanently removes the ${record} from your store.`}
 				</DialogDescription>
 			</DialogHeader>
-			<AdminForm
-				onSave={onDelete}
-				onSuccess={onSuccess}
-				submitLabel={`Delete ${record}`}
-				destructive
-			>
-				<input type="hidden" name="id" value={id} />
-			</AdminForm>
+			{blockedReason ? (
+				<div className="flex justify-end">
+					<CancelDelete />
+				</div>
+			) : (
+				<AdminForm
+					onSave={onDelete}
+					onSuccess={onSuccess}
+					submitLabel={`Delete ${record}`}
+					successMessage={`${name} deleted.`}
+					cancelAction={<CancelDelete />}
+					destructive
+				>
+					<input type="hidden" name="id" value={id} />
+				</AdminForm>
+			)}
 		</DialogContent>
 	</Dialog>
 );

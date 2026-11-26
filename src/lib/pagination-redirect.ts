@@ -3,11 +3,11 @@ import { clampPage } from "./pagination";
 
 export const redirectInvalidPages = (
 	pathname: string,
-	search: { page: number; activity?: number },
+	search: { page: number; perPage?: number; activity?: number },
 	total: number,
 	activityTotal?: number,
 ) => {
-	const page = clampPage(search.page, total);
+	const page = clampPage(search.page, total, search.perPage);
 	const activity =
 		activityTotal === undefined || search.activity === undefined
 			? search.activity

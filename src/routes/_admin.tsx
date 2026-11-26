@@ -1,20 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { readWorkspace } from "@/features/auth/session.functions";
+import { loginReturn } from "@/features/auth/login-return";
 
-type Workspace = Awaited<ReturnType<typeof readWorkspace>>;
+type Workspace = NonNullable<Awaited<ReturnType<typeof readWorkspace>>>;
 
 const AdminLayout = () => <AdminShell {...Route.useRouteContext()} />;
 
 export const Route = createFileRoute("/_admin")({
-	beforeLoad: async ({ context: { queryClient }, matches }): Promise<Workspace> => {
+	beforeLoad: async ({ context: { queryClient }, matches, location }): Promise<Workspace> => {
 		const match = matches.find((match) => match.routeId === "/_admin");
 		if (match?.invalid) await queryClient.invalidateQueries({ refetchType: "none" });
-		return queryClient.fetchQuery({
+		const workspace = await queryClient.fetchQuery({
 			queryKey: ["workspace"],
 			queryFn: ({ signal }) => readWorkspace({ signal }),
 			staleTime: Infinity,
 		});
+		if (!workspace)
+			throw redirect({ to: "/login", search: { returnTo: loginReturn(location.href) } });
+		return workspace;
 	},
 	loader: ({ context: { staff, store } }): Workspace => ({ staff, store }),
 	staleTime: Infinity,

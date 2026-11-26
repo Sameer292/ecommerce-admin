@@ -1,6 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { requireStaff } from "@/features/auth/session.server";
+import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { formDataSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import {
@@ -30,14 +30,14 @@ export const readStaffAccount = createServerFn()
 
 export const addStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		await requireStaff("manageTeam");
-		return mutate(staffAccountSchema, data, createStaffAccount);
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageTeam", () => mutate(staffAccountSchema, data, createStaffAccount)),
+	);
 
 export const writeStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
-	.handler(async ({ data }) => {
-		const staff = await requireStaff("manageTeam");
-		return mutate(editStaffSchema, data, (values) => editStaffAccount(values, staff.id));
-	});
+	.handler(({ data }) =>
+		withStaffMutation("manageTeam", (staff) =>
+			mutate(editStaffSchema, data, (values) => editStaffAccount(values, staff.id)),
+		),
+	);

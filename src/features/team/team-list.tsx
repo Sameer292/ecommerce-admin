@@ -1,9 +1,10 @@
 import { listSorting } from "@/components/admin/table-sorting";
 import { RecordLink } from "@/components/admin/record-link";
-import { DataTable } from "@/components/admin/data-table";
+import { ClearFilters, DataTable } from "@/components/admin/data-table";
+import { NewRecord } from "@/components/admin/new-record";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { roleLabels } from "@/features/auth/permissions";
 import { teamSearchSchema } from "./team-validation";
@@ -54,19 +55,29 @@ export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 			placeholder="Search staff"
 			readSearch={(form) => teamSearchSchema.parse(Object.fromEntries(form))}
 			onSearch={onSearch}
-			onClear={search.q ? () => onSearch({ q: "", page: 1, sort: search.sort }) : undefined}
+			onClear={
+				search.q
+					? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
+					: undefined
+			}
 		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", teamSearchSchema, onSearch)}
 			rows={rows}
 			columns={teamColumns}
 			label="Staff accounts"
+			emptyAction={
+				search.q ? (
+					<ClearFilters
+						onClear={() => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })}
+					/>
+				) : (
+					<NewRecord to="/team/new" label="Add staff member" />
+				)
+			}
 			empty={search.q || search.page > 1 ? "No matching staff accounts" : "No staff accounts"}
 		/>
-		<PageControls
-			total={total}
-			page={search.page}
-			onPage={(page) => onSearch({ ...search, page })}
-		/>
+		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
 	</div>
 );

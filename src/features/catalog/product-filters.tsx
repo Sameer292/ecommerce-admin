@@ -9,7 +9,6 @@ type ProductFilterProps = {
 	search: ProductSearch;
 	categories: CategoryOption[];
 	currency: string;
-	priceCeiling: number;
 	onSearch: (search: ProductSearch) => void;
 };
 
@@ -23,12 +22,7 @@ export const hasProductFilters = ({
 	Boolean(q || status || category || minPriceMinor !== undefined || maxPriceMinor !== undefined);
 
 const ProductStatusFilter = ({ status }: Pick<ProductSearch, "status">) => (
-	<NativeSelect
-		name="status"
-		aria-label="Product status"
-		defaultValue={status ?? ""}
-		className="[&>select]:h-9"
-	>
+	<NativeSelect name="status" aria-label="Product status" defaultValue={status ?? ""}>
 		<NativeSelectOption value="">All statuses</NativeSelectOption>
 		{productStatuses.map((status) => (
 			<NativeSelectOption key={status} value={status}>
@@ -49,7 +43,7 @@ const CategoryFilter = ({
 		name="category"
 		aria-label="Product category"
 		defaultValue={category ?? ""}
-		className="max-w-48 [&>select]:h-9"
+		className="max-w-48"
 	>
 		<NativeSelectOption value="">All categories</NativeSelectOption>
 		{categories.map(({ id, name }) => (
@@ -60,29 +54,22 @@ const CategoryFilter = ({
 	</NativeSelect>
 );
 
-export const ProductFilters = ({
-	search,
-	categories,
-	currency,
-	priceCeiling,
-	onSearch,
-}: ProductFilterProps) => {
-	const ceiling = Math.max(priceCeiling, search.minPriceMinor ?? 0, search.maxPriceMinor ?? 0);
+export const ProductFilters = ({ search, categories, currency, onSearch }: ProductFilterProps) => {
 	return (
 		<ListControls
 			search={search}
 			placeholder="Search products"
-			readSearch={(form) => readProductFilters(form, ceiling)}
+			readSearch={(form) => readProductFilters(form, currency)}
 			onSearch={onSearch}
 			onClear={
 				hasProductFilters(search)
-					? () => onSearch({ q: "", page: 1, sort: search.sort })
+					? () => onSearch({ q: "", page: 1, sort: search.sort, perPage: search.perPage })
 					: undefined
 			}
 		>
 			<ProductStatusFilter status={search.status} />
 			<CategoryFilter category={search.category} categories={categories} />
-			<PriceRangeFilter key={ceiling} search={search} currency={currency} ceiling={ceiling} />
+			<PriceRangeFilter search={search} currency={currency} />
 		</ListControls>
 	);
 };

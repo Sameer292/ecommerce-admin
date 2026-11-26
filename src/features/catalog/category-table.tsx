@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { RecordLink } from "@/components/admin/record-link";
 import { Link } from "@tanstack/react-router";
 import { DataTable } from "@/components/admin/data-table";
@@ -30,7 +31,7 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Products",
 		sort: "count.desc",
-		className: "text-center",
+		className: "text-right",
 		cell: (row) => (
 			<Link
 				to="/products"
@@ -47,10 +48,12 @@ const categoryColumns: Column<CategoryListRow>[] = [
 export const CategoryTable = ({
 	rows,
 	filtered,
+	emptyAction,
 	sorting,
 }: {
 	rows: CategoryListRow[];
 	filtered: boolean;
+	emptyAction?: ReactNode;
 	sorting: TableSorting;
 }) => (
 	<DataTable
@@ -58,6 +61,7 @@ export const CategoryTable = ({
 		rows={rows}
 		columns={categoryColumns}
 		label="Categories"
+		emptyAction={emptyAction}
 		empty={filtered ? "No matching categories" : "No categories yet"}
 		emptyDescription={
 			filtered ? "Try a different search." : "Add categories to organize your catalog."

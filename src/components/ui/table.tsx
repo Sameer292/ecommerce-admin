@@ -1,15 +1,57 @@
+import { useEffect, useId, useRef, useState } from "react";
 import type * as React from "react";
 import { cn } from "cn";
 
-const Table = ({ className, ...props }: React.ComponentProps<"table">) => {
+const Table = ({
+	className,
+	scrollLabel,
+	...props
+}: React.ComponentProps<"table"> & { scrollLabel?: string }) => {
+	const container = useRef<HTMLElement>(null);
+	const table = useRef<HTMLTableElement>(null);
+	const hintId = useId();
+	const [overflow, setOverflow] = useState({ horizontal: false, vertical: false });
+	useEffect(() => {
+		const region = container.current;
+		const content = table.current;
+		if (!scrollLabel || !region || !content) return;
+		const update = () =>
+			setOverflow({
+				horizontal: region.scrollWidth > region.clientWidth,
+				vertical: region.scrollHeight > region.clientHeight,
+			});
+		const resize = new ResizeObserver(update);
+		resize.observe(region);
+		resize.observe(content);
+		update();
+		return () => resize.disconnect();
+	}, [scrollLabel]);
 	return (
-		<div data-slot="table-container" className="relative w-full overflow-x-auto">
-			<table
-				data-slot="table"
-				className={cn("w-full caption-bottom text-sm", className)}
-				{...props}
-			/>
-		</div>
+		<>
+			<section
+				data-slot="table-container"
+				ref={container}
+				className={cn(
+					"relative w-full overflow-x-auto focus-visible:outline-inset focus-visible:outline-ring",
+					scrollLabel && "max-h-[70svh]",
+				)}
+				aria-label={overflow.horizontal || overflow.vertical ? scrollLabel : undefined}
+				aria-describedby={overflow.horizontal ? hintId : undefined}
+				tabIndex={overflow.horizontal || overflow.vertical ? 0 : undefined}
+			>
+				<table
+					ref={table}
+					data-slot="table"
+					className={cn("w-full caption-bottom text-sm", className)}
+					{...props}
+				/>
+			</section>
+			{overflow.horizontal && (
+				<p id={hintId} className="border-t px-3 py-1.5 text-xs text-muted-foreground">
+					Scroll horizontally to see more columns.
+				</p>
+			)}
+		</>
 	);
 };
 

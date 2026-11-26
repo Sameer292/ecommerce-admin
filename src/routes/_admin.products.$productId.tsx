@@ -9,7 +9,17 @@ import { can } from "@/features/auth/permissions";
 import { ProductForm } from "@/features/catalog/product-form";
 import { readProduct, removeProduct } from "@/features/catalog/products.functions";
 
-const ProductActions = ({ id, editable }: { id: string; editable: boolean }) => {
+const ProductActions = ({
+	id,
+	name,
+	editable,
+	hasHistory,
+}: {
+	id: string;
+	name: string;
+	editable: boolean;
+	hasHistory: boolean;
+}) => {
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
 	const remove = useServerFn(removeProduct);
@@ -26,6 +36,12 @@ const ProductActions = ({ id, editable }: { id: string; editable: boolean }) => 
 				<DeleteRecord
 					id={id}
 					record="product"
+					name={name}
+					blockedReason={
+						hasHistory
+							? "This product has order or inventory history. Archive it to retain its records."
+							: undefined
+					}
 					onDelete={(data) => remove({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
 				/>
@@ -35,7 +51,7 @@ const ProductActions = ({ id, editable }: { id: string; editable: boolean }) => 
 };
 
 const ProductPage = () => {
-	const { product, categories } = Route.useLoaderData();
+	const { product, categories, hasHistory } = Route.useLoaderData();
 	const { staff, store } = Route.useRouteContext();
 	const editable = can(staff.role, "manageCommerce");
 	return (
@@ -46,7 +62,12 @@ const ProductPage = () => {
 				back="/products"
 				backLabel="Products"
 			>
-				<ProductActions id={product.id} editable={editable} />
+				<ProductActions
+					id={product.id}
+					name={product.name}
+					editable={editable}
+					hasHistory={hasHistory}
+				/>
 			</DetailHeading>
 			<ProductForm
 				key={product.id}

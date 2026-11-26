@@ -32,8 +32,7 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 		...originalFunctions,
 		readWorkspace: async () => {
 			workspaceCalls++;
-			if (!authorized) throw redirect({ to: "/login" });
-			return workspace;
+			return authorized ? workspace : null;
 		},
 	}));
 	const { Route } = await import("../src/routes/_admin");
@@ -50,9 +49,9 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 			createRoute({
 				getParentRoute: () => admin,
 				path,
-				loader: () => {
+				loader: ({ location }) => {
 					pageChecks++;
-					if (!authorized) throw redirect({ to: "/login" });
+					if (!authorized) throw redirect({ to: "/login", search: { returnTo: location.href } });
 					return path;
 				},
 			}),
@@ -100,8 +99,19 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 		await unauthenticated.load();
 		assert.equal(workspaceCalls, 4);
 		assert.equal(unauthenticated.state.location.pathname, "/login");
+		assert.equal(
+			new URL(unauthenticated.state.location.href, "http://localhost").searchParams.get("returnTo"),
+			"/products",
+		);
 	} finally {
 		mock.module("../src/features/auth/session.functions", () => originalFunctions);
 		mock.restore();
 	}
+});
+
+test("the workspace header keeps section context on record routes", async () => {
+	const { navigationSection } = await import("../src/components/admin/navigation");
+	assert.equal(navigationSection("/products/id"), "Catalog / Products");
+	assert.equal(navigationSection("/settings"), "Administration / Settings");
+	assert.equal(navigationSection("/"), "Workspace / Overview");
 });

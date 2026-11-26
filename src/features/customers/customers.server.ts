@@ -25,7 +25,7 @@ const searchColumns = {
 	purchases: totalPurchasesMinor,
 };
 
-export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
+export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) => {
 	const pattern = searchPattern(q);
 	const where = q ? or(ilike(customers.name, pattern), ilike(customers.email, pattern)) : undefined;
 	const [rows, total] = await Promise.all([
@@ -42,8 +42,8 @@ export const listCustomers = async ({ page, q, sort }: CustomerSearch) => {
 			.leftJoin(paidOrdersTotal, eq(paidOrdersTotal.customerId, customers.id))
 			.where(where)
 			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", customers.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(perPage ?? pageSize)
+			.offset(pageOffset(page, perPage)),
 		db.$count(customers, where),
 	]);
 	return { rows, total };

@@ -12,7 +12,7 @@ const FulfillmentFields = ({ order }: { order: Order }) => (
 	<>
 		<input type="hidden" name="id" value={order.id} />
 		<input type="hidden" name="version" value={order.updatedAt.toISOString()} />
-		<SelectField name="status" label="Fulfillment status" defaultValue={order.status}>
+		<SelectField name="status" required label="Fulfillment status" defaultValue={order.status}>
 			{[order.status, ...orderTransitions[order.status]].map((status) => (
 				<NativeSelectOption key={status} value={status}>
 					{orderStatusLabels[status]}
@@ -37,7 +37,9 @@ export const FulfillmentForm = ({ order, editable }: { order: Order; editable: b
 			<AdminForm
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => router.invalidate()}
+				requireChanges
 				submitLabel="Save fulfillment"
+				successMessage="Fulfillment saved."
 			>
 				<FulfillmentFields order={order} />
 			</AdminForm>

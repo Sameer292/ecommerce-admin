@@ -1,8 +1,12 @@
 import { type ComponentProps, useEffect, useRef, useState } from "react";
 import type { ListSearch } from "./list.types";
 
-export const filterKey = ({ page: _page, sort: _sort, ...filters }: ListSearch) =>
-	JSON.stringify(filters, Object.keys(filters).sort());
+export const filterKey = ({
+	page: _page,
+	sort: _sort,
+	perPage: _perPage,
+	...filters
+}: ListSearch) => JSON.stringify(filters, Object.keys(filters).sort());
 
 export const useListFormKey = (applied: string) => {
 	const [key, setKey] = useState(0);

@@ -24,6 +24,7 @@ const ProductsPage = () => {
 			<ProductList
 				{...data}
 				search={search}
+				canCreate={can(staff.role, "manageCommerce")}
 				currency={store.currency}
 				zone={store.timeZone}
 				onSearch={(search) => navigate({ search })}

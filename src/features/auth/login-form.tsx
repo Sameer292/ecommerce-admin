@@ -1,71 +1,73 @@
 import { useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { FieldValidation, TextField } from "@/components/admin/form-fields";
+import type { MutationFailure } from "@/server/mutation.types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FieldGroup } from "@/components/ui/field";
 import { signInStaff } from "./auth.functions";
 
 const LoginFields = () => (
 	<FieldGroup>
-		<Field>
-			<FieldLabel htmlFor="email">Email</FieldLabel>
-			<Input
-				id="email"
-				name="email"
-				type="email"
-				autoComplete="username"
-				required
-				className="h-10"
-			/>
-		</Field>
-		<Field>
-			<FieldLabel htmlFor="password">Password</FieldLabel>
-			<Input
-				id="password"
-				name="password"
-				type="password"
-				autoComplete="current-password"
-				required
-				className="h-10"
-			/>
-		</Field>
+		<TextField
+			label="Email"
+			name="email"
+			type="email"
+			autoComplete="username"
+			required
+			className="h-10"
+		/>
+		<TextField
+			label="Password"
+			name="password"
+			type="password"
+			autoComplete="current-password"
+			required
+			className="h-10"
+		/>
 	</FieldGroup>
 );
 
-const useSignIn = () => {
+const useSignIn = (returnTo?: string) => {
 	const signIn = useServerFn(signInStaff);
 	const [pending, setPending] = useState(false);
-	const [error, setError] = useState("");
+	const [failure, setFailure] = useState<MutationFailure>();
+	const form = useRef<HTMLFormElement>(null);
+	useEffect(() => {
+		if (failure?.fieldErrors)
+			form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+	}, [failure]);
 	const submit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setPending(true);
-		setError("");
+		setFailure(undefined);
 		try {
 			const result = await signIn({ data: new FormData(event.currentTarget) });
-			if (result.success) return window.location.assign("/");
-			setError(result.error);
+			if (result.success) return window.location.assign(returnTo ?? "/");
+			setFailure(result);
 		} catch {
-			setError("Couldn’t connect. Try again.");
+			setFailure({ success: false, error: "Couldn’t connect. Try again." });
 		}
 		setPending(false);
 	};
-	return { error, pending, submit };
+	return { failure, form, pending, submit };
 };
 
-export const LoginForm = () => {
-	const { error, pending, submit } = useSignIn();
+export const LoginForm = ({ returnTo }: { returnTo?: string }) => {
+	const { failure, form, pending, submit } = useSignIn(returnTo);
 	const hydrated = useHydrated();
 	return (
-		<form method="post" className="flex flex-col gap-5" onSubmit={submit}>
-			<LoginFields />
-			{error && (
+		<form ref={form} method="post" className="flex flex-col gap-5" onSubmit={submit}>
+			<FieldValidation value={failure?.fieldErrors}>
+				<LoginFields />
+			</FieldValidation>
+			{failure && (
 				<Alert variant="destructive" role="alert">
-					<AlertDescription>{error}</AlertDescription>
+					<AlertDescription>{failure.error}</AlertDescription>
 				</Alert>
 			)}
-			<Button type="submit" size="lg" className="h-10" disabled={!hydrated || pending}>
+			<Button type="submit" size="lg" disabled={!hydrated || pending}>
 				{pending ? "Signing in…" : "Sign in"}
 			</Button>
 		</form>

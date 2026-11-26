@@ -85,7 +85,7 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 			required
 			defaultValue={product ? moneyInput(product.priceMinor, currency) : undefined}
 		/>
-		<SelectField name="status" label="Status" defaultValue={product?.status ?? "draft"}>
+		<SelectField name="status" required label="Status" defaultValue={product?.status ?? "draft"}>
 			{productStatuses.map((status) => (
 				<NativeSelectOption key={status} value={status}>
 					{productStatusLabels[status]}
@@ -114,7 +114,11 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 		<AdminForm
 			onSave={editable ? (data) => save({ data }) : undefined}
 			onSuccess={() => navigate({ href: returnHref })}
+			cancelHref={returnHref}
+			stickyActions
+			requireChanges={Boolean(product)}
 			submitLabel={product ? "Save product" : "Create product"}
+			successMessage={product ? "Product saved." : "Product created."}
 		>
 			<input type="hidden" name="id" value={product?.id ?? ""} />
 			{product && <input type="hidden" name="version" value={version} />}

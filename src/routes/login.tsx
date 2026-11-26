@@ -3,6 +3,7 @@ import { StoreMark } from "@/components/admin/store-mark";
 import { ThemeToggle } from "@/components/admin/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/login-form";
+import { loginReturn } from "@/features/auth/login-return";
 import { readStaff } from "@/features/auth/session.functions";
 
 const LoginPage = () => (
@@ -21,7 +22,7 @@ const LoginPage = () => (
 					<CardDescription>Use your staff account to access the store.</CardDescription>
 				</CardHeader>
 				<CardContent className="px-0">
-					<LoginForm />
+					<LoginForm returnTo={Route.useSearch().returnTo} />
 				</CardContent>
 			</Card>
 		</div>
@@ -29,8 +30,9 @@ const LoginPage = () => (
 );
 
 export const Route = createFileRoute("/login")({
-	beforeLoad: async () => {
-		if (await readStaff()) throw redirect({ to: "/" });
+	validateSearch: (search): { returnTo?: string } => ({ returnTo: loginReturn(search.returnTo) }),
+	beforeLoad: async ({ search }) => {
+		if (await readStaff()) throw redirect({ href: search.returnTo ?? "/" });
 	},
 	component: LoginPage,
 });

@@ -1,4 +1,12 @@
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyTitle,
+} from "@/components/ui/empty";
+import type { ReactNode } from "react";
 import {
 	Table,
 	TableBody,
@@ -14,12 +22,29 @@ import { SortableTableHead } from "./sortable-table-head";
 const columnWidth = (compact?: boolean) =>
 	compact ? "w-[12%] whitespace-nowrap" : "min-w-24 whitespace-normal wrap-normal";
 
-const TableEmpty = ({ title, description }: { title: string; description?: string }) => (
-	<Empty className="py-11">
+export const ClearFilters = ({ onClear }: { onClear: () => void }) => (
+	<Button type="button" variant="outline" onClick={onClear}>
+		Clear filters
+	</Button>
+);
+
+const TableEmpty = ({
+	title,
+	description,
+	action,
+	compact,
+}: {
+	title: string;
+	description?: string;
+	action?: ReactNode;
+	compact?: boolean;
+}) => (
+	<Empty className={compact ? "py-3 text-left items-start" : "py-11"}>
 		<EmptyHeader>
 			<EmptyTitle>{title}</EmptyTitle>
 			{description && <EmptyDescription>{description}</EmptyDescription>}
 		</EmptyHeader>
+		{action && <EmptyContent>{action}</EmptyContent>}
 	</Empty>
 );
 
@@ -48,10 +73,10 @@ const TableContents = <Row extends { id: string }>({
 	rows,
 	label,
 	sorting,
-}: Omit<DataTableProps<Row>, "empty" | "emptyDescription">) => (
-	<Table>
+}: Omit<DataTableProps<Row>, "empty" | "emptyDescription" | "emptyAction">) => (
+	<Table scrollLabel={label}>
 		<TableCaption className="sr-only">{label}</TableCaption>
-		<TableHeader className="bg-muted/35">
+		<TableHeader className="sticky top-0 z-10 bg-muted">
 			<TableRow>
 				{columns.map(({ label, compact, className, sort }) => (
 					<SortableTableHead
@@ -76,13 +101,20 @@ const TableContents = <Row extends { id: string }>({
 export const DataTable = <Row extends { id: string }>({
 	empty,
 	emptyDescription,
+	emptyAction,
+	compactEmpty,
 	...table
 }: DataTableProps<Row>) => (
 	<div className="min-w-0 overflow-hidden rounded-xl border bg-card">
 		{table.rows.length > 0 ? (
 			<TableContents {...table} />
 		) : (
-			<TableEmpty title={empty} description={emptyDescription} />
+			<TableEmpty
+				title={empty}
+				description={emptyDescription}
+				action={emptyAction}
+				compact={compactEmpty}
+			/>
 		)}
 	</div>
 );

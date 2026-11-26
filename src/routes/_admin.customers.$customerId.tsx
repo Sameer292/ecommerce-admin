@@ -47,7 +47,7 @@ const CustomerOrders = () => {
 };
 
 const CustomerPage = () => {
-	const { customer } = Route.useLoaderData();
+	const { customer, orders } = Route.useLoaderData();
 	const { staff } = Route.useRouteContext();
 	const canEdit = can(staff.role, "manageCommerce");
 	const returnHref = useListReturn("/customers");
@@ -65,6 +65,10 @@ const CustomerPage = () => {
 					<DeleteRecord
 						id={customer.id}
 						record="customer"
+						name={customer.name}
+						blockedReason={
+							orders.total > 0 ? "This customer has order history and must be retained." : undefined
+						}
 						onDelete={(data) => remove({ data })}
 						onSuccess={() => navigate({ href: returnHref })}
 					/>

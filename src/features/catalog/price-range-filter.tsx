@@ -1,48 +1,59 @@
-import { useRef, useState } from "react";
-import { FieldLegend, FieldSet } from "@/components/ui/field";
-import { Slider } from "@/components/ui/slider";
-import { currencyDigits, formatMoney } from "@/lib/format";
+import { useId, useState } from "react";
+import { FieldError, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { moneyInput } from "@/lib/format";
+import { readPriceBounds } from "./catalog-validation";
 import type { ProductSearch } from "./catalog.types";
 
 type PriceRangeProps = {
 	search: Pick<ProductSearch, "minPriceMinor" | "maxPriceMinor">;
 	currency: string;
-	ceiling: number;
 };
 
-const PriceLabels = ({ range, currency }: { range: number[]; currency: string }) => (
-	<div className="flex flex-wrap items-center justify-between gap-x-2 text-xs">
-		<span className="font-medium">Price</span>
-		<span className="text-muted-foreground tabular-nums">
-			{formatMoney(range[0], currency)} – {formatMoney(range[1], currency)}
-		</span>
-	</div>
-);
-
-export const PriceRangeFilter = ({ search, currency, ceiling }: PriceRangeProps) => {
-	const field = useRef<HTMLFieldSetElement>(null);
-	const [range, setRange] = useState([search.minPriceMinor ?? 0, search.maxPriceMinor ?? ceiling]);
-	const update = (values: number[]) => {
-		setRange(values);
-		field.current?.form?.requestSubmit();
-	};
+export const PriceRangeFilter = ({ search, currency }: PriceRangeProps) => {
+	const errorId = useId();
+	const [minimum, setMinimum] = useState(
+		search.minPriceMinor === undefined ? "" : moneyInput(search.minPriceMinor, currency),
+	);
+	const [maximum, setMaximum] = useState(
+		search.maxPriceMinor === undefined ? "" : moneyInput(search.maxPriceMinor, currency),
+	);
+	const invalid = readPriceBounds(minimum, maximum, currency) === null;
 	return (
-		<FieldSet ref={field} className="w-full min-w-0 gap-2 sm:w-56">
-			<FieldLegend className="sr-only">Price range</FieldLegend>
-			<PriceLabels range={range} currency={currency} />
-			<Slider
-				name="priceRange"
-				value={range}
-				min={0}
-				max={Math.max(1, ceiling)}
-				step={1}
-				largeStep={10 ** currencyDigits(currency)}
-				disabled={ceiling === 0}
-				thumbCollisionBehavior="none"
-				onValueChange={update}
-				getAriaLabel={(index) => (index === 0 ? "Minimum price" : "Maximum price")}
-				getAriaValueText={(_, value) => formatMoney(value, currency)}
-			/>
+		<FieldSet className="min-w-0 gap-2">
+			<FieldLegend className="sr-only">Price range ({currency})</FieldLegend>
+			<div className="flex flex-wrap items-center gap-2">
+				<span className="text-sm text-muted-foreground">Price ({currency})</span>
+				<Input
+					name="minPrice"
+					aria-label={`Minimum price (${currency})`}
+					placeholder="Min"
+					inputMode="decimal"
+					maxLength={24}
+					aria-invalid={invalid || undefined}
+					aria-describedby={invalid ? errorId : undefined}
+					value={minimum}
+					onChange={(event) => setMinimum(event.currentTarget.value)}
+					className="w-24 tabular-nums"
+				/>
+				<Input
+					name="maxPrice"
+					aria-label={`Maximum price (${currency})`}
+					placeholder="Max"
+					inputMode="decimal"
+					maxLength={24}
+					aria-invalid={invalid || undefined}
+					aria-describedby={invalid ? errorId : undefined}
+					value={maximum}
+					onChange={(event) => setMaximum(event.currentTarget.value)}
+					className="w-24 tabular-nums"
+				/>
+			</div>
+			{invalid && (
+				<FieldError id={errorId}>
+					Enter valid prices with the minimum at or below the maximum.
+				</FieldError>
+			)}
 		</FieldSet>
 	);
 };

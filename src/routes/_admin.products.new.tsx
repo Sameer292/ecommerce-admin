@@ -24,7 +24,7 @@ const NewProductPage = () => {
 export const Route = createFileRoute("/_admin/products/new")({
 	validateSearch: listReturnSearchSchema,
 	beforeLoad: ({ context }) => {
-		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/products" });
+		if (!can(context.staff.role, "manageCommerce")) throw redirect({ to: "/access-denied" });
 	},
 	loader: ({ context: { queryClient } }) =>
 		queryClient.fetchQuery({
