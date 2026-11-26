@@ -21,6 +21,7 @@ export type DataTableProps<Row> = {
 	empty: string;
 	emptyDescription?: string;
 	emptyAction?: ReactNode;
+	compactEmpty?: boolean;
 	sorting?: TableSorting;
 };
 

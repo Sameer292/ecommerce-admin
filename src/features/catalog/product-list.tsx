@@ -13,7 +13,6 @@ type ProductListProps = ListPage<ProductListRow> & {
 	canCreate: boolean;
 	currency: string;
 	zone: string;
-	priceCeiling: number;
 	categories: CategoryOption[];
 	onSearch: (search: ProductSearch) => void;
 };

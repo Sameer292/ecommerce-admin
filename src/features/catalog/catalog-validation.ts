@@ -4,12 +4,11 @@ import {
 	literal as ZLiteral,
 	object as ZObject,
 	string as ZString,
-	tuple as ZTuple,
 	union as ZUnion,
 	url as ZUrl,
 	uuid as ZUuid,
 } from "zod";
-import { maxMinorAmount } from "@/lib/money";
+import { maxMinorAmount, parseMoneyInput } from "@/lib/money";
 import { pageSearchSchema } from "@/lib/pagination";
 import { sortSchema } from "@/lib/sort";
 import { editVersionSchema, optionalId } from "@/lib/validation";
@@ -21,9 +20,6 @@ export const categorySearchSchema = pageSearchSchema.extend({
 
 const priceMinor = ZInt().min(0).max(maxMinorAmount);
 const priceBound = priceMinor.optional().catch(undefined);
-const sliderAmount = ZString().regex(/^\d+$/).transform(Number).pipe(priceMinor);
-const sliderRange = ZTuple([sliderAmount, sliderAmount]);
-
 export const productSearchSchema = pageSearchSchema
 	.extend({
 		sort: sortSchema("name", "category", "price", "stock", "date"),
@@ -44,18 +40,22 @@ export const productSearchSchema = pageSearchSchema
 		return search;
 	});
 
-export const readProductFilters = (form: FormData, priceCeiling: number) => {
-	const values = form.getAll("priceRange");
-	if (values.length === 0) return productSearchSchema.parse(Object.fromEntries(form));
-	const parsed = sliderRange.safeParse(values);
-	if (!parsed.success) return null;
-	const [min, max] = parsed.data;
-	if (min > max || max > priceCeiling) return null;
-	return productSearchSchema.parse({
-		...Object.fromEntries(form),
-		minPriceMinor: min === 0 ? undefined : min,
-		maxPriceMinor: max === priceCeiling ? undefined : max,
-	});
+export const readPriceBounds = (minimum: string, maximum: string, currency: string) => {
+	const minPriceMinor = minimum.trim() ? parseMoneyInput(minimum.trim(), currency) : undefined;
+	const maxPriceMinor = maximum.trim() ? parseMoneyInput(maximum.trim(), currency) : undefined;
+	if (minPriceMinor === null || maxPriceMinor === null) return null;
+	if (minPriceMinor !== undefined && maxPriceMinor !== undefined && minPriceMinor > maxPriceMinor)
+		return null;
+	return { minPriceMinor, maxPriceMinor };
+};
+
+export const readProductFilters = (form: FormData, currency: string) => {
+	const bounds = readPriceBounds(
+		String(form.get("minPrice") ?? ""),
+		String(form.get("maxPrice") ?? ""),
+		currency,
+	);
+	return bounds ? productSearchSchema.parse({ ...Object.fromEntries(form), ...bounds }) : null;
 };
 
 const slug = ZString()

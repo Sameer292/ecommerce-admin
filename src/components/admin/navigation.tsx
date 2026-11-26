@@ -46,6 +46,16 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 	},
 ];
 
+export const navigationSection = (pathname: string) => {
+	for (const group of groups) {
+		const item = group.items.find(
+			({ to }) => pathname === to || (to !== "/" && pathname.startsWith(`${to}/`)),
+		);
+		if (item) return `${group.name} / ${item.label}`;
+	}
+	return "Workspace";
+};
+
 const NavigationLink = ({
 	item,
 	onNavigate,

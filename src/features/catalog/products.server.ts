@@ -1,4 +1,4 @@
-import { and, eq, gt, gte, ilike, lte, max, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -74,11 +74,6 @@ export const listProducts = async (
 		db.$count(products, where),
 	]);
 	return { rows, total };
-};
-
-export const highestProductPrice = async () => {
-	const [result] = await db.select({ price: max(products.priceMinor) }).from(products);
-	return result?.price ?? 0;
 };
 
 export const findProduct = async (id: string) => {

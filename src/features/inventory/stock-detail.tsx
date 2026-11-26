@@ -109,6 +109,7 @@ export const StockHistory = ({
 			sorting={sorting}
 			label="Adjustment history"
 			empty="No adjustments yet"
+			compactEmpty
 		/>
 		<PageControls total={total} page={page} onPage={onPage} />
 	</section>
