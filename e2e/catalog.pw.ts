@@ -78,19 +78,21 @@ test("adds an independent SKU and option values to a product", async ({ page }) 
 	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
 	await page.getByRole("link", { name: "Add variant" }).click();
 	const suffix = crypto.randomUUID().slice(0, 8);
-	const name = `Alpine Travel Mug variant ${suffix}`;
-	await page.locator('input[name="name"]').fill(name);
-	await expect(page.locator('input[name="slug"]')).toHaveValue(
-		`alpine-travel-mug-variant-${suffix}`,
-	);
-	await page.locator('input[name="sku"]').fill(`VARIANT-${suffix}`);
+	const sku = `VARIANT-${suffix.toUpperCase()}`;
 	await page.locator('textarea[name="variantOptions"]').fill(`Size: Large\nColor: Blue ${suffix}`);
+	await page.locator('input[name="sku"]').fill(sku);
+	await page.locator('input[name="slug"]').fill(`alpine-travel-mug-variant-${suffix}`);
 	await page.getByRole("button", { name: "Create product" }).click();
 	await expect(page).toHaveURL(/\/products\/?$/);
 	await page.goto("/products?q=Alpine", { waitUntil: "domcontentloaded" });
-	await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+	await expect(page.getByRole("row").filter({ hasText: sku })).toContainText(
+		"Alpine Travel Mug variant",
+	);
 	await page.getByRole("link", { name: "Alpine Travel Mug", exact: true }).click();
-	await expect(page.getByRole("link", { name: `Size Large · Color Blue ${suffix}` })).toBeVisible();
+	const variant = page.getByRole("listitem").filter({ hasText: sku });
+	await expect(
+		variant.getByRole("link", { name: `Size Large · Color Blue ${suffix}` }),
+	).toBeVisible();
 });
 
 test("previews, imports, and exports a catalog CSV with duplicate feedback", async ({ page }) => {
