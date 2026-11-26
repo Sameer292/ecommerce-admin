@@ -2,6 +2,7 @@ import {
 	BoxesIcon,
 	DashboardSquare01Icon,
 	Folder01Icon,
+	File01Icon,
 	Package01Icon,
 	Settings01Icon,
 	ShoppingBasket01Icon,
@@ -42,6 +43,7 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 		items: [
 			{ to: "/team", label: "Team", icon: UserSettings02Icon, teamOnly: true },
 			{ to: "/settings", label: "Settings", icon: Settings01Icon },
+			{ to: "/audit", label: "Audit history", icon: File01Icon, teamOnly: true },
 		],
 	},
 ];

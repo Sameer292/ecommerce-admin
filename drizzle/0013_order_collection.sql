@@ -1,0 +1,1 @@
+ALTER TABLE "commerce_admin"."orders" ADD COLUMN "cash_on_delivery" boolean DEFAULT false NOT NULL;

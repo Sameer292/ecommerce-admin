@@ -42,8 +42,8 @@ export const readProduct = createServerFn()
 export const writeProduct = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", () =>
-			mutate(productFormSchema, data, saveProduct, {
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(productFormSchema, data, (values) => saveProduct(values, staff.id), {
 				23505: "A product already uses this SKU or slug.",
 				23503: "This category no longer exists.",
 			}),
@@ -53,8 +53,8 @@ export const writeProduct = createServerFn({ method: "POST" })
 export const removeProduct = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", () =>
-			mutate(idSchema, data, ({ id }) => deleteProduct(id), {
+		withStaffMutation("manageCommerce", (staff) =>
+			mutate(idSchema, data, ({ id }) => deleteProduct(id, staff.id), {
 				23503: "This product has order or inventory history. Archive it to retain its records.",
 			}),
 		),

@@ -31,7 +31,9 @@ export const readStaffAccount = createServerFn()
 export const addStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
-		withStaffMutation("manageTeam", () => mutate(staffAccountSchema, data, createStaffAccount)),
+		withStaffMutation("manageTeam", (staff) =>
+			mutate(staffAccountSchema, data, (values) => createStaffAccount(values, staff.id)),
+		),
 	);
 
 export const writeStaffAccount = createServerFn({ method: "POST" })

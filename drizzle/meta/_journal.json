@@ -78,6 +78,62 @@
       "when": 1795643871367,
       "tag": "0010_store_currency",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795644203766,
+      "tag": "0011_order_buyer_snapshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795644328578,
+      "tag": "0012_payment_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795644460965,
+      "tag": "0013_order_collection",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795644680994,
+      "tag": "0014_delivery_corrections",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795644875112,
+      "tag": "0015_order_shipments",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795645153330,
+      "tag": "0016_order_returns",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795645252064,
+      "tag": "0017_audit_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795645868505,
+      "tag": "0018_order_notifications",
+      "breakpoints": true
     }
   ]
 }

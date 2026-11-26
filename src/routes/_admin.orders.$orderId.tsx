@@ -4,11 +4,15 @@ import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
 import { FulfillmentForm } from "@/features/orders/order-forms";
-import { OrderHistory, OrderLines } from "@/features/orders/order-history";
+import { OrderHistory, OrderLines, PaymentHistory } from "@/features/orders/order-history";
 import { OrderStatusBadge } from "@/features/orders/order-labels";
+import { OrderNotifications } from "@/features/orders/order-notifications";
 import { OrderContact, OrderPayment } from "@/features/orders/order-summary";
 import { orderDetailSearchSchema } from "@/features/orders/order-validation";
 import { readOrder } from "@/features/orders/orders.functions";
+import { OrderPrintActions } from "@/features/orders/order-print-actions";
+import { OrderShipments } from "@/features/orders/order-shipments";
+import { OrderReturns } from "@/features/orders/order-returns";
 import { formatDate } from "@/lib/format";
 
 const OrderItemsTable = () => {
@@ -59,8 +63,12 @@ const OrderActivityTable = () => {
 };
 
 const OrderPage = () => {
-	const { order, customer } = Route.useLoaderData();
+	const { order, payments, shipping, shipmentId, returns, returnId, refundedMinor, notifications } =
+		Route.useLoaderData();
 	const { store, staff } = Route.useRouteContext();
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const editable = can(staff.role, "manageCommerce");
 	return (
 		<>
 			<DetailHeading
@@ -70,27 +78,58 @@ const OrderPage = () => {
 				backLabel="Orders"
 			>
 				<OrderStatusBadge status={order.status} />
+				<OrderPrintActions ids={[order.id]} />
 			</DetailHeading>
 			<div className="grid items-start gap-4 lg:grid-cols-2">
 				<FulfillmentForm
 					key={order.updatedAt.toISOString()}
 					order={order}
-					editable={can(staff.role, "manageCommerce")}
+					editable={editable}
+					dispatched={shipping.shipments.length > 0}
 				/>
 				<div className="flex min-w-0 flex-col gap-4">
-					<OrderContact order={order} customer={customer} />
-					<OrderPayment order={order} currency={store.currency} />
+					<OrderContact order={order} />
+					<OrderPayment order={order} currency={store.currency} refundedMinor={refundedMinor} />
 				</div>
 			</div>
+			<OrderShipments
+				key={shipmentId}
+				order={order}
+				shipping={shipping}
+				shipmentId={shipmentId}
+				zone={store.timeZone}
+				editable={editable}
+			/>
 			<OrderItemsTable />
+			<OrderReturns
+				key={returnId}
+				orderId={order.id}
+				data={returns}
+				returnId={returnId}
+				zone={store.timeZone}
+				editable={editable}
+				dispatched={
+					shipping.shipments.length > 0 ||
+					order.status === "shipped" ||
+					order.status === "delivered"
+				}
+			/>
 			<OrderActivityTable />
+			<OrderNotifications notifications={notifications} editable={editable} zone={store.timeZone} />
+			<PaymentHistory
+				{...payments}
+				page={search.payments}
+				onPage={(payments) => navigate({ search: { ...search, payments } })}
+				currency={store.currency}
+				zone={store.timeZone}
+			/>
 		</>
 	);
 };
 
 export const Route = createFileRoute("/_admin/orders/$orderId")({
 	validateSearch: orderDetailSearchSchema.extend(listReturnSearchSchema.shape),
-	search: { middlewares: [stripSearchParams({ page: 1, activity: 1 })] },
+	search: { middlewares: [stripSearchParams({ page: 1, activity: 1, payments: 1 })] },
 	loaderDeps: ({ search }) => orderDetailSearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
 		const data = await queryClient.fetchQuery({
@@ -102,6 +141,7 @@ export const Route = createFileRoute("/_admin/orders/$orderId")({
 			{ ...location.search, ...deps },
 			data.items.total,
 			data.activity.total,
+			data.payments.total,
 		);
 		return data;
 	},

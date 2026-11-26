@@ -54,6 +54,9 @@ const orderRow = (index: number, items: DemoItem[]): DemoOrder => {
 	return {
 		id: demoId(4, index),
 		customerId: demoId(3, index % demoCustomers.length),
+		buyerName: customer.name,
+		buyerEmail: customer.email,
+		buyerPhone: customer.phone,
 		number: `DEMO-${2050 - index}`,
 		status,
 		paymentStatus,

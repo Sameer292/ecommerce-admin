@@ -1,5 +1,6 @@
 import {
 	array as ZArray,
+	boolean as ZBoolean,
 	discriminatedUnion as ZDiscriminatedUnion,
 	email as ZEmail,
 	int as ZInt,
@@ -7,6 +8,7 @@ import {
 	literal as ZLiteral,
 	object as ZObject,
 	string as ZString,
+	uuid as ZUuid,
 } from "zod";
 import { maxMinorAmount } from "@/lib/money";
 
@@ -17,6 +19,7 @@ const orderNumber = ZString()
 	.min(1)
 	.max(80)
 	.regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/);
+export const orderStatusQuerySchema = ZObject({ number: orderNumber });
 const sku = ZString().trim().min(1).max(80).toUpperCase();
 
 const line = ZObject({
@@ -32,9 +35,28 @@ const customer = ZObject({
 	phone: ZString().trim().max(40).default(""),
 });
 
+const externalId = ZString().trim().min(1).max(120);
+const paymentDetails = ZObject({
+	number: orderNumber,
+	externalId: externalId.optional(),
+	source: ZString().trim().min(1).max(80).optional(),
+	method: ZString().trim().min(1).max(80).optional(),
+	amountMinor: amount.optional(),
+});
+
 export const paymentUpdateSchema = ZDiscriminatedUnion("status", [
-	ZObject({ number: orderNumber, status: ZLiteral("paid"), paidAt: timestamp }),
-	ZObject({ number: orderNumber, status: ZLiteral("refunded") }),
+	paymentDetails.extend({ status: ZLiteral("paid"), paidAt: timestamp }),
+	paymentDetails.extend({
+		status: ZLiteral("refunded"),
+		refundedAt: timestamp.optional(),
+		returnId: ZUuid().optional(),
+	}),
+	paymentDetails.extend({
+		status: ZLiteral("failed"),
+		failedAt: timestamp,
+		externalId,
+		amountMinor: amount,
+	}),
 ]);
 
 export const importOrderSchema = ZObject({
@@ -42,6 +64,7 @@ export const importOrderSchema = ZObject({
 	currency: ZString().regex(/^[A-Z]{3}$/),
 	createdAt: timestamp,
 	paidAt: timestamp.optional(),
+	cashOnDelivery: ZBoolean().optional(),
 	customer,
 	items: ZArray(line).min(1).max(100),
 	shippingMinor: amount.default(0),

@@ -1,7 +1,7 @@
 import { connection, db } from "../src/db/client.server";
 import { categories, products } from "../src/db/schema/catalog";
 import { customers } from "../src/db/schema/customers";
-import { orderItems, orders } from "../src/db/schema/orders";
+import { orderItems, orders, paymentEvents } from "../src/db/schema/orders";
 import { getStoreCurrency } from "../src/features/settings/store-currency.server";
 import { env } from "../src/server/env.server";
 import { demoCategories, demoProducts } from "./demo/catalog";
@@ -26,7 +26,33 @@ try {
 			.insert(customers)
 			.values(demoCustomers)
 			.onConflictDoNothing({ target: customers.id });
-		await transaction.insert(orders).values(demoOrders).onConflictDoNothing({ target: orders.id });
+		const createdOrders = await transaction
+			.insert(orders)
+			.values(demoOrders)
+			.onConflictDoNothing({ target: orders.id })
+			.returning({ id: orders.id });
+		const createdIds = new Set(createdOrders.map(({ id }) => id));
+		const events: (typeof paymentEvents.$inferInsert)[] = [];
+		for (const order of demoOrders) {
+			if (!order.id || !createdIds.has(order.id) || !order.paidAt) continue;
+			events.push({
+				orderId: order.id,
+				status: "paid",
+				amountMinor: order.totalMinor,
+				occurredAt: order.paidAt,
+				source: "demo",
+			});
+			if (order.paymentStatus === "refunded") {
+				events.push({
+					orderId: order.id,
+					status: "refunded",
+					amountMinor: order.totalMinor,
+					occurredAt: order.paidAt,
+					source: "demo",
+				});
+			}
+		}
+		if (events.length) await transaction.insert(paymentEvents).values(events);
 		await transaction
 			.insert(orderItems)
 			.values(demoItems)

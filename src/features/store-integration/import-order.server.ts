@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client.server";
 import { products } from "@/db/schema/catalog";
 import { customers } from "@/db/schema/customers";
-import { orderItems, orders } from "@/db/schema/orders";
+import { orderItems, orders, paymentEvents } from "@/db/schema/orders";
 import { maxMinorAmount } from "@/lib/money";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { sha256 } from "./integration-auth.server";
@@ -61,16 +61,20 @@ const insertOrder = async (transaction: Transaction, input: ImportOrder, importD
 		.values({
 			number,
 			customerId,
+			buyerName: input.customer.name,
+			buyerEmail: input.customer.email,
+			buyerPhone: input.customer.phone,
 			importDigest,
 			createdAt,
 			shippingName,
 			shippingAddress,
 			paymentStatus: paidAt ? "paid" : "pending",
+			cashOnDelivery: input.cashOnDelivery,
 			paidAt,
 			...totals(input),
 		})
 		.onConflictDoNothing({ target: orders.number })
-		.returning({ id: orders.id });
+		.returning({ id: orders.id, totalMinor: orders.totalMinor });
 	return inserted;
 };
 
@@ -97,6 +101,15 @@ export const importOrder = async (input: ImportOrder) => {
 			return sameImport(concurrent, digest);
 		}
 		await saveItems(transaction, inserted.id, input.items);
+		if (input.paidAt) {
+			await transaction.insert(paymentEvents).values({
+				orderId: inserted.id,
+				status: "paid",
+				occurredAt: input.paidAt,
+				amountMinor: inserted.totalMinor,
+				source: "storefront",
+			});
+		}
 		return { id: inserted.id, created: true };
 	});
 };

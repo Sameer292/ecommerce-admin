@@ -1,4 +1,5 @@
 import { and, asc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
+import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { categories, products } from "@/db/schema/catalog";
@@ -51,15 +52,23 @@ export const findCategory = async (id: string) => {
 	return category;
 };
 
-export const saveCategory = async ({ id, version, ...values }: CategoryValues) => {
-	if (!id) return db.insert(categories).values(values);
-	const [updated] = await db
-		.update(categories)
-		.set({ ...values, version: sql`${categories.version} + 1` })
-		.where(and(eq(categories.id, id), eq(categories.version, version ?? -1)))
-		.returning({ id: categories.id });
-	if (!updated)
-		throw new ActionError("This category changed or was removed. Refresh before saving.");
+export const saveCategory = async (
+	{ id, version, ...values }: CategoryValues,
+	staffId?: string,
+) => {
+	return inStaffAudit(staffId, async (transaction) => {
+		if (!id) return transaction.insert(categories).values(values);
+		const [updated] = await transaction
+			.update(categories)
+			.set({ ...values, version: sql`${categories.version} + 1` })
+			.where(and(eq(categories.id, id), eq(categories.version, version ?? -1)))
+			.returning({ id: categories.id });
+		if (!updated)
+			throw new ActionError("This category changed or was removed. Refresh before saving.");
+	});
 };
 
-export const deleteCategory = (id: string) => db.delete(categories).where(eq(categories.id, id));
+export const deleteCategory = (id: string, staffId?: string) =>
+	inStaffAudit(staffId, async (transaction) =>
+		transaction.delete(categories).where(eq(categories.id, id)),
+	);

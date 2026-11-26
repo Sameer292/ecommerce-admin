@@ -20,9 +20,20 @@ const AmountRow = ({
 	</div>
 );
 
-export const OrderPayment = ({ order, currency }: { order: Order; currency: string }) => (
+export const OrderPayment = ({
+	order,
+	currency,
+	refundedMinor,
+}: {
+	order: Order;
+	currency: string;
+	refundedMinor: number;
+}) => (
 	<FormSection title="Payment">
 		<PaymentStatusBadge status={order.paymentStatus} />
+		<p className="text-sm text-muted-foreground">
+			Collection · {order.cashOnDelivery ? "Cash on delivery" : "Prepaid"}
+		</p>
 		<dl className="flex flex-col gap-2 text-sm">
 			<AmountRow label="Subtotal" amount={order.subtotalMinor} currency={currency} />
 			<AmountRow label="Shipping" amount={order.shippingMinor} currency={currency} />
@@ -31,26 +42,29 @@ export const OrderPayment = ({ order, currency }: { order: Order; currency: stri
 			<div className="mt-2 border-t pt-3 font-semibold">
 				<AmountRow label="Total" amount={order.totalMinor} currency={currency} />
 			</div>
+			{refundedMinor > 0 && (
+				<AmountRow label="Refunded" amount={refundedMinor} currency={currency} />
+			)}
 		</dl>
 	</FormSection>
 );
 
-type OrderContactProps = {
-	order: Order;
-	customer: { id: string; name: string; email: string };
-};
-
-export const OrderContact = ({ order, customer }: OrderContactProps) => (
+export const OrderContact = ({ order }: { order: Order }) => (
 	<FormSection title="Customer and delivery">
 		<div className="flex flex-col gap-1 text-sm">
+			<p className="font-medium">Buyer on this order</p>
+			<p>{order.buyerName || "Name unavailable"}</p>
+			{order.buyerEmail && (
+				<p className="wrap-anywhere text-muted-foreground">{order.buyerEmail}</p>
+			)}
+			{order.buyerPhone && <p className="text-muted-foreground">{order.buyerPhone}</p>}
 			<Link
 				to="/customers/$customerId"
-				params={{ customerId: customer.id }}
-				className="font-medium hover:underline"
+				params={{ customerId: order.customerId }}
+				className="mt-1 self-start underline underline-offset-3"
 			>
-				{customer.name}
+				Current customer profile
 			</Link>
-			<p className="wrap-anywhere text-muted-foreground">{customer.email}</p>
 		</div>
 		<Separator />
 		<div className="flex flex-col gap-1 text-sm">
