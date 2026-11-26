@@ -47,7 +47,7 @@ Provision the first superuser with the same email and a new password. Then provi
 
 ## Storefront integration
 
-The optional API is disabled until you set `STORE_INTEGRATION_TOKEN` to a separate random token of at least 32 characters. Send it as `Authorization: Bearer <token>` from your storefront backend. Keep it out of storefront browser code.
+Issue scoped keys from Settings → Integration credentials as a superuser. Copy each key when it is created and send it as `Authorization: Bearer <token>` from the storefront backend. Keys have a limit of 120 authorized requests per minute. HTTP 429 includes `Retry-After`. For rotation, issue a replacement with the necessary scopes, update the storefront and verify activity on the replacement, then revoke the previous key. Existing `STORE_INTEGRATION_TOKEN` credentials retain full access during migration. Remove that environment variable from all deployments once the scoped keys are in use.
 
 | Endpoint | Behavior |
 | --- | --- |

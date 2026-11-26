@@ -218,6 +218,13 @@
       "when": 1795661976025,
       "tag": "0030_staff_session_revocation",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1795662228796,
+      "tag": "0031_scoped_integration_keys",
+      "breakpoints": true
     }
   ]
 }

@@ -57,7 +57,7 @@ const publishedCatalog = async (request: Request) => {
 };
 
 export const handleStoreCatalog = async ({ request }: { request: Request }) => {
-	const blocked = checkIntegrationToken(request);
+	const blocked = await checkIntegrationToken(request, "catalog:read");
 	if (blocked) return blocked;
 	try {
 		return Response.json(await publishedCatalog(request));

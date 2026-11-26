@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/store/inventory/alerts")({
 	server: {
 		handlers: {
 			GET: async ({ request }) => {
-				const blocked = checkIntegrationToken(request);
+				const blocked = await checkIntegrationToken(request, "inventory:alerts");
 				if (blocked) return blocked;
 				try {
 					const { page } = pageSearchSchema.parse(

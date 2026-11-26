@@ -15,6 +15,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
 import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
+import { Route as AdminIntegrationsRouteImport } from './routes/_admin.integrations'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/_admin.team'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -75,6 +76,11 @@ const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
+  '/integrations': typeof AdminIntegrationsRoute
   '/settings': typeof AdminSettingsRoute
   '/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
+  '/integrations': typeof AdminIntegrationsRoute
   '/settings': typeof AdminSettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/password/confirm': typeof PasswordConfirmRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
   '/_admin/audit': typeof AdminAuditRoute
+  '/_admin/integrations': typeof AdminIntegrationsRoute
   '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/access-denied'
     | '/audit'
+    | '/integrations'
     | '/settings'
     | '/team'
     | '/api/health'
@@ -407,6 +417,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/access-denied'
     | '/audit'
+    | '/integrations'
     | '/settings'
     | '/api/health'
     | '/password/confirm'
@@ -446,6 +457,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/_admin/access-denied'
     | '/_admin/audit'
+    | '/_admin/integrations'
     | '/_admin/settings'
     | '/_admin/team'
     | '/api/health'
@@ -539,6 +551,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/integrations': {
+      id: '/_admin/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/settings': {
@@ -787,6 +806,7 @@ const AdminTeamRouteWithChildren = AdminTeamRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminAccessDeniedRoute: typeof AdminAccessDeniedRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTeamRoute: typeof AdminTeamRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
@@ -811,6 +831,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAccessDeniedRoute: AdminAccessDeniedRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTeamRoute: AdminTeamRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,

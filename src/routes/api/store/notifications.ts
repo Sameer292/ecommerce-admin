@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/store/notifications")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
-				const blocked = checkIntegrationToken(request);
+				const blocked = await checkIntegrationToken(request, "notifications:write");
 				if (blocked) return blocked;
 				try {
 					const job = await claimNotification();
@@ -27,10 +27,14 @@ export const Route = createFileRoute("/api/store/notifications")({
 				}
 			},
 			PATCH: ({ request }) =>
-				withIntegrationBody(request, acknowledgementSchema, async ({ id, claimId, status }) =>
-					(await acknowledgeNotification(id, claimId, status))
-						? new Response(null, { status: 204 })
-						: Response.json({ error: "This claim is no longer active." }, { status: 409 }),
+				withIntegrationBody(
+					request,
+					"notifications:write",
+					acknowledgementSchema,
+					async ({ id, claimId, status }) =>
+						(await acknowledgeNotification(id, claimId, status))
+							? new Response(null, { status: 204 })
+							: Response.json({ error: "This claim is no longer active." }, { status: 409 }),
 				),
 		},
 	},

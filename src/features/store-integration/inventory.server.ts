@@ -110,7 +110,7 @@ export const applyStockMovement = ({
 	});
 
 export const handleStockMovement = ({ request }: { request: Request }) =>
-	withIntegrationBody(request, stockMovementSchema, async (input) => {
+	withIntegrationBody(request, "inventory:write", stockMovementSchema, async (input) => {
 		const created = await applyStockMovement(input);
 		return Response.json(
 			{ id: input.id, number: input.number, operation: input.operation, created },
