@@ -120,9 +120,16 @@ export const saveProduct = async (
 };
 
 export const deleteProduct = (id: string, staffId?: string) =>
-	inStaffAudit(staffId, async (transaction) =>
-		transaction.delete(products).where(eq(products.id, id)),
-	);
+	inStaffAudit(staffId, async (transaction) => {
+		const [product] = await transaction
+			.select({ publishedAt: products.publishedAt })
+			.from(products)
+			.where(eq(products.id, id))
+			.for("update");
+		if (product?.publishedAt)
+			throw new ActionError("Archive published products to retain storefront links.");
+		await transaction.delete(products).where(eq(products.id, id));
+	});
 
 export const updateProductsInBulk = (
 	{ selected, status, categoryId }: ZOutput<typeof bulkProductSchema>,

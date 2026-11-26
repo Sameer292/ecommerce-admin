@@ -225,6 +225,13 @@
       "when": 1795662228796,
       "tag": "0031_scoped_integration_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795662872552,
+      "tag": "0032_published_product_identifiers",
+      "breakpoints": true
     }
   ]
 }

@@ -14,11 +14,13 @@ const ProductActions = ({
 	name,
 	editable,
 	hasHistory,
+	published,
 }: {
 	id: string;
 	name: string;
 	editable: boolean;
 	hasHistory: boolean;
+	published: boolean;
 }) => {
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
@@ -47,9 +49,11 @@ const ProductActions = ({
 					record="product"
 					name={name}
 					blockedReason={
-						hasHistory
-							? "This product has order or inventory history. Archive it to retain its records."
-							: undefined
+						published
+							? "Archive this published product to retain its storefront links."
+							: hasHistory
+								? "This product has order or inventory history. Archive it to retain its records."
+								: undefined
 					}
 					onDelete={(data) => remove({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
@@ -76,6 +80,7 @@ const ProductPage = () => {
 					name={product.name}
 					editable={editable}
 					hasHistory={hasHistory}
+					published={Boolean(product.publishedAt)}
 				/>
 			</DetailHeading>
 			<ProductForm

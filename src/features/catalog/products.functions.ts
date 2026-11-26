@@ -70,6 +70,7 @@ export const writeProduct = createServerFn({ method: "POST" })
 		withStaffMutation("manageCommerce", (staff) =>
 			mutate(productFormSchema, data, (values) => saveProduct(values, staff.id), {
 				23505: "A product already uses this SKU or slug.",
+				23514: "A published product’s SKU is fixed. Refresh before making changes.",
 				23503: "This category no longer exists.",
 			}),
 		),

@@ -37,6 +37,7 @@ export const products = commerce.table(
 			onDelete: "restrict",
 		}),
 		status: productStatus().notNull().default("draft"),
+		publishedAt: timestamp("published_at", { withTimezone: true }),
 		priceMinor: integer("price_minor").notNull(),
 		stock: integer().notNull().default(0),
 		reservedStock: integer("reserved_stock").notNull().default(0),
@@ -75,3 +76,14 @@ export const availableStock =
 	sql<number>`${products.stock} - ${products.reservedStock} - ${products.damagedStock}`.mapWith(
 		Number,
 	);
+
+export const productSlugs = commerce.table(
+	"product_slugs",
+	{
+		slug: text().primaryKey(),
+		productId: uuid("product_id")
+			.notNull()
+			.references(() => products.id, { onDelete: "cascade" }),
+	},
+	(table) => [index().on(table.productId)],
+);

@@ -14,9 +14,11 @@ const suggestSlug = (name: string) =>
 export const CatalogNameFields = ({
 	initialName = "",
 	initialSlug,
+	published,
 }: {
 	initialName?: string;
 	initialSlug?: string;
+	published?: boolean;
 }) => {
 	const [custom, setCustom] = useState(initialSlug !== undefined);
 	const [slug, setSlug] = useState(initialSlug ?? suggestSlug(initialName));
@@ -39,7 +41,11 @@ export const CatalogNameFields = ({
 				maxLength={100}
 				required
 				pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-				hint="Lowercase letters, numbers, and hyphens."
+				hint={
+					published
+						? "The storefront can resolve the old slug and redirect it to the new URL."
+						: "Lowercase letters, numbers, and hyphens."
+				}
 				onChange={(event) => {
 					setCustom(true);
 					setSlug(event.currentTarget.value);

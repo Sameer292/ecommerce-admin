@@ -759,6 +759,28 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			).length,
 			2,
 		);
+		const [published] =
+			await connection`insert into commerce_admin.products (name, slug, sku, price_minor, status) values ('Slug fixture', 'original-slug', 'PUBLISHED-SKU', 1000, 'active') returning id`;
+		await connection`update commerce_admin.products set slug = 'canonical-slug' where id = ${published.id}`;
+		await assert.rejects(
+			connection`update commerce_admin.products set sku = 'REPLACEMENT-SKU' where id = ${published.id}`,
+			{ code: "23514" },
+		);
+		await assert.rejects(
+			connection`insert into commerce_admin.products (name, slug, sku, price_minor) values ('Different item', 'original-slug', 'OTHER-SKU', 1200)`,
+			{ code: "23505" },
+		);
+		const { handleStoreCatalog } = await import("../src/features/store-integration/catalog.server");
+		const aliasResponse = await handleStoreCatalog({
+			request: new Request("http://localhost/api/store/catalog?slug=original-slug", {
+				headers: { authorization: `Bearer ${replacement}` },
+			}),
+		});
+		assert.equal(aliasResponse.status, 200);
+		const alias = await aliasResponse.json();
+		assert.equal(alias.canonicalSlug, "canonical-slug");
+		assert.equal(alias.redirected, true);
+		assert.equal(alias.item.sku, "PUBLISHED-SKU");
 	} finally {
 		await connection.end({ timeout: 1 });
 		if (originalUrl === undefined) delete process.env.DATABASE_URL;

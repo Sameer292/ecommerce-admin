@@ -24,7 +24,7 @@ type ProductDefaults = Pick<
 	| "priceMinor"
 	| "lowStockThreshold"
 	| "status"
-> & { slug?: string };
+> & { slug?: string; publishedAt?: Date | null };
 
 type ProductFormProps = {
 	product?: Product;
@@ -59,8 +59,24 @@ const ProductDetails = ({
 	categories: CategoryOption[];
 }) => (
 	<FormSection title="Product details">
-		<CatalogNameFields initialName={product?.name} initialSlug={product?.slug} />
-		<TextField name="sku" label="SKU" maxLength={80} defaultValue={product?.sku} required />
+		<CatalogNameFields
+			initialName={product?.name}
+			initialSlug={product?.slug}
+			published={Boolean(product?.publishedAt)}
+		/>
+		<TextField
+			name="sku"
+			label="SKU"
+			maxLength={80}
+			defaultValue={product?.sku}
+			readOnly={Boolean(product?.publishedAt)}
+			hint={
+				product?.publishedAt
+					? "Published SKUs are retained for order and inventory integrations."
+					: undefined
+			}
+			required
+		/>
 		<NotesField
 			name="description"
 			label="Description"

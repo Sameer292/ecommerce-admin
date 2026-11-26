@@ -64,6 +64,8 @@ const slug = ZString()
 	.max(100)
 	.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens for the slug.");
 
+export const publishedSlugSchema = slug;
+
 const catalogFormSchema = ZObject({
 	id: optionalId,
 	version: editVersionSchema.optional(),

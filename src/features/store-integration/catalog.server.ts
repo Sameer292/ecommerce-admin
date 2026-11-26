@@ -1,7 +1,7 @@
 import { and, asc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { availableStock, categories, products } from "@/db/schema/catalog";
-import { productSearchSchema } from "@/features/catalog/catalog-validation";
+import { availableStock, categories, products, productSlugs } from "@/db/schema/catalog";
+import { productSearchSchema, publishedSlugSchema } from "@/features/catalog/catalog-validation";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { env } from "@/server/env.server";
@@ -20,6 +20,11 @@ const publishedFields = {
 	availableStock,
 	category: { id: categories.id, name: categories.name, slug: categories.slug },
 };
+
+const publicStock = <Item extends { availableStock: number }>(item: Item) => ({
+	...item,
+	availableStock: env.STORE_INVENTORY_AUTHORITY === "admin" ? item.availableStock : null,
+});
 
 const publishedCatalog = async (request: Request) => {
 	const params = new URL(request.url).searchParams;
@@ -44,10 +49,7 @@ const publishedCatalog = async (request: Request) => {
 	]);
 	const authority = env.STORE_INVENTORY_AUTHORITY;
 	return {
-		items: items.map((item) => ({
-			...item,
-			availableStock: authority === "admin" ? item.availableStock : null,
-		})),
+		items: items.map(publicStock),
 		page,
 		pageSize,
 		total,
@@ -56,10 +58,34 @@ const publishedCatalog = async (request: Request) => {
 	};
 };
 
+const publishedProduct = async (slug: string) => {
+	const [item] = await db
+		.select(publishedFields)
+		.from(productSlugs)
+		.innerJoin(products, eq(products.id, productSlugs.productId))
+		.leftJoin(categories, eq(products.categoryId, categories.id))
+		.where(and(eq(productSlugs.slug, slug), eq(products.status, "active")));
+	if (!item) return Response.json({ error: "Product not found." }, { status: 404 });
+	return Response.json({
+		item: publicStock(item),
+		canonicalSlug: item.slug,
+		redirected: slug !== item.slug,
+		currency: await getStoreCurrency(),
+		inventoryAuthority: env.STORE_INVENTORY_AUTHORITY,
+	});
+};
+
 export const handleStoreCatalog = async ({ request }: { request: Request }) => {
 	const blocked = await checkIntegrationToken(request, "catalog:read");
 	if (blocked) return blocked;
 	try {
+		const slug = new URL(request.url).searchParams.get("slug");
+		if (slug !== null) {
+			const parsed = publishedSlugSchema.safeParse(slug);
+			return parsed.success
+				? await publishedProduct(parsed.data)
+				: Response.json({ error: "Invalid product slug." }, { status: 400 });
+		}
 		return Response.json(await publishedCatalog(request));
 	} catch (error) {
 		return integrationError(error);
