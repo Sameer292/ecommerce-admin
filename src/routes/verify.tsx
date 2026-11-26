@@ -112,6 +112,7 @@ export const Route = createFileRoute("/verify")({
 	beforeLoad: async ({ search }) => {
 		const step = await readSignInStep();
 		if (step === "signin") throw redirect({ to: "/login", search });
+		if (step === "password") throw redirect({ to: "/password/set" });
 		if (step === "ready") throw redirect({ href: search.returnTo ?? "/" });
 	},
 	loader: () => readVerifiedFactors(),

@@ -4,7 +4,9 @@ import { getStaff, getStaffIdentity } from "./session.server";
 
 export const readSignInStep = createServerFn().handler(async () => {
 	const identity = await getStaffIdentity();
-	return !identity ? "signin" : identity.assured ? "ready" : "mfa";
+	if (!identity) return "signin";
+	if (identity.passwordGrant && (identity.assured || !identity.hasFactor)) return "password";
+	return identity.assured ? "ready" : "mfa";
 });
 
 export const readWorkspace = createServerFn().handler(async () => {

@@ -19,3 +19,11 @@ export const user = commerce.table("staff_user", {
 	banReason: text("ban_reason"),
 	banExpires: timestamp("ban_expires", { withTimezone: true }),
 });
+
+export const staffPasswordGrants = commerce.table("staff_password_grants", {
+	sessionId: uuid("session_id").primaryKey(),
+	staffId: text("staff_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});

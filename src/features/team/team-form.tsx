@@ -25,16 +25,6 @@ const NewStaffFields = () => (
 	<>
 		<TextField name="name" label="Name" maxLength={80} required />
 		<TextField name="email" label="Email" type="email" maxLength={254} required />
-		<TextField
-			name="password"
-			label="Initial password"
-			type="password"
-			autoComplete="new-password"
-			minLength={12}
-			maxLength={72}
-			hint="Use at least 12 characters. Share this password with the staff member securely."
-			required
-		/>
 		<RoleField selected="viewer" options={roles} />
 	</>
 );
@@ -63,8 +53,8 @@ export const NewStaffForm = () => {
 					onSave={(data) => save({ data })}
 					onSuccess={() => navigate({ href: returnHref })}
 					cancelHref={returnHref}
-					submitLabel="Create account"
-					successMessage="Staff account created."
+					submitLabel="Send invitation"
+					successMessage="Staff invitation sent."
 				>
 					<NewStaffFields />
 				</AdminForm>

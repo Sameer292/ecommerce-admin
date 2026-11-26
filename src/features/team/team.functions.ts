@@ -5,11 +5,11 @@ import { formDataSchema } from "@/lib/validation";
 import { mutate } from "@/server/mutation.server";
 import {
 	editStaffSchema,
-	staffAccountSchema,
+	inviteStaffSchema,
 	staffIdSchema,
 	teamSearchSchema,
 } from "./team-validation";
-import { createStaffAccount } from "./provision-staff.server";
+import { inviteStaffAccount } from "./provision-staff.server";
 import { editStaffAccount, findStaffAccount, listTeam } from "./team.server";
 
 export const readTeam = createServerFn()
@@ -32,7 +32,7 @@ export const addStaffAccount = createServerFn({ method: "POST" })
 	.validator(formDataSchema)
 	.handler(({ data }) =>
 		withStaffMutation("manageTeam", (staff) =>
-			mutate(staffAccountSchema, data, (values) => createStaffAccount(values, staff.id)),
+			mutate(inviteStaffSchema, data, (values) => inviteStaffAccount(values, staff.id)),
 		),
 	);
 

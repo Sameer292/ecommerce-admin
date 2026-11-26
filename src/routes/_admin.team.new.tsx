@@ -6,8 +6,8 @@ import { NewStaffForm } from "@/features/team/team-form";
 const NewStaffPage = () => (
 	<>
 		<DetailHeading
-			title="Add staff member"
-			description="Create an account and assign a role."
+			title="Invite staff member"
+			description="Assign a role and send a link to set a password."
 			back="/team"
 			backLabel="Team"
 		/>

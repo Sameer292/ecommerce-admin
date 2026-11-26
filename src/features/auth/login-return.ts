@@ -5,6 +5,7 @@ export const loginReturn = (value: unknown): string | undefined => {
 	}
 	const url = new URL(value, base);
 	if (url.origin !== base || url.pathname.startsWith("//")) return undefined;
+	if (url.pathname === "/password/set") return "/password/set";
 	const adminPath =
 		/^\/(?:products|categories|orders|customers|inventory|team|settings|audit)(?:\/|$)/;
 	if (url.pathname !== "/" && !adminPath.test(url.pathname)) return undefined;

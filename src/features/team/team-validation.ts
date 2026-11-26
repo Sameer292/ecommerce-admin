@@ -14,6 +14,8 @@ export const staffAccountSchema = ZObject({
 	role: ZEnum(roles),
 });
 
+export const inviteStaffSchema = staffAccountSchema.omit({ password: true });
+
 export const editStaffSchema = staffIdSchema.extend({
 	version: editVersionSchema,
 	role: ZEnum(roles),

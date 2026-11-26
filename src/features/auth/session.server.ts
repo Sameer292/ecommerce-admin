@@ -1,8 +1,8 @@
 import { redirect } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client.server";
-import { user } from "@/db/schema/auth";
+import { staffPasswordGrants, user } from "@/db/schema/auth";
 import type { MutationResult } from "@/server/mutation.types";
 import type { Permission } from "./auth.types";
 import { can, isRole } from "./permissions";
@@ -34,11 +34,20 @@ const fetchStaffIdentity = async () => {
 		await auth.signOut({ scope: "local" });
 		return null;
 	}
-	const requireMfa =
-		staff.role === "superuser" || data.user.factors?.some((factor) => factor.status === "verified");
-	const claims = requireMfa ? await auth.getClaims() : null;
-	const assured = !requireMfa || (!claims?.error && claims?.data?.claims.aal === "aal2");
-	return { staff, assured };
+	const hasFactor = Boolean(data.user.factors?.some((factor) => factor.status === "verified"));
+	const requireMfa = staff.role === "superuser" || hasFactor;
+	const result = await auth.getClaims();
+	const claims = result.data?.claims;
+	const sessionId = claims?.session_id;
+	if (!claims || typeof sessionId !== "string" || claims.sub !== data.user.id) return null;
+	const assured = !requireMfa || claims.aal === "aal2";
+	const [grant] = await db
+		.select({ expiresAt: staffPasswordGrants.expiresAt })
+		.from(staffPasswordGrants)
+		.where(
+			and(eq(staffPasswordGrants.sessionId, sessionId), eq(staffPasswordGrants.staffId, staff.id)),
+		);
+	return { staff, assured, hasFactor, sessionId, passwordGrant: grant?.expiresAt };
 };
 
 const requestStaff = new WeakMap<Request, ReturnType<typeof fetchStaffIdentity>>();
@@ -54,7 +63,7 @@ export const getStaffIdentity = () => {
 
 export const getStaff = async () => {
 	const identity = await getStaffIdentity();
-	return identity?.assured ? identity.staff : null;
+	return identity?.assured && !identity.passwordGrant ? identity.staff : null;
 };
 
 export const requireStaff = async (permission: Permission = "read") => {

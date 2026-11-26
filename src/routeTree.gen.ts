@@ -18,6 +18,9 @@ import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/_admin.team'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as PasswordConfirmRouteImport } from './routes/password.confirm'
+import { Route as PasswordResetRouteImport } from './routes/password.reset'
+import { Route as PasswordSetRouteImport } from './routes/password.set'
 import { Route as AdminCategoriesIndexRouteImport } from './routes/_admin.categories.index'
 import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/_admin.categories.$categoryId'
 import { Route as AdminCategoriesNewRouteImport } from './routes/_admin.categories.new'
@@ -87,6 +90,21 @@ const AdminTeamRoute = AdminTeamRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PasswordConfirmRoute = PasswordConfirmRouteImport.update({
+  id: '/password/confirm',
+  path: '/password/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PasswordResetRoute = PasswordResetRouteImport.update({
+  id: '/password/reset',
+  path: '/password/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PasswordSetRoute = PasswordSetRouteImport.update({
+  id: '/password/set',
+  path: '/password/set',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCategoriesIndexRoute = AdminCategoriesIndexRouteImport.update({
@@ -234,6 +252,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AdminSettingsRoute
   '/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/password/confirm': typeof PasswordConfirmRoute
+  '/password/reset': typeof PasswordResetRoute
+  '/password/set': typeof PasswordSetRoute
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
@@ -268,6 +289,9 @@ export interface FileRoutesByTo {
   '/audit': typeof AdminAuditRoute
   '/settings': typeof AdminSettingsRoute
   '/api/health': typeof ApiHealthRoute
+  '/password/confirm': typeof PasswordConfirmRoute
+  '/password/reset': typeof PasswordResetRoute
+  '/password/set': typeof PasswordSetRoute
   '/': typeof AdminIndexRoute
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
@@ -306,6 +330,9 @@ export interface FileRoutesById {
   '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/team': typeof AdminTeamRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/password/confirm': typeof PasswordConfirmRoute
+  '/password/reset': typeof PasswordResetRoute
+  '/password/set': typeof PasswordSetRoute
   '/_admin/': typeof AdminIndexRoute
   '/_admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/_admin/categories/new': typeof AdminCategoriesNewRoute
@@ -345,6 +372,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/api/health'
+    | '/password/confirm'
+    | '/password/reset'
+    | '/password/set'
     | '/categories/$categoryId'
     | '/categories/new'
     | '/customers/$customerId'
@@ -379,6 +409,9 @@ export interface FileRouteTypes {
     | '/audit'
     | '/settings'
     | '/api/health'
+    | '/password/confirm'
+    | '/password/reset'
+    | '/password/set'
     | '/'
     | '/categories/$categoryId'
     | '/categories/new'
@@ -416,6 +449,9 @@ export interface FileRouteTypes {
     | '/_admin/settings'
     | '/_admin/team'
     | '/api/health'
+    | '/password/confirm'
+    | '/password/reset'
+    | '/password/set'
     | '/_admin/'
     | '/_admin/categories/$categoryId'
     | '/_admin/categories/new'
@@ -450,6 +486,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   VerifyRoute: typeof VerifyRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  PasswordConfirmRoute: typeof PasswordConfirmRoute
+  PasswordResetRoute: typeof PasswordResetRoute
+  PasswordSetRoute: typeof PasswordSetRoute
   ApiReportsSalesRoute: typeof ApiReportsSalesRoute
   ApiStoreCatalogRoute: typeof ApiStoreCatalogRoute
   ApiStoreInventoryRoute: typeof ApiStoreInventoryRouteWithChildren
@@ -521,6 +560,27 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/password/confirm': {
+      id: '/password/confirm'
+      path: '/password/confirm'
+      fullPath: '/password/confirm'
+      preLoaderRoute: typeof PasswordConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/password/reset': {
+      id: '/password/reset'
+      path: '/password/reset'
+      fullPath: '/password/reset'
+      preLoaderRoute: typeof PasswordResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/password/set': {
+      id: '/password/set'
+      path: '/password/set'
+      fullPath: '/password/set'
+      preLoaderRoute: typeof PasswordSetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_admin/categories/': {
@@ -790,6 +850,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   VerifyRoute: VerifyRoute,
   ApiHealthRoute: ApiHealthRoute,
+  PasswordConfirmRoute: PasswordConfirmRoute,
+  PasswordResetRoute: PasswordResetRoute,
+  PasswordSetRoute: PasswordSetRoute,
   ApiReportsSalesRoute: ApiReportsSalesRoute,
   ApiStoreCatalogRoute: ApiStoreCatalogRoute,
   ApiStoreInventoryRoute: ApiStoreInventoryRouteWithChildren,
