@@ -125,25 +125,5 @@ export const MetricCards = ({
 				<MetricCard key={metric.label} {...metric} />
 			))}
 		</div>
-		<details className="text-xs text-muted-foreground">
-			<summary className="w-fit cursor-pointer font-medium text-foreground">
-				How metrics are calculated
-			</summary>
-			<ul className="mt-2 list-disc space-y-1 pl-5">
-				<li>
-					Paid sales sum order totals on the payment date, including tax and shipping and after
-					discounts. Cancelling a paid order leaves its payment in that total.
-				</li>
-				<li>
-					Refunds are counted on the refund date and subtracted from paid sales to calculate net.
-					Older refunds with no known date are excluded.
-				</li>
-				<li>
-					Average order value divides paid sales by the number of paid orders in the period. Orders
-					placed counts all new orders, including unpaid and cancelled orders.
-				</li>
-				<li>New customers counts customer profiles created during the period.</li>
-			</ul>
-		</details>
 	</div>
 );

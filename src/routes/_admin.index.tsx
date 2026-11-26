@@ -5,7 +5,6 @@ import { RecentOrders, StockWatch } from "@/features/overview/overview-panels";
 import { defaultRange, overviewSearchSchema } from "@/features/overview/overview-validation";
 import { readOverview } from "@/features/overview/overview.functions";
 import { RangeSelect } from "@/features/overview/range-select";
-import { ReportPeriod } from "@/features/overview/report-period";
 import { RevenueChart } from "@/features/overview/revenue-chart";
 import { WorkQueue } from "@/features/overview/work-queue";
 
@@ -34,7 +33,6 @@ const OverviewPage = () => {
 		<>
 			<OverviewHeading />
 			<WorkQueue counts={work} />
-			<ReportPeriod window={window} />
 			<MetricCards metrics={metrics} currency={store.currency} />
 			<div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]">
 				<StockWatch stock={stock.rows} total={stock.total} alerts={stock.alerts} />
