@@ -1,7 +1,7 @@
 import { listReturnSearchSchema } from "@/lib/list-return";
 import { createFileRoute } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
-import { StaffAccessForm } from "@/features/team/team-form";
+import { OwnershipTransfer, StaffAccessForm } from "@/features/team/team-form";
 import { readStaffAccount } from "@/features/team/team.functions";
 
 const StaffPage = () => {
@@ -15,6 +15,10 @@ const StaffPage = () => {
 				backLabel="Team"
 			/>
 			<StaffAccessForm key={account.id} account={account} />
+			{account.role !== "superuser" &&
+				account.linked &&
+				!account.passwordPending &&
+				!account.banned && <OwnershipTransfer account={account} />}
 		</>
 	);
 };

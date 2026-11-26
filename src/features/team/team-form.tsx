@@ -8,7 +8,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { NativeSelectOption } from "@/components/ui/native-select";
 import type { Role } from "@/features/auth/auth.types";
 import { roleDescriptions, roleLabels, roles } from "@/features/auth/permissions";
-import { addStaffAccount, writeStaffAccount } from "./team.functions";
+import { addStaffAccount, transferStaffOwnership, writeStaffAccount } from "./team.functions";
 import type { StaffAccount } from "./team.types";
 
 const RoleField = ({ selected, options }: { selected: Role; options: readonly Role[] }) => (
@@ -68,6 +68,16 @@ const EditableAccess = ({ account, version }: { account: StaffAccount; version: 
 	<>
 		<input type="hidden" name="id" value={account.id} />
 		<input type="hidden" name="version" value={version} />
+		<TextField name="name" label="Name" maxLength={80} defaultValue={account.name} required />
+		<TextField
+			name="email"
+			label="Email"
+			type="email"
+			maxLength={254}
+			defaultValue={account.email}
+			hint="Changing a sign-in email ends that account’s existing console sessions."
+			required
+		/>
 		<RoleField
 			selected={account.role}
 			options={account.role === "superuser" ? roles : ["manager", "viewer"]}
@@ -107,5 +117,34 @@ export const StaffAccessForm = ({ account }: { account: StaffAccount }) => {
 			</FormSection>
 			<RoleGuide />
 		</div>
+	);
+};
+
+export const OwnershipTransfer = ({ account }: { account: StaffAccount }) => {
+	const transfer = useServerFn(transferStaffOwnership);
+	return (
+		<details className="max-w-2xl space-y-3 rounded-lg border p-4">
+			<summary className="cursor-pointer font-medium">
+				Transfer your ownership to this person
+			</summary>
+			<p className="text-sm text-muted-foreground">
+				{account.name} will become a superuser. Your role will change to manager.
+			</p>
+			<AdminForm
+				onSave={(data) => transfer({ data })}
+				onSuccess={() => window.location.assign("/")}
+				submitLabel="Transfer ownership"
+				destructive
+			>
+				<input type="hidden" name="id" value={account.id} />
+				<input type="hidden" name="version" value={account.version} />
+				<TextField
+					name="confirmation"
+					label="Type TRANSFER to confirm"
+					autoComplete="off"
+					required
+				/>
+			</AdminForm>
+		</details>
 	);
 };

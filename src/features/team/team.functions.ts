@@ -8,9 +8,10 @@ import {
 	inviteStaffSchema,
 	staffIdSchema,
 	teamSearchSchema,
+	transferOwnershipSchema,
 } from "./team-validation";
 import { inviteStaffAccount } from "./provision-staff.server";
-import { editStaffAccount, findStaffAccount, listTeam } from "./team.server";
+import { editStaffAccount, findStaffAccount, listTeam, transferOwnership } from "./team.server";
 
 export const readTeam = createServerFn()
 	.validator(teamSearchSchema)
@@ -41,5 +42,15 @@ export const writeStaffAccount = createServerFn({ method: "POST" })
 	.handler(({ data }) =>
 		withStaffMutation("manageTeam", (staff) =>
 			mutate(editStaffSchema, data, (values) => editStaffAccount(values, staff.id)),
+		),
+	);
+
+export const transferStaffOwnership = createServerFn({ method: "POST" })
+	.validator(formDataSchema)
+	.handler(({ data }) =>
+		withStaffMutation("manageTeam", (staff) =>
+			mutate(transferOwnershipSchema, data, ({ id, version }) =>
+				transferOwnership(id, version, staff.id),
+			),
 		),
 	);
