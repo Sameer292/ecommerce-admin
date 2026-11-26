@@ -107,3 +107,5 @@ export const productFormSchema = catalogFormSchema.extend({
 		.transform(Number)
 		.pipe(ZInt().min(0).max(1_000_000)),
 });
+
+export const newProductSearchSchema = ZObject({ duplicate: ZUuid().optional().catch(undefined) });

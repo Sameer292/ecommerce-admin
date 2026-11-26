@@ -4,7 +4,11 @@ import { formDataSchema, idSchema } from "@/lib/validation";
 import { requireStaff, withStaffMutation } from "@/features/auth/session.server";
 import { mutate } from "@/server/mutation.server";
 import { categoryOptions } from "./categories.server";
-import { productFormSchema, productSearchSchema } from "./catalog-validation";
+import {
+	newProductSearchSchema,
+	productFormSchema,
+	productSearchSchema,
+} from "./catalog-validation";
 import {
 	deleteProduct,
 	findProduct,
@@ -21,10 +25,29 @@ export const readProducts = createServerFn()
 		return { ...page, categories };
 	});
 
-export const readNewProduct = createServerFn().handler(async () => {
-	await requireStaff("manageCommerce");
-	return categoryOptions();
-});
+export const readNewProduct = createServerFn()
+	.validator(newProductSearchSchema)
+	.handler(async ({ data }) => {
+		await requireStaff("manageCommerce");
+		const [categories, source] = await Promise.all([
+			categoryOptions(),
+			data.duplicate ? findProduct(data.duplicate) : null,
+		]);
+		if (data.duplicate && !source) throw notFound();
+		const draft = source
+			? {
+					name: `${source.name.slice(0, 115)} copy`,
+					sku: "",
+					description: source.description,
+					categoryId: source.categoryId,
+					imageUrl: source.imageUrl,
+					priceMinor: source.priceMinor,
+					lowStockThreshold: source.lowStockThreshold,
+					status: "draft" as const,
+				}
+			: undefined;
+		return { categories, draft };
+	});
 
 export const readProduct = createServerFn()
 	.validator(idSchema)

@@ -33,6 +33,15 @@ const ProductActions = ({
 				View inventory
 			</Link>
 			{editable && (
+				<Link
+					to="/products/new"
+					search={{ duplicate: id, returnTo: returnHref }}
+					className={buttonVariants({ variant: "outline", size: "lg" })}
+				>
+					Duplicate as draft
+				</Link>
+			)}
+			{editable && (
 				<DeleteRecord
 					id={id}
 					record="product"

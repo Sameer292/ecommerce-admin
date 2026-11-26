@@ -13,8 +13,21 @@ import { httpsImageUrlPattern } from "./catalog-validation";
 import type { CategoryOption, Product } from "./catalog.types";
 import { writeProduct } from "./products.functions";
 
+type ProductDefaults = Pick<
+	Product,
+	| "name"
+	| "sku"
+	| "description"
+	| "categoryId"
+	| "imageUrl"
+	| "priceMinor"
+	| "lowStockThreshold"
+	| "status"
+> & { slug?: string };
+
 type ProductFormProps = {
 	product?: Product;
+	draft?: ProductDefaults;
 	categories: CategoryOption[];
 	currency: string;
 	editable: boolean;
@@ -23,7 +36,10 @@ type ProductFormProps = {
 const ProductCategory = ({
 	product,
 	categories,
-}: Pick<ProductFormProps, "product" | "categories">) => (
+}: {
+	product?: ProductDefaults;
+	categories: CategoryOption[];
+}) => (
 	<SelectField name="categoryId" label="Category" defaultValue={product?.categoryId ?? ""}>
 		<NativeSelectOption value="">Uncategorized</NativeSelectOption>
 		{categories.map(({ id, name }) => (
@@ -37,7 +53,10 @@ const ProductCategory = ({
 const ProductDetails = ({
 	product,
 	categories,
-}: Pick<ProductFormProps, "product" | "categories">) => (
+}: {
+	product?: ProductDefaults;
+	categories: CategoryOption[];
+}) => (
 	<FormSection title="Product details">
 		<CatalogNameFields initialName={product?.name} initialSlug={product?.slug} />
 		<TextField name="sku" label="SKU" maxLength={80} defaultValue={product?.sku} required />
@@ -61,7 +80,13 @@ const ProductDetails = ({
 	</FormSection>
 );
 
-const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product" | "currency">) => (
+const ProductSettings = ({
+	product,
+	currency,
+}: {
+	product?: ProductDefaults;
+	currency: string;
+}) => (
 	<FormSection title="Pricing and availability">
 		<TextField
 			name="price"
@@ -91,7 +116,13 @@ const ProductSettings = ({ product, currency }: Pick<ProductFormProps, "product"
 	</FormSection>
 );
 
-export const ProductForm = ({ product, categories, currency, editable }: ProductFormProps) => {
+export const ProductForm = ({
+	product,
+	draft,
+	categories,
+	currency,
+	editable,
+}: ProductFormProps) => {
 	const [version] = useState(product?.version);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/products");
@@ -109,8 +140,8 @@ export const ProductForm = ({ product, categories, currency, editable }: Product
 			<input type="hidden" name="id" value={product?.id ?? ""} />
 			{product && <input type="hidden" name="version" value={version} />}
 			<div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-				<ProductDetails product={product} categories={categories} />
-				<ProductSettings product={product} currency={currency} />
+				<ProductDetails product={product ?? draft} categories={categories} />
+				<ProductSettings product={product ?? draft} currency={currency} />
 			</div>
 		</AdminForm>
 	);
