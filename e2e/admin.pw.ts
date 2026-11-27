@@ -32,7 +32,11 @@ test("applies mobile order filters from the search bar", async ({ page }) => {
 	const sheet = page.getByRole("dialog", { name: "Date, total and shipping filters" });
 	await sheet.getByRole("combobox", { name: "Shipping state" }).click();
 	await page.getByRole("option", { name: "In transit" }).click();
-	await sheet.getByLabel("Placed from").fill("2025-02-01");
+	await sheet.getByRole("button", { name: "Placed from", exact: true }).click();
+	const today = page.getByRole("gridcell").and(page.locator('[data-today="true"]'));
+	const placedFrom = await today.getAttribute("data-day");
+	expect(placedFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+	await today.getByRole("button").click();
 	await sheet.getByLabel("Minimum total (USD)").fill("0");
 	await expect(page).not.toHaveURL(/shipping=in_transit/);
 	await sheet.getByRole("button", { name: "Apply filters" }).click();
@@ -40,7 +44,7 @@ test("applies mobile order filters from the search bar", async ({ page }) => {
 	await expect(page.getByRole("button", { name: "Order filters (filters applied)" })).toBeVisible();
 	const search = new URL(page.url()).searchParams;
 	expect(search.get("shipping")).toBe("in_transit");
-	expect(search.get("placedFrom")).toBe("2025-02-01");
+	expect(search.get("placedFrom")).toBe(placedFrom);
 	expect(search.get("minTotalMinor")).toBe("0");
 });
 

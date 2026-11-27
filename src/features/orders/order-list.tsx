@@ -2,6 +2,7 @@ import { Cancel01Icon, FilterIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState, type SubmitEvent } from "react";
 import { ClearFilters } from "@/components/admin/data-table";
+import { DateField } from "@/components/admin/date-field";
 import { listSorting } from "@/components/admin/table-sorting";
 import { FilterSelect, FormField, TextField } from "@/components/admin/form-fields";
 import { currencyDigits, moneyInput } from "@/lib/format";
@@ -93,12 +94,17 @@ const AdvancedOrderFields = ({
 				/>
 			)}
 		/>
-		<TextField name="placedFrom" type="date" label="Placed from" defaultValue={search.placedFrom} />
-		<TextField
+		<DateField
+			name="placedFrom"
+			label="Placed from"
+			defaultValue={search.placedFrom}
+			submitOnChange={submitOnChange}
+		/>
+		<DateField
 			name="placedThrough"
-			type="date"
 			label="Placed through"
 			defaultValue={search.placedThrough}
+			submitOnChange={submitOnChange}
 		/>
 		<TextField
 			name="minTotal"
