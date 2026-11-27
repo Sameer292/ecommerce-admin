@@ -16,8 +16,7 @@ export const Route = createFileRoute("/_admin")({
 			queryFn: ({ signal }) => readWorkspace({ signal }),
 			staleTime: Infinity,
 		});
-		if (!workspace)
-			throw redirect({ to: "/login", search: { returnTo: loginReturn(location.href) } });
+		if (!workspace) throw redirect({ to: "/", search: { returnTo: loginReturn(location.href) } });
 		return workspace;
 	},
 	loader: ({ context: { staff, store } }): Workspace => ({ staff, store }),

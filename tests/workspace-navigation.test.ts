@@ -51,12 +51,12 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 				path,
 				loader: ({ location }) => {
 					pageChecks++;
-					if (!authorized) throw redirect({ to: "/login", search: { returnTo: location.href } });
+					if (!authorized) throw redirect({ to: "/", search: { returnTo: location.href } });
 					return path;
 				},
 			}),
 		);
-		const login = createRoute({ getParentRoute: () => root, path: "login" });
+		const login = createRoute({ getParentRoute: () => root, path: "/" });
 		return createRouter({
 			routeTree: root.addChildren([admin.addChildren(pages), login]),
 			context: { queryClient: createQueryClient() },
@@ -94,11 +94,11 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 		await router.navigate({ to: "/products" });
 		assert.equal(workspaceCalls, 3);
 		assert.ok(pageChecks > checksBeforeRevocation);
-		assert.equal(router.state.location.pathname, "/login");
+		assert.equal(router.state.location.pathname, "/");
 		const unauthenticated = makeRouter();
 		await unauthenticated.load();
 		assert.equal(workspaceCalls, 4);
-		assert.equal(unauthenticated.state.location.pathname, "/login");
+		assert.equal(unauthenticated.state.location.pathname, "/");
 		assert.equal(
 			new URL(unauthenticated.state.location.href, "http://localhost").searchParams.get("returnTo"),
 			"/products",
@@ -109,9 +109,64 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 	}
 });
 
+test("sign-in uses the root, preserves deep links, and routes staff by sign-in step", async () => {
+	let step = "signin";
+	const originalFunctions = { ...(await import("../src/features/auth/session.functions")) };
+	mock.module("../src/features/auth/session.functions", () => ({
+		...originalFunctions,
+		readSignInStep: async () => step,
+	}));
+	try {
+		const { Route: Index } = await import("../src/routes/index");
+		const { Route: LegacyLogin } = await import("../src/routes/login");
+		const load = async (href: string) => {
+			const root = createRootRouteWithContext<{ queryClient: QueryClient }>()();
+			const index = createRoute({
+				getParentRoute: () => root,
+				path: "/",
+				validateSearch: Index.options.validateSearch,
+				beforeLoad: Index.options.beforeLoad,
+			});
+			const login = createRoute({
+				getParentRoute: () => root,
+				path: "login",
+				validateSearch: LegacyLogin.options.validateSearch,
+				beforeLoad: LegacyLogin.options.beforeLoad,
+			});
+			const destinations = ["dashboard", "orders", "password/set"].map((path) =>
+				createRoute({ getParentRoute: () => root, path }),
+			);
+			const router = createRouter({
+				routeTree: root.addChildren([index, login, ...destinations]),
+				context: { queryClient: createQueryClient() },
+				history: createMemoryHistory({ initialEntries: [href] }),
+				origin: "http://localhost",
+				isServer: false,
+			});
+			await router.load();
+			return router.state.location.href;
+		};
+		assert.equal(await load("/"), "/");
+		const orders = "/orders?view=to_fulfill";
+		const legacy = `/login?returnTo=${encodeURIComponent(orders)}`;
+		const login = new URL(await load(legacy), "http://localhost");
+		assert.equal(login.pathname, "/");
+		assert.equal(login.searchParams.get("returnTo"), orders);
+		step = "ready";
+		assert.equal(await load("/"), "/dashboard");
+		assert.equal(await load("/?range=7"), "/dashboard?range=7");
+		assert.equal(await load(legacy), orders);
+		step = "password";
+		assert.equal(await load("/"), "/password/set");
+	} finally {
+		mock.module("../src/features/auth/session.functions", () => originalFunctions);
+		mock.restore();
+	}
+});
+
 test("the top bar displays page titles without section names", async () => {
 	const { navigationTitle } = await import("../src/components/admin/navigation");
-	assert.equal(navigationTitle("/"), "Dashboard");
+	assert.equal(navigationTitle("/dashboard"), "Dashboard");
 	assert.equal(navigationTitle("/products/id"), "Products");
 	assert.equal(navigationTitle("/categories/"), "Categories");
 	assert.equal(navigationTitle("/settings"), "Settings");

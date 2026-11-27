@@ -7,7 +7,8 @@ export const loginReturn = (value: unknown): string | undefined => {
 	if (url.origin !== base || url.pathname.startsWith("//")) return undefined;
 	if (url.pathname === "/password/set") return "/password/set";
 	const adminPath =
-		/^\/(?:products|product-import|categories|orders|customers|inventory|team|settings|integrations|audit)(?:\/|$)/;
-	if (url.pathname !== "/" && !adminPath.test(url.pathname)) return undefined;
-	return url.pathname + url.search + url.hash;
+		/^\/(?:dashboard|products|product-import|categories|orders|customers|inventory|team|settings|integrations|audit)(?:\/|$)/;
+	const pathname = url.pathname === "/" ? "/dashboard" : url.pathname;
+	if (!adminPath.test(pathname)) return undefined;
+	return pathname + url.search + url.hash;
 };

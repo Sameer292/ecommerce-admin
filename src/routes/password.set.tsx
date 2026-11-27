@@ -17,7 +17,7 @@ const PasswordSet = () => {
 			{grant === "ready" ? (
 				<AdminForm
 					onSave={(data) => save({ data })}
-					onSuccess={() => window.location.replace("/login")}
+					onSuccess={() => window.location.replace("/")}
 					submitLabel="Set password"
 					successMessage="Password saved. Sign in again."
 				>

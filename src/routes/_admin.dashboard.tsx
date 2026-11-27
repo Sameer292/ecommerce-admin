@@ -44,7 +44,7 @@ const OverviewPage = () => {
 	);
 };
 
-export const Route = createFileRoute("/_admin/")({
+export const Route = createFileRoute("/_admin/dashboard")({
 	validateSearch: overviewSearchSchema,
 	search: { middlewares: [stripSearchParams({ range: defaultRange })] },
 	loaderDeps: ({ search }) => search,

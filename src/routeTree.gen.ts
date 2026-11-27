@@ -9,11 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminAccessDeniedRouteImport } from './routes/_admin.access-denied'
 import { Route as AdminAuditRouteImport } from './routes/_admin.audit'
+import { Route as AdminDashboardRouteImport } from './routes/_admin.dashboard'
 import { Route as AdminIntegrationsRouteImport } from './routes/_admin.integrations'
 import { Route as AdminProductImportRouteImport } from './routes/_admin.product-import'
 import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
@@ -48,6 +49,11 @@ import { Route as ApiStoreOrdersRouteImport } from './routes/api/store/orders'
 import { Route as ApiCustomersCustomerIdExportRouteImport } from './routes/api/customers/$customerId/export'
 import { Route as ApiStoreInventoryAlertsRouteImport } from './routes/api/store/inventory/alerts'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => rootRouteImport,
@@ -57,11 +63,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
   id: '/access-denied',
   path: '/access-denied',
@@ -70,6 +71,11 @@ const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
@@ -243,10 +249,11 @@ const ApiStoreInventoryAlertsRoute = ApiStoreInventoryAlertsRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AdminIndexRoute
+  '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
+  '/dashboard': typeof AdminDashboardRoute
   '/integrations': typeof AdminIntegrationsRoute
   '/product-import': typeof AdminProductImportRoute
   '/settings': typeof AdminSettingsRoute
@@ -282,9 +289,11 @@ export interface FileRoutesByFullPath {
   '/api/store/inventory/alerts': typeof ApiStoreInventoryAlertsRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/access-denied': typeof AdminAccessDeniedRoute
   '/audit': typeof AdminAuditRoute
+  '/dashboard': typeof AdminDashboardRoute
   '/integrations': typeof AdminIntegrationsRoute
   '/product-import': typeof AdminProductImportRoute
   '/settings': typeof AdminSettingsRoute
@@ -292,7 +301,6 @@ export interface FileRoutesByTo {
   '/password/confirm': typeof PasswordConfirmRoute
   '/password/reset': typeof PasswordResetRoute
   '/password/set': typeof PasswordSetRoute
-  '/': typeof AdminIndexRoute
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
@@ -321,10 +329,12 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/_admin/access-denied': typeof AdminAccessDeniedRoute
   '/_admin/audit': typeof AdminAuditRoute
+  '/_admin/dashboard': typeof AdminDashboardRoute
   '/_admin/integrations': typeof AdminIntegrationsRoute
   '/_admin/product-import': typeof AdminProductImportRoute
   '/_admin/settings': typeof AdminSettingsRoute
@@ -333,7 +343,6 @@ export interface FileRoutesById {
   '/password/confirm': typeof PasswordConfirmRoute
   '/password/reset': typeof PasswordResetRoute
   '/password/set': typeof PasswordSetRoute
-  '/_admin/': typeof AdminIndexRoute
   '/_admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/_admin/categories/new': typeof AdminCategoriesNewRoute
   '/_admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/access-denied'
     | '/audit'
+    | '/dashboard'
     | '/integrations'
     | '/product-import'
     | '/settings'
@@ -402,9 +412,11 @@ export interface FileRouteTypes {
     | '/api/store/inventory/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/login'
     | '/access-denied'
     | '/audit'
+    | '/dashboard'
     | '/integrations'
     | '/product-import'
     | '/settings'
@@ -412,7 +424,6 @@ export interface FileRouteTypes {
     | '/password/confirm'
     | '/password/reset'
     | '/password/set'
-    | '/'
     | '/categories/$categoryId'
     | '/categories/new'
     | '/customers/$customerId'
@@ -440,10 +451,12 @@ export interface FileRouteTypes {
     | '/api/store/inventory/alerts'
   id:
     | '__root__'
+    | '/'
     | '/_admin'
     | '/login'
     | '/_admin/access-denied'
     | '/_admin/audit'
+    | '/_admin/dashboard'
     | '/_admin/integrations'
     | '/_admin/product-import'
     | '/_admin/settings'
@@ -452,7 +465,6 @@ export interface FileRouteTypes {
     | '/password/confirm'
     | '/password/reset'
     | '/password/set'
-    | '/_admin/'
     | '/_admin/categories/$categoryId'
     | '/_admin/categories/new'
     | '/_admin/customers/$customerId'
@@ -481,6 +493,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
@@ -498,6 +511,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_admin': {
       id: '/_admin'
       path: ''
@@ -512,13 +532,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_admin/': {
-      id: '/_admin/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/_admin/access-denied': {
       id: '/_admin/access-denied'
       path: '/access-denied'
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/dashboard': {
+      id: '/_admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/integrations': {
@@ -786,11 +806,11 @@ const AdminTeamRouteWithChildren = AdminTeamRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminAccessDeniedRoute: typeof AdminAccessDeniedRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminProductImportRoute: typeof AdminProductImportRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTeamRoute: typeof AdminTeamRouteWithChildren
-  AdminIndexRoute: typeof AdminIndexRoute
   AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
   AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
@@ -810,11 +830,11 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAccessDeniedRoute: AdminAccessDeniedRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminProductImportRoute: AdminProductImportRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTeamRoute: AdminTeamRouteWithChildren,
-  AdminIndexRoute: AdminIndexRoute,
   AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
   AdminCategoriesNewRoute: AdminCategoriesNewRoute,
   AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
@@ -845,6 +865,7 @@ const ApiStoreInventoryRouteWithChildren =
   ApiStoreInventoryRoute._addFileChildren(ApiStoreInventoryRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,

@@ -9,7 +9,7 @@ const AccessDenied = () => (
 			description="Your staff role does not have access to this page."
 		/>
 		<div>
-			<Link to="/" className={buttonVariants({ variant: "outline" })}>
+			<Link to="/dashboard" className={buttonVariants({ variant: "outline" })}>
 				Back to dashboard
 			</Link>
 		</div>

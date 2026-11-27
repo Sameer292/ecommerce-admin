@@ -141,7 +141,7 @@ export const AdminForm = ({
 					{failure.error}
 					{failure.reauthenticate && (
 						<Link
-							to="/login"
+							to="/"
 							search={{ returnTo: loginReturn(href) }}
 							target="_blank"
 							rel="noopener"

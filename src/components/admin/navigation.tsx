@@ -25,7 +25,7 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 	{
 		name: "Workspace",
 		items: [
-			{ to: "/", label: "Dashboard", icon: DashboardSquare01Icon },
+			{ to: "/dashboard", label: "Dashboard", icon: DashboardSquare01Icon },
 			{ to: "/orders", label: "Orders", icon: ShoppingBasket01Icon },
 			{ to: "/customers", label: "Customers", icon: UserMultipleIcon },
 		],
@@ -57,9 +57,7 @@ const standaloneTitles: Record<string, string> = {
 export const navigationTitle = (pathname: string) => {
 	const path = pathname.replace(/\/$/, "") || "/";
 	for (const group of groups) {
-		const item = group.items.find(
-			({ to }) => path === to || (to !== "/" && path.startsWith(`${to}/`)),
-		);
+		const item = group.items.find(({ to }) => path === to || path.startsWith(`${to}/`));
 		if (item) return item.label;
 	}
 	return standaloneTitles[path] ?? "Page not found";
@@ -74,7 +72,7 @@ const NavigationLink = ({
 }) => (
 	<Link
 		to={item.to}
-		activeOptions={{ exact: item.to === "/", includeSearch: false }}
+		activeOptions={{ includeSearch: false }}
 		preload={"intent"}
 		onClick={onNavigate}
 		className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[status=active]:bg-sidebar-accent data-[status=active]:font-semibold data-[status=active]:text-sidebar-accent-foreground"

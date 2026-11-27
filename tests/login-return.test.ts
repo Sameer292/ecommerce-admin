@@ -7,7 +7,8 @@ test("login returns to a filtered admin page and rejects untrusted destinations"
 		loginReturn("/orders/abc?sort=date.desc#activity"),
 		"/orders/abc?sort=date.desc#activity",
 	);
-	assert.equal(loginReturn("/?range=30"), "/?range=30");
+	assert.equal(loginReturn("/dashboard?range=90"), "/dashboard?range=90");
+	assert.equal(loginReturn("/?range=7"), "/dashboard?range=7");
 	for (const url of [
 		null,
 		"//other.test",

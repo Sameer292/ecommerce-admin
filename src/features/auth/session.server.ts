@@ -83,7 +83,7 @@ export const requireStaff = async (permission: Permission = "read") => {
 		const referrer = getRequest().headers.get("referer") ?? "";
 		const referer = URL.canParse(referrer) ? new URL(referrer) : undefined;
 		const returnTo = referer ? loginReturn(referer.pathname + referer.search) : undefined;
-		throw redirect({ to: "/login", search: { returnTo } });
+		throw redirect({ to: "/", search: { returnTo } });
 	}
 	if (!can(staff.role, permission)) throw new Response("Forbidden", { status: 403 });
 	return staff;

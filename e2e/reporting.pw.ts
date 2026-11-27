@@ -5,6 +5,7 @@ test("uses presets on the dashboard and exports custom dates through the API", a
 	const url = "/api/reports/sales?from=2025-02-01&through=2025-02-02";
 	expect((await page.request.get(url)).status()).toBe(401);
 	await signIn(page, "/", "VIEWER");
+	await expect(page).toHaveURL(/\/dashboard$/);
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.getByRole("combobox", { name: "Reporting period" }).click();
 	await expect(page.getByRole("option", { name: "Custom dates" })).toHaveCount(0);
@@ -31,6 +32,7 @@ test("opens the dashboard work queues with their filters applied", async ({ page
 	await page.getByRole("link", { name: /Ready for fulfillment/ }).click();
 	await expect(page).toHaveURL(/\/orders\?view=to_fulfill/);
 	await page.goto("/");
+	await expect(page).toHaveURL(/\/dashboard$/);
 	await page.getByRole("link", { name: /Synchronization failures/ }).click();
 	await expect(page.getByRole("heading", { name: "Synchronization failures" })).toBeVisible();
 });

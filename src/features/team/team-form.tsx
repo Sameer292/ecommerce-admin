@@ -132,7 +132,7 @@ export const OwnershipTransfer = ({ account }: { account: StaffAccount }) => {
 			</p>
 			<AdminForm
 				onSave={(data) => transfer({ data })}
-				onSuccess={() => window.location.assign("/")}
+				onSuccess={() => window.location.assign("/dashboard")}
 				submitLabel="Transfer ownership"
 				destructive
 			>

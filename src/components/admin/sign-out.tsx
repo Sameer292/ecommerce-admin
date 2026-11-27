@@ -17,7 +17,7 @@ const useSignOut = () => {
 			const result = await endSession();
 			if (!result.success) return setStatus("error");
 			discardChanges();
-			window.location.assign("/login");
+			window.location.assign("/");
 		} catch {
 			setStatus("error");
 		}

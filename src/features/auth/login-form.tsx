@@ -44,7 +44,7 @@ const useSignIn = (returnTo?: string) => {
 		setFailure(undefined);
 		try {
 			const result = await signIn({ data: new FormData(event.currentTarget) });
-			if (result.success) return window.location.assign(returnTo ?? "/");
+			if (result.success) return window.location.assign(returnTo ?? "/dashboard");
 			setFailure(result);
 		} catch {
 			setFailure({ success: false, error: "Couldn’t connect. Try again." });

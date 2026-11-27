@@ -31,7 +31,7 @@ const PasswordReset = () => {
 					/>
 				</AdminForm>
 			)}
-			<Link to="/login" className="mt-3 block w-fit text-sm font-medium underline">
+			<Link to="/" className="mt-3 block w-fit text-sm font-medium underline">
 				Back to sign in
 			</Link>
 		</AuthLayout>
