@@ -26,7 +26,7 @@ export const CustomerContact = ({
 	return (
 		<div className="flex flex-wrap items-center gap-2">
 			{href ? (
-				<a href={href} className={cn(valueClassName, "underline underline-offset-2")} title={title}>
+				<a href={href} className={cn(valueClassName, "hover:underline underline-offset-2")} title={title}>
 					{value}
 				</a>
 			) : (

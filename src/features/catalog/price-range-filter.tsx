@@ -22,7 +22,7 @@ export const PriceRangeFilter = ({ search, currency }: PriceRangeProps) => {
 	return (
 		<FieldSet className="min-w-0 gap-2 max-md:w-full">
 			<FieldLegend className="sr-only">Price range ({currency})</FieldLegend>
-			<FieldGroup className="grid grid-cols-2 gap-2 md:flex md:flex-row md:items-center">
+			<FieldGroup className="grid grid-cols-2 gap-2 md:@container-normal md:flex md:flex-row md:items-center">
 				<span aria-hidden className="col-span-2 text-sm text-muted-foreground">
 					Price ({currency})
 				</span>

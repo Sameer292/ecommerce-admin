@@ -38,7 +38,7 @@ export const ProductFilters = ({ search, categories, currency, onSearch }: Produ
 					: undefined
 			}
 		>
-			<FieldGroup className="grid grid-cols-2 gap-2 md:flex md:w-auto md:flex-row">
+			<FieldGroup className="grid grid-cols-2 gap-2 md:@container-normal md:flex md:w-auto md:flex-row">
 				<FilterSelect
 					name="status"
 					label="Product status"
