@@ -45,7 +45,7 @@ export const FormField = ({
 		return (
 			<Field>
 				<FieldTitle>{label}</FieldTitle>
-				<p className="text-sm break-words whitespace-pre-wrap">
+				<p className="text-sm wrap-break-word whitespace-pre-wrap">
 					{readOnlyValue === "" || readOnlyValue == null ? "—" : readOnlyValue}
 				</p>
 			</Field>

@@ -21,11 +21,20 @@ const ProductsPage = () => {
 				description="Manage items, pricing, and visibility across your catalog."
 			>
 				{can(staff.role, "manageCommerce") && (
-					<Link to="/product-import" className={buttonVariants({ variant: "outline", size: "lg" })}>
-						Catalog CSV
-					</Link>
+					<div className="flex w-full flex-wrap items-center justify-between gap-2 md:ml-auto md:w-auto">
+						<Link
+							to="/product-import"
+							className={buttonVariants({
+								variant: "outline",
+								size: "lg",
+								className: "border-input bg-input/30 hover:bg-input/50",
+							})}
+						>
+							Catalog CSV
+						</Link>
+						<NewRecord to="/products/new" label="Add product" />
+					</div>
 				)}
-				{can(staff.role, "manageCommerce") && <NewRecord to="/products/new" label="Add product" />}
 			</PageHeading>
 			<ProductList
 				{...data}

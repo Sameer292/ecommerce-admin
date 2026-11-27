@@ -44,7 +44,7 @@ export const DateField = ({
 								variant="outline"
 								aria-label={formatted ? `${label}: ${formatted}` : label}
 								data-empty={!date}
-								className="w-full justify-start font-normal data-[empty=true]:text-muted-foreground"
+								className="w-full justify-start font-normal text-xs data-[empty=true]:text-muted-foreground"
 							/>
 						}
 					>

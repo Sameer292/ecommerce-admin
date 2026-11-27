@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { FieldError, FieldLegend, FieldSet } from "@/components/ui/field";
+import { FieldError, FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { moneyInput } from "@/lib/format";
 import { readPriceBounds } from "./catalog-validation";
@@ -20,10 +20,12 @@ export const PriceRangeFilter = ({ search, currency }: PriceRangeProps) => {
 	);
 	const invalid = readPriceBounds(minimum, maximum, currency) === null;
 	return (
-		<FieldSet className="min-w-0 gap-2">
+		<FieldSet className="min-w-0 gap-2 max-md:w-full">
 			<FieldLegend className="sr-only">Price range ({currency})</FieldLegend>
-			<div className="flex flex-wrap items-center gap-2">
-				<span className="text-sm text-muted-foreground">Price ({currency})</span>
+			<FieldGroup className="grid grid-cols-2 gap-2 md:flex md:flex-row md:items-center">
+				<span aria-hidden className="col-span-2 text-sm text-muted-foreground">
+					Price ({currency})
+				</span>
 				<Input
 					name="minPrice"
 					aria-label={`Minimum price (${currency})`}
@@ -34,7 +36,7 @@ export const PriceRangeFilter = ({ search, currency }: PriceRangeProps) => {
 					aria-describedby={invalid ? errorId : undefined}
 					value={minimum}
 					onChange={(event) => setMinimum(event.currentTarget.value)}
-					className="w-24 tabular-nums"
+					className="tabular-nums md:w-24"
 				/>
 				<Input
 					name="maxPrice"
@@ -46,9 +48,9 @@ export const PriceRangeFilter = ({ search, currency }: PriceRangeProps) => {
 					aria-describedby={invalid ? errorId : undefined}
 					value={maximum}
 					onChange={(event) => setMaximum(event.currentTarget.value)}
-					className="w-24 tabular-nums"
+					className="tabular-nums md:w-24"
 				/>
-			</div>
+			</FieldGroup>
 			{invalid && (
 				<FieldError id={errorId}>
 					Enter valid prices with the minimum at or below the maximum.

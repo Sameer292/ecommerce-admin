@@ -94,38 +94,44 @@ const AdvancedOrderFields = ({
 				/>
 			)}
 		/>
-		<DateField
-			name="placedFrom"
-			label="Placed from"
-			defaultValue={search.placedFrom}
-			submitOnChange={submitOnChange}
-		/>
-		<DateField
-			name="placedThrough"
-			label="Placed through"
-			defaultValue={search.placedThrough}
-			submitOnChange={submitOnChange}
-		/>
-		<TextField
-			name="minTotal"
-			type="number"
-			min={0}
-			step={10 ** -currencyDigits(currency)}
-			label={`Minimum total (${currency})`}
-			defaultValue={
-				search.minTotalMinor === undefined ? "" : moneyInput(search.minTotalMinor, currency)
-			}
-		/>
-		<TextField
-			name="maxTotal"
-			type="number"
-			min={0}
-			step={10 ** -currencyDigits(currency)}
-			label={`Maximum total (${currency})`}
-			defaultValue={
-				search.maxTotalMinor === undefined ? "" : moneyInput(search.maxTotalMinor, currency)
-			}
-		/>
+		<div className="grid gap-3 grid-cols-2 ">
+			<DateField
+				name="placedFrom"
+				label="Placed from"
+				defaultValue={search.placedFrom}
+				submitOnChange={submitOnChange}
+			/>
+			<DateField
+				name="placedThrough"
+				label="Placed through"
+				defaultValue={search.placedThrough}
+				submitOnChange={submitOnChange}
+			/>
+		</div>
+		<div className="grid gap-3 grid-cols-2 ">
+			<TextField
+				name="minTotal"
+				type="number"
+				min={0}
+				placeholder="$ 0.00"
+				step={10 ** -currencyDigits(currency)}
+				label={`Minimum total (${currency})`}
+				defaultValue={
+					search.minTotalMinor === undefined ? "" : moneyInput(search.minTotalMinor, currency)
+				}
+			/>
+			<TextField
+				name="maxTotal"
+				type="number"
+				min={0}
+				placeholder="$ 0.00"
+				step={10 ** -currencyDigits(currency)}
+				label={`Maximum total (${currency})`}
+				defaultValue={
+					search.maxTotalMinor === undefined ? "" : moneyInput(search.maxTotalMinor, currency)
+				}
+			/>
+		</div>
 	</>
 );
 
@@ -185,7 +191,7 @@ const OrderFilterSheet = ({
 				</SheetHeader>
 				<form
 					onSubmit={submit}
-					className="flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+					className="flex min-h-0 flex-col gap-6 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
 				>
 					<AdvancedOrderFields search={search} currency={currency} submitOnChange={false} />
 					{invalid && (
