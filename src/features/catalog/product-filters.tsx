@@ -1,5 +1,5 @@
 import { ListControls } from "@/components/admin/list-controls";
-import { FilterSelect } from "@/components/admin/form-fields";
+import { FilterSelect } from "@/components/admin/select-field";
 import { FieldGroup } from "@/components/ui/field";
 import { productStatusOptions } from "./catalog-options";
 import { readProductFilters } from "./catalog-validation";

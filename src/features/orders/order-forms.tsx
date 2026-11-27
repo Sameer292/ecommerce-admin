@@ -2,7 +2,8 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
-import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
+import { NotesField, TextField } from "@/components/admin/form-fields";
+import { SelectField } from "@/components/admin/select-field";
 import { FormSection } from "@/components/admin/form-section";
 import {
 	canChangePaymentCollection,

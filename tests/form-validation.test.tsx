@@ -2,12 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { object as ZObject, string as ZString } from "zod";
-import {
-	FieldValidation,
-	ReadOnlyFields,
-	SelectField,
-	TextField,
-} from "../src/components/admin/form-fields";
+import { FieldValidation, ReadOnlyFields, TextField } from "../src/components/admin/form-fields";
+import { SelectField } from "../src/components/admin/select-field";
 import { customerFormSchema } from "../src/features/customers/customer-validation";
 import { ActionError, mutate } from "../src/server/mutation.server";
 

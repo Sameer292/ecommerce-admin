@@ -6,7 +6,7 @@ import { ClearFilters, DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
-import { FilterSelect } from "@/components/admin/form-fields";
+import { FilterSelect } from "@/components/admin/select-field";
 import {
 	productStatusOptions,
 	stockFilterLabels,
