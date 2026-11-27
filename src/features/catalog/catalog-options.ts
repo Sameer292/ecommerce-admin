@@ -147,7 +147,13 @@ export const productStatusLabels = {
 	archived: "Archived",
 } as const;
 
+export const productStatusOptions = productStatuses.map((value) => ({
+	value,
+	label: productStatusLabels[value],
+}));
+
 export const stockFilters = ["in", "out", "low", "at_or_below"] as const;
+export const lowStockThreshold = 10;
 
 export const stockFilterLabels = {
 	in: "Above threshold",

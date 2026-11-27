@@ -11,7 +11,7 @@ import { sortSchema } from "@/lib/sort";
 import { adjustmentKinds } from "./stock-adjustment";
 
 export const inventorySearchSchema = pageSearchSchema.extend({
-	sort: sortSchema("name", "sku", "threshold", "stock"),
+	sort: sortSchema("name", "sku", "stock"),
 	stock: ZEnum(stockFilters).optional().catch(undefined),
 	status: ZEnum(productStatuses).optional().catch(undefined),
 });
@@ -39,6 +39,8 @@ export const adjustmentSchema = ZObject({
 	{ path: ["quantity"], message: "Enter a quantity allowed for this adjustment." },
 );
 
-export const stockHistorySearchSchema = pageSearchSchema.pick({ page: true }).extend({
-	sort: sortSchema("date", "staff", "change"),
-});
+export const stockHistorySearchSchema = pageSearchSchema
+	.pick({ page: true, perPage: true })
+	.extend({
+		sort: sortSchema("date", "staff", "change"),
+	});

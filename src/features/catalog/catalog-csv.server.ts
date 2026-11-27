@@ -114,7 +114,6 @@ export const prepareCatalogImport = async (
 			categoryId: categoryBySlug.get(categorySlug) ?? "",
 			description: cells.description,
 			imageUrl: cells.image_url,
-			lowStockThreshold: cells.low_stock_threshold.trim(),
 			variantOf: parent?.id,
 			variantOptions: cells.variant_options.trim() || undefined,
 		});
@@ -188,7 +187,6 @@ export const exportCatalogCsv = async () => {
 					category: categories.slug,
 					description: products.description,
 					url: products.imageUrl,
-					threshold: products.lowStockThreshold,
 					parent: parent.sku,
 					options: products.variantOptions,
 				})
@@ -211,7 +209,6 @@ export const exportCatalogCsv = async () => {
 						row.category ?? "",
 						row.description,
 						row.url,
-						String(row.threshold),
 						row.parent ?? "",
 						row.options.map(({ name, value }) => `${name}: ${value}`).join("\n"),
 					]

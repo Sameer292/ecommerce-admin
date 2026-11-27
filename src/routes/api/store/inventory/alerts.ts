@@ -14,10 +14,10 @@ export const Route = createFileRoute("/api/store/inventory/alerts")({
 					const { page } = pageSearchSchema.parse(
 						Object.fromEntries(new URL(request.url).searchParams),
 					);
-					const { rows, total } = await readReplenishmentAlerts(page, true);
+					const { rows, total } = await readReplenishmentAlerts(page);
 					return Response.json(
 						{
-							items: rows.map(({ acknowledgedAt: _acknowledgedAt, ...row }) => row),
+							items: rows,
 							total,
 							page,
 							pageSize,

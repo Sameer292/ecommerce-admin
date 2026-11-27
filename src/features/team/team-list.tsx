@@ -69,7 +69,6 @@ export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 					: undefined
 			}
 		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", teamSearchSchema, onSearch)}
 			rows={rows}
@@ -86,6 +85,6 @@ export const TeamList = ({ rows, total, search, onSearch }: TeamListProps) => (
 			}
 			empty={search.q || search.page > 1 ? "No matching staff accounts" : "No staff accounts"}
 		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 	</div>
 );

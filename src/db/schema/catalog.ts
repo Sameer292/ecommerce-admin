@@ -13,6 +13,7 @@ import {
 import {
 	categoryIcons,
 	defaultCategoryIcon,
+	lowStockThreshold,
 	productStatuses,
 } from "../../features/catalog/catalog-options";
 import { commerce } from "./namespace";
@@ -62,7 +63,7 @@ export const products = commerce.table(
 		reservedStock: integer("reserved_stock").notNull().default(0),
 		incomingStock: integer("incoming_stock").notNull().default(0),
 		damagedStock: integer("damaged_stock").notNull().default(0),
-		lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
+		lowStockThreshold: integer("low_stock_threshold").notNull().default(lowStockThreshold),
 		version: integer().notNull().default(0),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -88,6 +89,10 @@ export const products = commerce.table(
 		check(
 			"products_nonnegative_values",
 			sql`${table.priceMinor} >= 0 AND ${table.stock} >= 0 AND ${table.lowStockThreshold} >= 0`,
+		),
+		check(
+			"products_fixed_low_stock_threshold",
+			sql`${table.lowStockThreshold} = ${lowStockThreshold}`.inlineParams(),
 		),
 		check(
 			"products_stock_levels",

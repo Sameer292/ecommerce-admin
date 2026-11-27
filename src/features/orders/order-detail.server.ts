@@ -1,5 +1,5 @@
 import { and, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
-import { inStaffAudit, setAuditActor } from "@/db/audit-actor.server";
+import { setAuditActor } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
@@ -10,7 +10,7 @@ import {
 	orders,
 	paymentEvents,
 } from "@/db/schema/orders";
-import { pageOffset, pageSize } from "@/lib/pagination";
+import { pageOffset, pageSize, type ListPageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import {
@@ -46,42 +46,6 @@ export const findOrderDocuments = async (ids: string[]) => {
 	});
 };
 
-export const startBatchFulfillment = (ids: string[], staffId: string) =>
-	inStaffAudit(staffId, async (transaction) => {
-		const selected = await transaction
-			.select({
-				id: orders.id,
-				status: orders.status,
-				paymentStatus: orders.paymentStatus,
-			})
-			.from(orders)
-			.where(inArray(orders.id, ids))
-			.orderBy(orders.id)
-			.for("update");
-		if (
-			selected.length !== ids.length ||
-			selected.some(
-				({ status, paymentStatus }) => status !== "pending" || paymentStatus === "refunded",
-			)
-		)
-			throw new ActionError("Choose pending orders without a full refund to start fulfillment.");
-		await transaction
-			.update(orders)
-			.set({
-				status: "processing",
-				updatedAt: sql`greatest(now(), ${orders.updatedAt} + interval '1 millisecond')`,
-			})
-			.where(inArray(orders.id, ids));
-		await transaction.insert(orderEvents).values(
-			ids.map<typeof orderEvents.$inferInsert>((orderId) => ({
-				orderId,
-				staffId,
-				previousStatus: "pending",
-				status: "processing",
-			})),
-		);
-	});
-
 const itemSortColumns = {
 	id: orderItems.id,
 	name: alphabetical(orderItems.name),
@@ -90,7 +54,12 @@ const itemSortColumns = {
 	total: sql`${orderItems.quantity}::bigint * ${orderItems.unitPriceMinor}`,
 };
 
-export const listOrderItems = async (id: string, page: number, sort: Sort = "id.asc") => {
+export const listOrderItems = async (
+	id: string,
+	page: number,
+	sort: Sort = "id.asc",
+	size: ListPageSize = pageSize,
+) => {
 	const where = eq(orderItems.orderId, id);
 	const [rows, total] = await Promise.all([
 		db
@@ -98,8 +67,8 @@ export const listOrderItems = async (id: string, page: number, sort: Sort = "id.
 			.from(orderItems)
 			.where(where)
 			.orderBy(...orderBySort(itemSortColumns, sort, orderItems.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(size)
+			.offset(pageOffset(page, size)),
 		db.$count(orderItems, where),
 	]);
 	return { rows, total };
@@ -110,7 +79,12 @@ const activitySortColumns = {
 	staff: alphabetical(sql`coalesce(${user.name}, 'System')`),
 };
 
-export const listOrderActivity = async (id: string, page: number, sort: Sort = "date.desc") => {
+export const listOrderActivity = async (
+	id: string,
+	page: number,
+	sort: Sort = "date.desc",
+	size: ListPageSize = pageSize,
+) => {
 	const where = eq(orderEvents.orderId, id);
 	const [rows, total] = await Promise.all([
 		db
@@ -119,14 +93,18 @@ export const listOrderActivity = async (id: string, page: number, sort: Sort = "
 			.leftJoin(user, eq(orderEvents.staffId, user.id))
 			.where(where)
 			.orderBy(...orderBySort(activitySortColumns, sort, orderEvents.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(size)
+			.offset(pageOffset(page, size)),
 		db.$count(orderEvents, where),
 	]);
 	return { rows: rows.map(({ event, staffName }) => ({ ...event, staffName })), total };
 };
 
-export const listPaymentEvents = async (id: string, page: number) => {
+export const listPaymentEvents = async (
+	id: string,
+	page: number,
+	size: ListPageSize = pageSize,
+) => {
 	const where = eq(paymentEvents.orderId, id);
 	const [rows, total] = await Promise.all([
 		db
@@ -134,8 +112,8 @@ export const listPaymentEvents = async (id: string, page: number) => {
 			.from(paymentEvents)
 			.where(where)
 			.orderBy(desc(paymentEvents.recordedAt), desc(paymentEvents.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(size)
+			.offset(pageOffset(page, size)),
 		db.$count(paymentEvents, where),
 	]);
 	return { rows, total };

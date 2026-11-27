@@ -13,11 +13,9 @@ import {
 	listOrderItems,
 	listPaymentEvents,
 	saveOrder,
-	startBatchFulfillment,
 } from "./order-detail.server";
 import {
 	orderDetailSearchSchema,
-	orderBatchSchema,
 	orderDocumentSearchSchema,
 	orderFormSchema,
 	orderSearchSchema,
@@ -43,14 +41,6 @@ export const readOrderDocuments = createServerFn()
 		return findOrderDocuments(data.ids);
 	});
 
-export const writeOrderBatch = createServerFn({ method: "POST" })
-	.validator(formDataSchema)
-	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", (staff) =>
-			mutate(orderBatchSchema, data, ({ ids }) => startBatchFulfillment(ids, staff.id)),
-		),
-	);
-
 export const readOrder = createServerFn()
 	.validator(idSchema.extend(orderDetailSearchSchema.shape))
 	.handler(async ({ data }) => {
@@ -58,9 +48,9 @@ export const readOrder = createServerFn()
 		const [detail, items, activity, payments, shipping, returns, refundedMinor, notifications] =
 			await Promise.all([
 				findOrder(data.id),
-				listOrderItems(data.id, data.page, data.sort),
-				listOrderActivity(data.id, data.activity, data.activitySort),
-				listPaymentEvents(data.id, data.payments),
+				listOrderItems(data.id, data.page, data.sort, data.perPage),
+				listOrderActivity(data.id, data.activity, data.activitySort, data.activityPerPage),
+				listPaymentEvents(data.id, data.payments, data.paymentsPerPage),
 				listOrderShipments(data.id),
 				listOrderReturns(data.id),
 				refundedAmount(data.id),

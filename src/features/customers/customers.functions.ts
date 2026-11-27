@@ -29,12 +29,14 @@ export const readCustomers = createServerFn()
 	});
 
 export const readCustomer = createServerFn()
-	.validator(idSchema.extend(orderSearchSchema.pick({ page: true, sort: true }).shape))
+	.validator(
+		idSchema.extend(orderSearchSchema.pick({ page: true, perPage: true, sort: true }).shape),
+	)
 	.handler(async ({ data }) => {
 		await requireStaff();
 		const [customer, orders, summary] = await Promise.all([
 			findCustomer(data.id),
-			listOrders({ page: data.page, q: "", sort: data.sort }, data.id),
+			listOrders({ page: data.page, q: "", sort: data.sort, perPage: data.perPage }, data.id),
 			customerOrderSummary(data.id),
 		]);
 		if (!customer) throw notFound();

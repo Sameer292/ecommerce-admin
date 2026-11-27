@@ -8,6 +8,13 @@ test.describe("narrow products list", () => {
 
 	test("product names and SKUs remain readable at 390 pixels", async ({ page }) => {
 		await signIn(page, "/products?q=Alpine");
+		await expect(page.getByRole("columnheader", { name: "Added" })).toHaveAttribute(
+			"aria-sort",
+			"descending",
+		);
+		await expect(page.getByRole("table", { name: "Products" }).getByRole("checkbox")).toHaveCount(
+			0,
+		);
 		const row = page.getByRole("row").filter({ has: page.getByRole("link", mug) });
 		await expect(row).toBeVisible();
 		await expect(row).toContainText(/DEMO|DEMO-/i);
@@ -15,6 +22,26 @@ test.describe("narrow products list", () => {
 		expect(box?.height).toBeLessThan(120);
 		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 	});
+});
+
+test("applies mobile order filters from the search bar", async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await signIn(page, "/orders");
+	await expect(page.getByText("Date, total and shipping filters", { exact: true })).toBeHidden();
+	await page.getByRole("button", { name: "Order filters", exact: true }).click();
+	const sheet = page.getByRole("dialog", { name: "Date, total and shipping filters" });
+	await sheet.getByRole("combobox", { name: "Shipping state" }).click();
+	await page.getByRole("option", { name: "In transit" }).click();
+	await sheet.getByLabel("Placed from").fill("2025-02-01");
+	await sheet.getByLabel("Minimum total (USD)").fill("0");
+	await expect(page).not.toHaveURL(/shipping=in_transit/);
+	await sheet.getByRole("button", { name: "Apply filters" }).click();
+	await expect(sheet).toBeHidden();
+	await expect(page.getByRole("button", { name: "Order filters (filters applied)" })).toBeVisible();
+	const search = new URL(page.url()).searchParams;
+	expect(search.get("shipping")).toBe("in_transit");
+	expect(search.get("placedFrom")).toBe("2025-02-01");
+	expect(search.get("minTotalMinor")).toBe("0");
 });
 
 test("protects a dirty record and restores the filtered list after leaving", async ({ page }) => {

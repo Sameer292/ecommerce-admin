@@ -11,7 +11,6 @@ const product = {
 	categoryId: "",
 	status: "draft",
 	price: "12.50",
-	lowStockThreshold: "5",
 };
 
 test("product image URLs are optional and require an HTTPS URL", () => {

@@ -10,12 +10,13 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
+import { lowStockThreshold } from "@/features/catalog/catalog-options";
 import { StockStatus } from "@/features/catalog/product-labels";
 import type { OrderRow } from "@/features/orders/order.types";
 import { OrderTable } from "@/features/orders/order-table";
 import { formatCount } from "@/lib/format";
 
-type StockRow = { id: string; name: string; sku: string; stock: number; lowStockThreshold: number };
+type StockRow = { id: string; name: string; sku: string; stock: number };
 
 const StockEmpty = () => (
 	<Empty className="py-6">
@@ -24,7 +25,7 @@ const StockEmpty = () => (
 				<HugeiconsIcon icon={BoxesIcon} aria-hidden />
 			</EmptyMedia>
 			<EmptyTitle>No low-stock products</EmptyTitle>
-			<EmptyDescription>Active products are above their stock thresholds.</EmptyDescription>
+			<EmptyDescription>Active products are above the low-stock threshold.</EmptyDescription>
 		</EmptyHeader>
 	</Empty>
 );
@@ -49,25 +50,18 @@ const StockLine = ({ product }: { product: StockRow }) => (
 				{product.sku} · {formatCount(product.stock)} left
 			</span>
 		</div>
-		<StockStatus {...product} />
+		<StockStatus stock={product.stock} />
 	</li>
 );
 
-export const StockWatch = ({
-	stock,
-	total,
-	alerts,
-}: {
-	stock: StockRow[];
-	total: number;
-	alerts: number;
-}) => (
+export const StockWatch = ({ stock, total }: { stock: StockRow[]; total: number }) => (
 	<Card size="sm" className="min-w-0 gap-3 p-4 sm:p-5">
 		<CardHeader className="flex flex-row items-start justify-between gap-2 px-0">
 			<div className="flex flex-col gap-1">
 				<h2 className="font-heading text-lg font-semibold">Low stock</h2>
 				<CardDescription>
-					{formatCount(total)} active {total === 1 ? "product" : "products"} at or below threshold
+					{formatCount(total)} active {total === 1 ? "product" : "products"} with{" "}
+					{lowStockThreshold} or fewer available
 				</CardDescription>
 			</div>
 			<Link
@@ -80,13 +74,6 @@ export const StockWatch = ({
 			</Link>
 		</CardHeader>
 		<CardContent className="px-0">
-			<Link
-				to="/inventory/replenishment"
-				search={{ page: 1 }}
-				className="text-sm font-medium underline underline-offset-2"
-			>
-				Replenishment alerts{alerts ? ` (${formatCount(alerts)} new)` : ""}
-			</Link>
 			{stock.length > 0 ? (
 				<ul className="divide-y">
 					{stock.map((product) => (

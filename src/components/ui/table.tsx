@@ -47,7 +47,7 @@ const Table = ({
 				/>
 			</section>
 			{overflow.horizontal && (
-				<p id={hintId} className="border-t px-3 py-1.5 text-xs text-muted-foreground">
+				<p id={hintId} className="sr-only">
 					Scroll horizontally to see more columns.
 				</p>
 			)}
@@ -69,22 +69,12 @@ const TableBody = ({ className, ...props }: React.ComponentProps<"tbody">) => {
 	);
 };
 
-const TableFooter = ({ className, ...props }: React.ComponentProps<"tfoot">) => {
-	return (
-		<tfoot
-			data-slot="table-footer"
-			className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
-			{...props}
-		/>
-	);
-};
-
 const TableRow = ({ className, ...props }: React.ComponentProps<"tr">) => {
 	return (
 		<tr
 			data-slot="table-row"
 			className={cn(
-				"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+				"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50",
 				className,
 			)}
 			{...props}
@@ -97,7 +87,7 @@ const TableHead = ({ className, ...props }: React.ComponentProps<"th">) => {
 		<th
 			data-slot="table-head"
 			className={cn(
-				"h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+				"h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground",
 				className,
 			)}
 			{...props}
@@ -109,7 +99,7 @@ const TableCell = ({ className, ...props }: React.ComponentProps<"td">) => {
 	return (
 		<td
 			data-slot="table-cell"
-			className={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)}
+			className={cn("p-2 align-middle whitespace-nowrap", className)}
 			{...props}
 		/>
 	);
@@ -125,4 +115,4 @@ const TableCaption = ({ className, ...props }: React.ComponentProps<"caption">) 
 	);
 };
 
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption };
+export { Table, TableHeader, TableBody, TableHead, TableRow, TableCell, TableCaption };

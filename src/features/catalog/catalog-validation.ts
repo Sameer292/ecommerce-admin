@@ -134,10 +134,6 @@ export const productFormSchema = catalogFormSchema
 		categoryId: ZUnion([ZUuid(), ZLiteral("")]).transform((value) => value || null),
 		status: ZEnum(productStatuses),
 		price: ZString().trim().min(1, "Enter a price.").max(24),
-		lowStockThreshold: ZString()
-			.regex(/^\d+$/, "Enter a whole number for the low-stock threshold.")
-			.transform(Number)
-			.pipe(ZInt().min(0).max(1_000_000)),
 		variantOf: ZUuid().optional(),
 		variantOptions: variantOptionsSchema,
 	})
@@ -150,26 +146,3 @@ export const newProductSearchSchema = ZObject({
 	duplicate: ZUuid().optional().catch(undefined),
 	variantOf: ZUuid().optional().catch(undefined),
 });
-
-export const bulkProductSchema = ZObject({
-	selected: ZString()
-		.max(4_000)
-		.transform((value) => {
-			try {
-				return JSON.parse(value) as unknown;
-			} catch {
-				return null;
-			}
-		})
-		.pipe(
-			ZArray(ZObject({ id: ZUuid(), version: ZInt().min(0).max(2_147_483_647) }))
-				.min(1)
-				.max(50)
-				.refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length),
-		),
-	status: ZEnum(["keep", ...productStatuses]),
-	categoryId: ZUnion([ZLiteral(["keep", ""]), ZUuid()]),
-}).refine(
-	({ status, categoryId }) => status !== "keep" || categoryId !== "keep",
-	"Choose a status or category change.",
-);

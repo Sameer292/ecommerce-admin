@@ -1,25 +1,25 @@
 import { Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
 
-export const OrderPrintActions = ({ ids }: { ids: string[] }) => (
+export const OrderPrintActions = ({ orderId }: { orderId: string }) => (
 	<div className="flex flex-wrap gap-2">
 		<Link
 			to="/orders/print"
 			target="_blank"
 			rel="noopener"
-			search={{ ids, kind: "packing" }}
+			search={{ ids: [orderId], kind: "packing" }}
 			className={buttonVariants({ variant: "outline" })}
 		>
-			{ids.length > 1 ? "Packing slips" : "Packing slip"}
+			Packing slip
 		</Link>
 		<Link
 			to="/orders/print"
 			target="_blank"
 			rel="noopener"
-			search={{ ids, kind: "invoice" }}
+			search={{ ids: [orderId], kind: "invoice" }}
 			className={buttonVariants({ variant: "outline" })}
 		>
-			{ids.length > 1 ? "Invoices" : "Invoice"}
+			Invoice
 		</Link>
 	</div>
 );

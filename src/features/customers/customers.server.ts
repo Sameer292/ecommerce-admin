@@ -7,6 +7,7 @@ import { customerIdentities, customers } from "@/db/schema/customers";
 import { orders, paymentEvents } from "@/db/schema/orders";
 import { openOrder, recentOpenCustomerOrders } from "@/features/orders/orders.server";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
+import { defaultAddedSort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import type { CustomerSearch, CustomerValues } from "./customer.types";
 import type { mergeCustomerSchema } from "./customer-validation";
@@ -54,7 +55,7 @@ export const listCustomers = async ({ page, q, sort, perPage }: CustomerSearch) 
 			.from(customers)
 			.leftJoin(paidOrdersTotal, eq(paidOrdersTotal.customerId, customers.id))
 			.where(where)
-			.orderBy(...orderBySort(searchColumns, sort ?? "name.asc", customers.id))
+			.orderBy(...orderBySort(searchColumns, sort ?? defaultAddedSort, customers.id))
 			.limit(perPage ?? pageSize)
 			.offset(pageOffset(page, perPage)),
 		db.$count(customers, where),

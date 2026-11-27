@@ -8,7 +8,6 @@ export const catalogCsvHeaders = [
 	"category_slug",
 	"description",
 	"image_url",
-	"low_stock_threshold",
 	"parent_sku",
 	"variant_options",
 ] as const;

@@ -1,33 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { DetailHeading } from "@/components/admin/detail-heading";
-import { PageControls } from "@/components/admin/page-controls";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { ListPagination } from "@/components/admin/page-controls";
+import { DataTable } from "@/components/admin/data-table";
 import { requireStaff } from "@/features/auth/session.server";
 import { listOrderSyncFailures } from "@/features/store-integration/order-sync.server";
 import { formatDateTime } from "@/lib/format";
 import { pageSearchSchema } from "@/lib/pagination";
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 
-const pagination = pageSearchSchema.pick({ page: true });
+const pagination = pageSearchSchema.pick({ page: true, perPage: true });
 const readFailures = createServerFn()
 	.validator(pagination)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		return listOrderSyncFailures(data.page);
+		return listOrderSyncFailures(data.page, data.perPage);
 	});
 
 const Synchronization = () => {
 	const { rows, total } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
-	const { page } = Route.useSearch();
+	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	return (
 		<>
@@ -37,51 +30,38 @@ const Synchronization = () => {
 				back="/orders"
 				backLabel="Orders"
 			/>
-			{rows.length ? (
-				<>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead scope="col">Order</TableHead>
-								<TableHead scope="col">Update</TableHead>
-								<TableHead scope="col">HTTP status</TableHead>
-								<TableHead scope="col">Last attempt ({store.timeZone})</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{rows.map((row) => (
-								<TableRow key={`${row.operation}/${row.orderNumber}`}>
-									<TableCell>
-										{row.orderId ? (
-											<Link
-												to="/orders/$orderId"
-												params={{ orderId: row.orderId }}
-												className="font-medium underline"
-											>
-												{row.orderNumber}
-											</Link>
-										) : (
-											row.orderNumber
-										)}
-									</TableCell>
-									<TableCell>
-										{row.operation === "import" ? "Order import" : "Payment update"}
-									</TableCell>
-									<TableCell>{row.status}</TableCell>
-									<TableCell>{formatDateTime(row.attemptedAt, store.timeZone)}</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-					<PageControls
-						page={page}
-						total={total}
-						onPage={(next) => navigate({ search: { page: next } })}
-					/>
-				</>
-			) : (
-				<p className="text-sm text-muted-foreground">No unresolved synchronization failures.</p>
-			)}
+			<DataTable
+				label="Synchronization failures"
+				empty="No unresolved synchronization failures."
+				rows={rows.map((row) => ({ ...row, id: `${row.operation}/${row.orderNumber}` }))}
+				columns={[
+					{
+						label: "Order",
+						cell: (row) =>
+							row.orderId ? (
+								<Link
+									to="/orders/$orderId"
+									params={{ orderId: row.orderId }}
+									className="font-medium hover:underline"
+								>
+									{row.orderNumber}
+								</Link>
+							) : (
+								row.orderNumber
+							),
+					},
+					{
+						label: "Update",
+						cell: (row) => (row.operation === "import" ? "Order import" : "Payment update"),
+					},
+					{ label: "HTTP status", compact: true, cell: (row) => row.status },
+					{
+						label: `Last attempt (${store.timeZone})`,
+						cell: (row) => formatDateTime(row.attemptedAt, store.timeZone),
+					},
+				]}
+			/>
+			<ListPagination total={total} search={search} onSearch={(search) => navigate({ search })} />
 		</>
 	);
 };

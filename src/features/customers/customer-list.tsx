@@ -5,6 +5,7 @@ import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
 import { formatDate, formatMoney } from "@/lib/format";
+import { defaultAddedSort } from "@/lib/sort";
 import { CustomerContact } from "./customer-contact";
 import { customerSearchSchema } from "./customer-validation";
 import type { CustomerRow, CustomerSearch } from "./customer.types";
@@ -17,7 +18,8 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 			<RecordLink
 				to="/customers/$customerId"
 				params={{ customerId: row.id }}
-				className="font-medium hover:underline truncate"
+				className="block max-w-48 truncate font-medium hover:underline"
+				title={row.name}
 			>
 				{row.name}
 			</RecordLink>
@@ -35,14 +37,14 @@ const customerColumns = (zone: string, currency: string): Column<CustomerRow>[] 
 	},
 	{
 		label: "Added",
-		sort: "date.desc",
+		sort: defaultAddedSort,
 		className: "min-w-35 text-center",
 		cell: (row) => formatDate(row.createdAt, zone),
 	},
 	{
 		label: "Total purchases",
 		sort: "purchases.desc",
-		className: "text-right tabular-nums",
+		className: "text-center tabular-nums",
 		cell: (row) => formatMoney(row.totalPurchasesMinor, currency),
 	},
 ];
@@ -74,9 +76,8 @@ export const CustomerList = ({
 					: undefined
 			}
 		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
-			sorting={listSorting(search, "name.asc", customerSearchSchema, onSearch)}
+			sorting={listSorting(search, defaultAddedSort, customerSearchSchema, onSearch)}
 			rows={rows}
 			columns={customerColumns(zone, currency)}
 			label="Customers"
@@ -89,6 +90,6 @@ export const CustomerList = ({
 			}
 			empty={search.q || search.page > 1 ? "No matching customers" : "No customers yet"}
 		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 	</div>
 );

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const contactHref = (kind: "email" | "phone", value: string) => {
 	if (kind === "email" && /^[^\s@]+@[^\s@]+$/.test(value))
@@ -20,14 +21,18 @@ export const CustomerContact = ({
 	const [message, setMessage] = useState("");
 	if (!value) return <span>—</span>;
 	const href = contactHref(kind, value);
+	const valueClassName = copy ? "wrap-anywhere" : "max-w-48 truncate";
+	const title = copy ? undefined : value;
 	return (
 		<div className="flex flex-wrap items-center gap-2">
 			{href ? (
-				<a href={href} className="wrap-anywhere underline underline-offset-2">
+				<a href={href} className={cn(valueClassName, "underline underline-offset-2")} title={title}>
 					{value}
 				</a>
 			) : (
-				<span>{value}</span>
+				<span className={valueClassName} title={title}>
+					{value}
+				</span>
 			)}
 			{copy && (
 				<>

@@ -101,7 +101,6 @@ const productRow = (
 		description: `The ${name} from the sample store catalog.`,
 		categoryId: demoId(1, category),
 		priceMinor: price * unit,
-		lowStockThreshold: 5,
 		stock: index % 7 === 0 ? index % 3 : 8 + ((index * 7) % 60),
 		status: slot > 3 && category % 2 === 0 ? "draft" : "active",
 	};

@@ -4,7 +4,6 @@ import { db } from "@/db/client.server";
 import { availableStock, products } from "@/db/schema/catalog";
 import { requireStaff } from "@/features/auth/session.server";
 import { lowStock } from "@/features/catalog/products.server";
-import { countNewReplenishmentAlerts } from "@/features/inventory/replenishment.server";
 import { orderWorkCounts, recentOrders } from "@/features/orders/orders.server";
 import { getStoreSettings } from "@/features/settings/settings.server";
 import { countOrderSyncFailures } from "@/features/store-integration/order-sync.server";
@@ -14,23 +13,21 @@ import { buildTrend } from "./report-dates";
 
 const watchStock = async () => {
 	const where = and(eq(products.status, "active"), lowStock);
-	const [rows, total, alerts] = await Promise.all([
+	const [rows, total] = await Promise.all([
 		db
 			.select({
 				id: products.id,
 				name: products.name,
 				sku: products.sku,
 				stock: availableStock,
-				lowStockThreshold: products.lowStockThreshold,
 			})
 			.from(products)
 			.where(where)
 			.orderBy(asc(availableStock), asc(products.id))
 			.limit(5),
 		db.$count(products, where),
-		countNewReplenishmentAlerts(),
 	]);
-	return { rows, total, alerts };
+	return { rows, total };
 };
 
 export const readOverview = createServerFn()

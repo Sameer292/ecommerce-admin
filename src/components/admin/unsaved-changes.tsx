@@ -5,9 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 const formValues = (form: HTMLFormElement) =>
 	JSON.stringify(
 		Array.from(
-			form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-				"input[name], select[name], textarea[name]",
-			),
+			form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input[name], textarea[name]"),
 			(field) => [field.name, field.value, "checked" in field ? field.checked : null],
 		),
 	);

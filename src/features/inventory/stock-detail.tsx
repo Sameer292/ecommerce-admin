@@ -6,8 +6,7 @@ import { DataTable } from "@/components/admin/data-table";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
 import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
-import { NativeSelectOption } from "@/components/ui/native-select";
+import { PageControls, type PageControlsProps } from "@/components/admin/page-controls";
 import type { Product } from "@/features/catalog/catalog.types";
 import { StockStatus } from "@/features/catalog/product-labels";
 import { formatCount, formatDateTime } from "@/lib/format";
@@ -24,15 +23,12 @@ import {
 } from "./stock-adjustment";
 
 export const StockSummary = ({ product }: { product: Product }) => (
-	<FormSection
-		title="Stock levels"
-		description={`Low-stock threshold: ${formatCount(product.lowStockThreshold)}`}
-	>
+	<FormSection title="Stock levels">
 		<div className="flex flex-wrap items-center gap-4">
 			<span className="font-heading text-4xl font-semibold tracking-tight">
 				{formatCount(availableUnits(product))} available
 			</span>
-			<StockStatus stock={availableUnits(product)} lowStockThreshold={product.lowStockThreshold} />
+			<StockStatus stock={availableUnits(product)} />
 		</div>
 		<dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
 			{[
@@ -65,17 +61,12 @@ const AdjustmentFields = ({ product, adjustmentId }: AdjustmentFormProps) => {
 				name="kind"
 				label="Adjustment type"
 				value={kind}
-				onChange={(event) => {
-					const selected = adjustmentKinds.find((entry) => entry === event.currentTarget.value);
+				onValueChange={(value) => {
+					const selected = adjustmentKinds.find((entry) => entry === value);
 					if (selected) setKind(selected);
 				}}
-			>
-				{adjustmentKinds.map((entry) => (
-					<NativeSelectOption key={entry} value={entry}>
-						{adjustmentLabels[entry]}
-					</NativeSelectOption>
-				))}
-			</SelectField>
+				items={adjustmentKinds.map((value) => ({ value, label: adjustmentLabels[value] }))}
+			/>
 			<TextField
 				name="quantity"
 				label={kind === "correction" ? "Change in units" : "Quantity"}
@@ -197,14 +188,12 @@ const stockColumns = (zone: string): Column<StockHistoryRow>[] => [
 export const StockHistory = ({
 	rows,
 	total,
-	page,
 	zone,
-	onPage,
+	pagination,
 	sorting,
 }: ListPage<StockHistoryRow> & {
-	page: number;
 	zone: string;
-	onPage: (page: number) => void;
+	pagination: Omit<PageControlsProps, "total">;
 	sorting: TableSorting;
 }) => (
 	<section className="flex flex-col gap-4" aria-labelledby="stock-history">
@@ -220,6 +209,6 @@ export const StockHistory = ({
 			empty="No adjustments yet"
 			compactEmpty
 		/>
-		<PageControls total={total} page={page} onPage={onPage} />
+		<PageControls total={total} {...pagination} />
 	</section>
 );

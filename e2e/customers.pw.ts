@@ -7,6 +7,10 @@ test("opens contact details and exports a customer record for managers", async (
 	baseURL,
 }) => {
 	await signIn(page, "/customers");
+	await expect(page.getByRole("columnheader", { name: "Added" })).toHaveAttribute(
+		"aria-sort",
+		"descending",
+	);
 	await expect(page.getByRole("link", { name: "Add customer", exact: true })).toHaveCount(0);
 	await page
 		.getByRole("table", { name: "Customers" })

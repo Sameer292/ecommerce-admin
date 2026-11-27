@@ -5,7 +5,6 @@ import { AdminForm } from "@/components/admin/admin-form";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { NativeSelectOption } from "@/components/ui/native-select";
 import { formatCount, formatDateTime } from "@/lib/format";
 import { returnLabels } from "./order-options";
 import type { listOrderReturns } from "./order-returns.server";
@@ -45,11 +44,16 @@ const ReturnProgress = ({ entry }: { entry: Returns["returns"][number] }) => {
 	if (record.status === "requested") {
 		return (
 			<ReturnForm id={record.id} orderId={record.orderId} submitLabel="Update request">
-				<SelectField name="action" label="Return decision" required defaultValue="">
-					<NativeSelectOption value="">Choose a decision</NativeSelectOption>
-					<NativeSelectOption value="approve">Approve return</NativeSelectOption>
-					<NativeSelectOption value="reject">Reject return</NativeSelectOption>
-				</SelectField>
+				<SelectField
+					name="action"
+					label="Return decision"
+					required
+					placeholder="Choose a decision"
+					items={[
+						{ value: "approve", label: "Approve return" },
+						{ value: "reject", label: "Reject return" },
+					]}
+				/>
 			</ReturnForm>
 		);
 	}
@@ -121,14 +125,16 @@ export const OrderReturns = ({
 				<div className="mt-3">
 					<ReturnForm id={returnId} orderId={orderId} submitLabel="Create return request">
 						<input type="hidden" name="action" value="request" />
-						<SelectField name="itemId" label="Item" defaultValue="" required>
-							<NativeSelectOption value="">Choose an item</NativeSelectOption>
-							{data.items.map((item) => (
-								<NativeSelectOption key={item.id} value={item.id}>
-									{item.name} ({item.sku})
-								</NativeSelectOption>
-							))}
-						</SelectField>
+						<SelectField
+							name="itemId"
+							label="Item"
+							required
+							placeholder="Choose an item"
+							items={data.items.map(({ id, name, sku }) => ({
+								value: id,
+								label: `${name} (${sku})`,
+							}))}
+						/>
 						<TextField
 							name="quantity"
 							label="Units to return"

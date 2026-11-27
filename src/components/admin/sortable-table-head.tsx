@@ -1,38 +1,43 @@
 import { ArrowDown01Icon, ArrowUp01Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { TableHead } from "@/components/ui/table";
-import { nextSort, sortColumn, type Sort } from "@/lib/sort";
-import type { TableSorting } from "./list.types";
+import { cn } from "@/lib/utils";
 
-type HeaderProps = { label: string; sort?: Sort; sorting?: TableSorting; className: string };
+type HeaderProps = {
+	children: ReactNode;
+	direction: false | "asc" | "desc";
+	onSort?: () => void;
+	className: string;
+};
 
-export const SortableTableHead = ({ label, sort, sorting, className }: HeaderProps) => {
-	if (!sort || !sorting)
-		return (
-			<TableHead scope="col" className={className}>
-				{label}
-			</TableHead>
-		);
-	const active = sortColumn(sort) === sortColumn(sorting.value);
-	const ascending = sorting.value.endsWith(".asc");
-	const icon = !active ? UnfoldMoreIcon : ascending ? ArrowUp01Icon : ArrowDown01Icon;
+export const SortableTableHead = ({ children, direction, onSort, className }: HeaderProps) => {
+	const icon =
+		direction === "asc" ? ArrowUp01Icon : direction === "desc" ? ArrowDown01Icon : UnfoldMoreIcon;
 	return (
 		<TableHead
 			scope="col"
 			className={className}
-			aria-sort={active ? (ascending ? "ascending" : "descending") : undefined}
+			aria-sort={direction ? (direction === "asc" ? "ascending" : "descending") : undefined}
 		>
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="-ml-2 h-8 justify-start px-2 text-left font-medium"
-				onClick={() => sorting.onChange(nextSort(sorting.value, sort))}
-			>
-				{label}
-				<HugeiconsIcon icon={icon} data-icon="inline-end" aria-hidden />
-			</Button>
+			{onSort ? (
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className={cn(
+						"-mx-2 px-2 text-xs hover:bg-background/75",
+						direction && "text-foreground",
+					)}
+					onClick={onSort}
+				>
+					{children}
+					<HugeiconsIcon icon={icon} data-icon="inline-end" aria-hidden />
+				</Button>
+			) : (
+				children
+			)}
 		</TableHead>
 	);
 };

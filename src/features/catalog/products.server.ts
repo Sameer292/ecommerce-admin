@@ -1,5 +1,4 @@
-import { and, eq, gt, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
-import type { output as ZOutput } from "zod";
+import { and, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { inStaffAudit } from "@/db/audit-actor.server";
 import { db } from "@/db/client.server";
 import { alphabetical, orderBySort } from "@/db/sort.server";
@@ -8,11 +7,11 @@ import { stockAdjustments } from "@/db/schema/inventory";
 import { orderItems } from "@/db/schema/orders";
 import { parseMoneyInput } from "@/lib/money";
 import { pageOffset, pageSize, searchPattern } from "@/lib/pagination";
+import { defaultAddedSort } from "@/lib/sort";
 import type { InventorySearch } from "@/features/inventory/inventory.types";
 import { getStoreCurrency } from "@/features/settings/store-currency.server";
 import { ActionError } from "@/server/mutation.server";
 import type { Product, ProductSearch, ProductValues, StockFilter } from "./catalog.types";
-import type { bulkProductSchema } from "./catalog-validation";
 import { productImageUrl } from "./product-media.server";
 
 export const lowStock = lte(availableStock, products.lowStockThreshold);
@@ -46,7 +45,6 @@ const productSortColumns = {
 	date: products.createdAt,
 	stock: availableStock,
 	sku: alphabetical(products.sku),
-	threshold: products.lowStockThreshold,
 };
 
 const columns = {
@@ -57,11 +55,9 @@ const columns = {
 	imageUrl: products.imageUrl,
 	imageKey: products.imageKey,
 	status: products.status,
-	version: products.version,
 	priceMinor: products.priceMinor,
 	stock: products.stock,
 	availableStock,
-	lowStockThreshold: products.lowStockThreshold,
 	categoryName: categories.name,
 };
 
@@ -76,7 +72,7 @@ export const listProducts = async (
 			.from(products)
 			.leftJoin(categories, eq(products.categoryId, categories.id))
 			.where(where)
-			.orderBy(...orderBySort(productSortColumns, search.sort ?? "name.asc", products.id))
+			.orderBy(...orderBySort(productSortColumns, search.sort ?? defaultAddedSort, products.id))
 			.limit(search.perPage ?? pageSize)
 			.offset(pageOffset(search.page, search.perPage)),
 		db.$count(products, where),
@@ -200,35 +196,4 @@ export const deleteProduct = (id: string, staffId?: string) =>
 		if (product?.publishedAt)
 			throw new ActionError("Archive published products to retain storefront links.");
 		await transaction.delete(products).where(eq(products.id, id));
-	});
-
-export const updateProductsInBulk = (
-	{ selected, status, categoryId }: ZOutput<typeof bulkProductSchema>,
-	staffId: string,
-) =>
-	inStaffAudit(staffId, async (transaction) => {
-		const versions = new Map(selected.map(({ id, version }) => [id, version]));
-		const where = inArray(products.id, [...versions.keys()]);
-		const rows = await transaction
-			.select({ id: products.id, version: products.version })
-			.from(products)
-			.where(where)
-			.orderBy(products.id)
-			.for("update");
-		if (
-			rows.length !== selected.length ||
-			rows.some(({ id, version }) => versions.get(id) !== version)
-		)
-			throw new ActionError(
-				"A selected product changed or was removed. Refresh before applying the update.",
-			);
-		await transaction
-			.update(products)
-			.set({
-				status: status === "keep" ? undefined : status,
-				categoryId: categoryId === "keep" ? undefined : categoryId || null,
-				version: sql`${products.version} + 1`,
-				updatedAt: sql`now()`,
-			})
-			.where(where);
 	});

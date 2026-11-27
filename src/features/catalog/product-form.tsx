@@ -5,25 +5,17 @@ import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { FormSection } from "@/components/admin/form-section";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
-import { NativeSelectOption } from "@/components/ui/native-select";
 import { moneyInput } from "@/lib/format";
 import { CatalogNameFields } from "./catalog-name-fields";
 import { ProductPublication, type PublicationFields } from "./product-publication";
 import { ProductImageField } from "./product-image-field";
-import { productStatuses, productStatusLabels } from "./catalog-options";
+import { productStatusOptions } from "./catalog-options";
 import type { CategoryOption, Product } from "./catalog.types";
 import { writeProduct } from "./products.functions";
 
 type ProductDefaults = Pick<
 	Product,
-	| "name"
-	| "sku"
-	| "description"
-	| "categoryId"
-	| "imageUrl"
-	| "priceMinor"
-	| "lowStockThreshold"
-	| "status"
+	"name" | "sku" | "description" | "categoryId" | "imageUrl" | "priceMinor" | "status"
 > & { slug?: string; publishedAt?: Date | null };
 
 type ProductFormProps = {
@@ -35,29 +27,14 @@ type ProductFormProps = {
 	editable: boolean;
 };
 
-const ProductCategory = ({
-	product,
-	categories,
-}: {
-	product?: ProductDefaults;
-	categories: CategoryOption[];
-}) => (
-	<SelectField name="categoryId" label="Category" defaultValue={product?.categoryId ?? ""}>
-		<NativeSelectOption value="">Uncategorized</NativeSelectOption>
-		{categories.map(({ id, name }) => (
-			<NativeSelectOption key={id} value={id}>
-				{name}
-			</NativeSelectOption>
-		))}
-	</SelectField>
-);
-
 const ProductDetails = ({
 	product,
 	categories,
+	onCategoryChange,
 }: {
 	product?: ProductDefaults;
 	categories: CategoryOption[];
+	onCategoryChange: (value: string | null) => void;
 }) => (
 	<FormSection title="Product details">
 		<CatalogNameFields
@@ -84,16 +61,27 @@ const ProductDetails = ({
 			maxLength={1000}
 			defaultValue={product?.description}
 		/>
-		<ProductCategory product={product} categories={categories} />
+		<SelectField
+			name="categoryId"
+			label="Category"
+			defaultValue={product?.categoryId ?? ""}
+			onValueChange={onCategoryChange}
+			items={[
+				{ value: "", label: "Uncategorized" },
+				...categories.map(({ id, name }) => ({ value: id, label: name })),
+			]}
+		/>
 	</FormSection>
 );
 
 const ProductSettings = ({
 	product,
 	currency,
+	onStatusChange,
 }: {
 	product?: ProductDefaults;
 	currency: string;
+	onStatusChange: (value: string | null) => void;
 }) => (
 	<FormSection title="Pricing and availability">
 		<TextField
@@ -104,22 +92,13 @@ const ProductSettings = ({
 			required
 			defaultValue={product ? moneyInput(product.priceMinor, currency) : undefined}
 		/>
-		<SelectField name="status" required label="Status" defaultValue={product?.status ?? "draft"}>
-			{productStatuses.map((status) => (
-				<NativeSelectOption key={status} value={status}>
-					{productStatusLabels[status]}
-				</NativeSelectOption>
-			))}
-		</SelectField>
-		<TextField
-			name="lowStockThreshold"
-			label="Low-stock threshold"
-			type="number"
-			min={0}
-			max={1000000}
+		<SelectField
+			name="status"
 			required
-			defaultValue={product?.lowStockThreshold ?? 5}
-			hint="Inventory flags this product at or below this quantity."
+			label="Status"
+			defaultValue={product?.status ?? "draft"}
+			onValueChange={onStatusChange}
+			items={productStatusOptions}
 		/>
 	</FormSection>
 );
@@ -168,9 +147,7 @@ export const ProductForm = ({
 				onChange={(event) => {
 					const field = event.target;
 					if (
-						(field instanceof HTMLInputElement ||
-							field instanceof HTMLSelectElement ||
-							field instanceof HTMLTextAreaElement) &&
+						(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) &&
 						Object.hasOwn(publication, field.name)
 					) {
 						const { name, value } = field;
@@ -179,7 +156,13 @@ export const ProductForm = ({
 				}}
 			>
 				<div className="flex min-w-0 flex-col gap-4">
-					<ProductDetails product={defaults} categories={categories} />
+					<ProductDetails
+						product={defaults}
+						categories={categories}
+						onCategoryChange={(value) =>
+							setPublication((previous) => ({ ...previous, categoryId: value ?? "" }))
+						}
+					/>
 					{variantOf && (
 						<FormSection title="Variant options">
 							<NotesField
@@ -203,7 +186,13 @@ export const ProductForm = ({
 					/>
 				</div>
 				<div className="flex min-w-0 flex-col gap-4">
-					<ProductSettings product={defaults} currency={currency} />
+					<ProductSettings
+						product={defaults}
+						currency={currency}
+						onStatusChange={(value) =>
+							setPublication((previous) => ({ ...previous, status: value ?? "draft" }))
+						}
+					/>
 					<ProductPublication fields={publication} photo={photo} currency={currency} />
 				</div>
 			</div>

@@ -31,7 +31,7 @@ const categoryColumns: Column<CategoryListRow>[] = [
 	{
 		label: "Products",
 		sort: "count.desc",
-		className: "text-right",
+		className: "text-center",
 		cell: (row) => (
 			<Link
 				to="/products"

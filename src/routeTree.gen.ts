@@ -29,7 +29,6 @@ import { Route as AdminCustomersIndexRouteImport } from './routes/_admin.custome
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/_admin.customers.$customerId'
 import { Route as AdminInventoryIndexRouteImport } from './routes/_admin.inventory.index'
 import { Route as AdminInventoryProductIdRouteImport } from './routes/_admin.inventory.$productId'
-import { Route as AdminInventoryReplenishmentRouteImport } from './routes/_admin.inventory.replenishment'
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/_admin.orders.$orderId'
 import { Route as AdminOrdersPrintRouteImport } from './routes/_admin.orders.print'
@@ -150,12 +149,6 @@ const AdminInventoryProductIdRoute = AdminInventoryProductIdRouteImport.update({
   path: '/inventory/$productId',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminInventoryReplenishmentRoute =
-  AdminInventoryReplenishmentRouteImport.update({
-    id: '/inventory/replenishment',
-    path: '/inventory/replenishment',
-    getParentRoute: () => AdminRoute,
-  } as any)
 const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -266,7 +259,6 @@ export interface FileRoutesByFullPath {
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
-  '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
   '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -305,7 +297,6 @@ export interface FileRoutesByTo {
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
-  '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/orders/print': typeof AdminOrdersPrintRoute
   '/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -347,7 +338,6 @@ export interface FileRoutesById {
   '/_admin/categories/new': typeof AdminCategoriesNewRoute
   '/_admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/_admin/inventory/$productId': typeof AdminInventoryProductIdRoute
-  '/_admin/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/_admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/_admin/orders/print': typeof AdminOrdersPrintRoute
   '/_admin/orders/synchronization': typeof AdminOrdersSynchronizationRoute
@@ -389,7 +379,6 @@ export interface FileRouteTypes {
     | '/categories/new'
     | '/customers/$customerId'
     | '/inventory/$productId'
-    | '/inventory/replenishment'
     | '/orders/$orderId'
     | '/orders/print'
     | '/orders/synchronization'
@@ -428,7 +417,6 @@ export interface FileRouteTypes {
     | '/categories/new'
     | '/customers/$customerId'
     | '/inventory/$productId'
-    | '/inventory/replenishment'
     | '/orders/$orderId'
     | '/orders/print'
     | '/orders/synchronization'
@@ -469,7 +457,6 @@ export interface FileRouteTypes {
     | '/_admin/categories/new'
     | '/_admin/customers/$customerId'
     | '/_admin/inventory/$productId'
-    | '/_admin/inventory/replenishment'
     | '/_admin/orders/$orderId'
     | '/_admin/orders/print'
     | '/_admin/orders/synchronization'
@@ -651,13 +638,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryProductIdRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/_admin/inventory/replenishment': {
-      id: '/_admin/inventory/replenishment'
-      path: '/inventory/replenishment'
-      fullPath: '/inventory/replenishment'
-      preLoaderRoute: typeof AdminInventoryReplenishmentRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/_admin/orders/': {
       id: '/_admin/orders/'
       path: '/orders'
@@ -815,7 +795,6 @@ interface AdminRouteChildren {
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
   AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
   AdminInventoryProductIdRoute: typeof AdminInventoryProductIdRoute
-  AdminInventoryReplenishmentRoute: typeof AdminInventoryReplenishmentRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminOrdersPrintRoute: typeof AdminOrdersPrintRoute
   AdminOrdersSynchronizationRoute: typeof AdminOrdersSynchronizationRoute
@@ -840,7 +819,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesNewRoute: AdminCategoriesNewRoute,
   AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
   AdminInventoryProductIdRoute: AdminInventoryProductIdRoute,
-  AdminInventoryReplenishmentRoute: AdminInventoryReplenishmentRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminOrdersPrintRoute: AdminOrdersPrintRoute,
   AdminOrdersSynchronizationRoute: AdminOrdersSynchronizationRoute,

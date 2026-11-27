@@ -6,15 +6,7 @@ import { DetailHeading } from "@/components/admin/detail-heading";
 import { SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
 import { buttonVariants } from "@/components/ui/button";
-import { NativeSelectOption } from "@/components/ui/native-select";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/admin/data-table";
 import { can } from "@/features/auth/permissions";
 import {
 	importCatalogCsv,
@@ -65,45 +57,39 @@ const ProductImport = () => {
 						name="mode"
 						label="Import mode"
 						defaultValue="create"
-						onChange={() => setReview(undefined)}
-					>
-						<NativeSelectOption value="create">Create new products only</NativeSelectOption>
-						<NativeSelectOption value="upsert">Create or update by SKU</NativeSelectOption>
-					</SelectField>
+						onValueChange={() => setReview(undefined)}
+						items={[
+							{ value: "create", label: "Create new products only" },
+							{ value: "upsert", label: "Create or update by SKU" },
+						]}
+					/>
 				</AdminForm>
 			</FormSection>
 			{review && (
 				<FormSection title="Import preview">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead scope="col">Row</TableHead>
-								<TableHead scope="col">SKU</TableHead>
-								<TableHead scope="col">Product</TableHead>
-								<TableHead scope="col">Result</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{review.preview.rows.map((row) => (
-								<TableRow key={row.row}>
-									<TableCell>{row.row}</TableCell>
-									<TableCell>{row.sku}</TableCell>
-									<TableCell>{row.name}</TableCell>
-									<TableCell>
-										{row.errors.length ? (
-											<ul className="text-destructive">
-												{[...new Set(row.errors)].map((error) => (
-													<li key={error}>{error}</li>
-												))}
-											</ul>
-										) : (
-											row.action
-										)}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+					<DataTable
+						label="Import preview"
+						empty="No rows to preview."
+						rows={review.preview.rows.map((row) => ({ ...row, id: String(row.row) }))}
+						columns={[
+							{ label: "Row", compact: true, className: "tabular-nums", cell: (row) => row.row },
+							{ label: "SKU", cell: (row) => row.sku },
+							{ label: "Product", cell: (row) => row.name },
+							{
+								label: "Result",
+								cell: (row) =>
+									row.errors.length ? (
+										<ul className="text-destructive">
+											{[...new Set(row.errors)].map((error) => (
+												<li key={error}>{error}</li>
+											))}
+										</ul>
+									) : (
+										row.action
+									),
+							},
+						]}
+					/>
 					{review.preview.rows.some(({ errors }) => errors.length) ? (
 						<p className="text-sm">Fix the highlighted rows and preview again.</p>
 					) : (

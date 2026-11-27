@@ -1,6 +1,6 @@
 import { ListControls } from "@/components/admin/list-controls";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { productStatuses, productStatusLabels } from "./catalog-options";
+import { FilterSelect } from "@/components/admin/form-fields";
+import { productStatusOptions } from "./catalog-options";
 import { readProductFilters } from "./catalog-validation";
 import type { CategoryOption, ProductSearch } from "./catalog.types";
 import { PriceRangeFilter } from "./price-range-filter";
@@ -21,38 +21,7 @@ export const hasProductFilters = ({
 }: ProductSearch) =>
 	Boolean(q || status || category || minPriceMinor !== undefined || maxPriceMinor !== undefined);
 
-const ProductStatusFilter = ({ status }: Pick<ProductSearch, "status">) => (
-	<NativeSelect name="status" aria-label="Product status" defaultValue={status ?? ""}>
-		<NativeSelectOption value="">All statuses</NativeSelectOption>
-		{productStatuses.map((status) => (
-			<NativeSelectOption key={status} value={status}>
-				{productStatusLabels[status]}
-			</NativeSelectOption>
-		))}
-	</NativeSelect>
-);
-
-const CategoryFilter = ({
-	category,
-	categories,
-}: {
-	category: ProductSearch["category"];
-	categories: CategoryOption[];
-}) => (
-	<NativeSelect
-		name="category"
-		aria-label="Product category"
-		defaultValue={category ?? ""}
-		className="max-w-48"
-	>
-		<NativeSelectOption value="">All categories</NativeSelectOption>
-		{categories.map(({ id, name }) => (
-			<NativeSelectOption key={id} value={id}>
-				{name}
-			</NativeSelectOption>
-		))}
-	</NativeSelect>
-);
+const statusOptions = [{ value: "", label: "All statuses" }, ...productStatusOptions];
 
 export const ProductFilters = ({ search, categories, currency, onSearch }: ProductFilterProps) => {
 	return (
@@ -67,8 +36,22 @@ export const ProductFilters = ({ search, categories, currency, onSearch }: Produ
 					: undefined
 			}
 		>
-			<ProductStatusFilter status={search.status} />
-			<CategoryFilter category={search.category} categories={categories} />
+			<FilterSelect
+				name="status"
+				label="Product status"
+				value={search.status}
+				items={statusOptions}
+			/>
+			<FilterSelect
+				name="category"
+				label="Product category"
+				value={search.category}
+				className="max-w-48"
+				items={[
+					{ value: "", label: "All categories" },
+					...categories.map(({ id, name }) => ({ value: id, label: name })),
+				]}
+			/>
 			<PriceRangeFilter search={search} currency={currency} />
 		</ListControls>
 	);

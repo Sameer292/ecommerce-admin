@@ -20,7 +20,7 @@ test("copies product content into a draft with a new SKU", async ({ page }) => {
 	await expect(page.locator('input[name="name"]')).toHaveValue(/Alpine Travel Mug copy/);
 	await expect(page.locator('input[name="sku"]')).toHaveValue("");
 	await expect(page.locator('input[name="slug"]')).toHaveValue("alpine-travel-mug-copy");
-	await expect(page.locator('select[name="status"]')).toHaveValue("draft");
+	await expect(page.getByRole("combobox", { name: "Status" })).toHaveText("Draft");
 });
 
 test("previews entered product content and warns about missing publication details", async ({
@@ -29,7 +29,8 @@ test("previews entered product content and warns about missing publication detai
 	await signIn(page, "/products/new");
 	await page.locator('input[name="name"]').fill("Preview mug");
 	await page.locator('input[name="price"]').fill("15.00");
-	await page.locator('select[name="status"]').selectOption("active");
+	await page.getByRole("combobox", { name: "Status" }).click();
+	await page.getByRole("option", { name: "Active", exact: true }).click();
 	await expect(page.getByRole("heading", { name: "Preview mug" })).toBeVisible();
 	await expect(page.getByText("$15.00", { exact: true })).toBeVisible();
 	await expect(page.getByRole("heading", { name: "Review before publishing" })).toBeVisible();
@@ -104,7 +105,7 @@ test("previews, imports, and exports a catalog CSV with duplicate feedback", asy
 		name: "catalog.csv",
 		mimeType: "text/csv",
 		buffer: Buffer.from(
-			`${catalogCsvHeaders.join(",")}\r\n${sku},CSV item ${suffix},csv-item-${suffix},12.50,USD,draft,,, ,5,,\r\n`,
+			`${catalogCsvHeaders.join(",")}\r\n${sku},CSV item ${suffix},csv-item-${suffix},12.50,USD,draft,,,,,\r\n`,
 		),
 	};
 	await page.locator('input[name="file"]').setInputFiles(file);

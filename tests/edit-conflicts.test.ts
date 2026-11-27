@@ -52,7 +52,6 @@ test("concurrent record edits preserve the first committed change", {
 					description: "",
 					imageUrl: "",
 					categoryId: null,
-					lowStockThreshold: 5,
 					status: "draft",
 					price: "15",
 					version: 0,

@@ -29,7 +29,6 @@ const CategoryList = () => {
 				onSearch={update}
 				onClear={q ? clear : undefined}
 			/>
-			<ListPagination total={total} search={search} onSearch={update} />
 			<CategoryTable
 				sorting={listSorting(search, "name.asc", categorySearchSchema, update)}
 				rows={rows}
@@ -42,7 +41,7 @@ const CategoryList = () => {
 					) : undefined
 				}
 			/>
-			<ListPagination total={total} search={search} onSearch={update} bottom />
+			<ListPagination total={total} search={search} onSearch={update} />
 		</div>
 	);
 };

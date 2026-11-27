@@ -4,7 +4,6 @@ import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { NotesField, SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
-import { NativeSelectOption } from "@/components/ui/native-select";
 import {
 	canChangePaymentCollection,
 	canCorrectDelivery,
@@ -38,11 +37,12 @@ const FulfillmentFields = ({
 					name="cashOnDelivery"
 					label="Payment collection"
 					value={cashOnDelivery ? "cod" : "prepaid"}
-					onChange={(event) => setCashOnDelivery(event.currentTarget.value === "cod")}
-				>
-					<NativeSelectOption value="prepaid">Prepaid</NativeSelectOption>
-					<NativeSelectOption value="cod">Cash on delivery</NativeSelectOption>
-				</SelectField>
+					onValueChange={(value) => setCashOnDelivery(value === "cod")}
+					items={[
+						{ value: "prepaid", label: "Prepaid" },
+						{ value: "cod", label: "Cash on delivery" },
+					]}
+				/>
 			)}
 			<SelectField
 				name="status"
@@ -50,13 +50,12 @@ const FulfillmentFields = ({
 				label="Fulfillment status"
 				defaultValue={order.status}
 				hint={options.find(({ blocked }) => blocked)?.blocked}
-			>
-				{options.map(({ status, blocked }) => (
-					<NativeSelectOption key={status} value={status} disabled={Boolean(blocked)}>
-						{orderStatusLabels[status]}
-					</NativeSelectOption>
-				))}
-			</SelectField>
+				items={options.map(({ status, blocked }) => ({
+					value: status,
+					label: orderStatusLabels[status],
+					disabled: Boolean(blocked),
+				}))}
+			/>
 			<TextField
 				name="trackingNumber"
 				label="Tracking number"

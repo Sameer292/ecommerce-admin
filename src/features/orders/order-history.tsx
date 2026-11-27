@@ -1,6 +1,6 @@
 import { DataTable } from "@/components/admin/data-table";
 import type { Column, ListPage, TableSorting } from "@/components/admin/list.types";
-import { PageControls } from "@/components/admin/page-controls";
+import { PageControls, type PageControlsProps } from "@/components/admin/page-controls";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { formatCount, formatDateTime, formatMoney } from "@/lib/format";
 import { orderStatusLabels, paymentEventLabels } from "./order-options";
@@ -89,16 +89,14 @@ const activityColumns = (zone: string): Column<OrderActivity>[] => [
 ];
 
 type OrderSectionProps<Row> = ListPage<Row> & {
-	page: number;
-	onPage: (page: number) => void;
+	pagination: Omit<PageControlsProps, "total">;
 	sorting: TableSorting;
 };
 
 export const OrderLines = ({
 	rows,
 	total,
-	page,
-	onPage,
+	pagination,
 	sorting,
 	currency,
 }: OrderSectionProps<OrderItem> & { currency: string }) => (
@@ -113,15 +111,14 @@ export const OrderLines = ({
 			label="Items"
 			empty="No line items recorded"
 		/>
-		<PageControls total={total} page={page} onPage={onPage} />
+		<PageControls total={total} {...pagination} />
 	</section>
 );
 
 export const OrderHistory = ({
 	rows,
 	total,
-	page,
-	onPage,
+	pagination,
 	sorting,
 	zone,
 }: OrderSectionProps<OrderActivity> & { zone: string }) => (
@@ -138,7 +135,7 @@ export const OrderHistory = ({
 			empty="No fulfillment changes yet"
 			compactEmpty
 		/>
-		<PageControls total={total} page={page} onPage={onPage} />
+		<PageControls total={total} {...pagination} />
 	</section>
 );
 
@@ -166,8 +163,7 @@ const paymentColumns = (currency: string, zone: string): Column<PaymentEvent>[] 
 export const PaymentHistory = ({
 	rows,
 	total,
-	page,
-	onPage,
+	pagination,
 	currency,
 	zone,
 }: Omit<OrderSectionProps<PaymentEvent>, "sorting"> & { currency: string; zone: string }) => (
@@ -183,7 +179,7 @@ export const PaymentHistory = ({
 			empty="No payment events yet"
 			compactEmpty
 		/>
-		<PageControls total={total} page={page} onPage={onPage} />
+		<PageControls total={total} {...pagination} />
 	</section>
 );
 import { Link } from "@tanstack/react-router";

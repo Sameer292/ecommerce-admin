@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { isRedirect } from "@tanstack/react-router";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PageControls } from "../src/components/admin/page-controls";
+import { ListPagination, PageControls } from "../src/components/admin/page-controls";
+import { orderDetailSearchSchema } from "../src/features/orders/order-validation";
 import {
 	clampPage,
 	lastPage,
@@ -54,14 +55,26 @@ test("pagination redirects preserve filters, sorting and detail return context",
 	assert.doesNotThrow(() => redirectInvalidPages("/products", { page: 1 }, 0));
 });
 
-test("order item and activity pages recover together, including empty histories", () => {
+test("order details clamp each table independently at its configured page size", () => {
+	const search = orderDetailSearchSchema.parse({
+		page: 999,
+		perPage: 100,
+		activity: 999,
+		activityPerPage: 50,
+		payments: 999,
+		paymentsPerPage: 500,
+	});
 	assert.throws(
-		() => redirectInvalidPages("/orders/one", { page: 999, activity: 999 }, 32, 0),
+		() => redirectInvalidPages("/orders/one", search, 150, 65, 0),
 		(error: unknown) => {
 			assert.ok(isRedirect(error));
 			const url = new URL(error.options.href ?? "", "http://localhost");
 			assert.equal(url.searchParams.get("page"), "2");
-			assert.equal(url.searchParams.get("activity"), "1");
+			assert.equal(url.searchParams.get("perPage"), "100");
+			assert.equal(url.searchParams.get("activity"), "2");
+			assert.equal(url.searchParams.get("activityPerPage"), "50");
+			assert.equal(url.searchParams.get("payments"), "1");
+			assert.equal(url.searchParams.has("paymentsPerPage"), false);
 			return true;
 		},
 	);
@@ -81,12 +94,10 @@ test("larger page sizes reflow counts and preserve the selected size on redirect
 		},
 	);
 	const html = renderToStaticMarkup(
-		createElement(PageControls, {
+		createElement(ListPagination, {
 			total: 65,
-			page: 1,
-			size: 50,
-			onPage: () => {},
-			onSize: () => {},
+			search: { page: 1, perPage: 50 },
+			onSearch: () => {},
 		}),
 	);
 	assert.match(html, /1–50 of 65/);
@@ -96,14 +107,19 @@ test("larger page sizes reflow counts and preserve the selected size on redirect
 
 test("pagination shows the valid range, page count and direct first-page recovery", () => {
 	const html = renderToStaticMarkup(
-		createElement(PageControls, { total: 32, page: 2, onPage: () => {} }),
+		createElement(PageControls, { total: 32, page: 2, onPage: () => {}, onSize: () => {} }),
 	);
 	assert.match(html, /21–32 of 32/);
 	assert.match(html, /Page 2 of 2/);
 	assert.match(html, /First page/);
-	assert.match(html.match(/<button[^>]*aria-label="Next page"[^>]*>/)?.[0] ?? "", /disabled/);
+	assert.match(html.match(/<button[^>]*aria-label="Next page"[^>]*>/)?.[0] ?? "", /\sdisabled=""/);
+	const single = renderToStaticMarkup(
+		createElement(PageControls, { total: 3, page: 1, onPage: () => {}, onSize: () => {} }),
+	);
+	assert.match(single, /20 per page.*Page 1 of 1/);
+	assert.equal((single.match(/<button[^>]*\sdisabled=""/g) ?? []).length, 4);
 	const empty = renderToStaticMarkup(
-		createElement(PageControls, { total: 0, page: 1, onPage: () => {} }),
+		createElement(PageControls, { total: 0, page: 1, onPage: () => {}, onSize: () => {} }),
 	);
 	assert.match(empty, /No results/);
 	assert.match(empty, /sr-only/);

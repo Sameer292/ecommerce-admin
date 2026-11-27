@@ -2,7 +2,7 @@ import { Package01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { StatusBadge } from "@/components/admin/status-badge";
-import { productStatusLabels } from "./catalog-options";
+import { lowStockThreshold, productStatusLabels } from "./catalog-options";
 import type { Product } from "./catalog.types";
 
 export const ProductStatus = ({ status }: Pick<Product, "status">) => (
@@ -11,10 +11,7 @@ export const ProductStatus = ({ status }: Pick<Product, "status">) => (
 	</StatusBadge>
 );
 
-export const StockStatus = ({
-	stock,
-	lowStockThreshold,
-}: Pick<Product, "stock" | "lowStockThreshold">) => {
+export const StockStatus = ({ stock }: Pick<Product, "stock">) => {
 	if (stock === 0) return <StatusBadge tone="danger">Out of stock</StatusBadge>;
 	if (stock <= lowStockThreshold) return <StatusBadge tone="warning">Low stock</StatusBadge>;
 	return <StatusBadge tone="success">In stock</StatusBadge>;

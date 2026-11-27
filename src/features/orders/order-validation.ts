@@ -50,8 +50,11 @@ export const readOrderFilters = (form: FormData, currency: string) => {
 
 export const orderDetailSearchSchema = ZObject({
 	page: pageSearchSchema.shape.page,
+	perPage: pageSearchSchema.shape.perPage,
 	activity: pageSearchSchema.shape.page,
+	activityPerPage: pageSearchSchema.shape.perPage,
 	payments: pageSearchSchema.shape.page,
+	paymentsPerPage: pageSearchSchema.shape.perPage,
 	sort: sortSchema("name", "quantity", "price", "total"),
 	activitySort: sortSchema("date", "staff"),
 });
@@ -63,24 +66,6 @@ export const orderDocumentSearchSchema = ZObject({
 		.catch([])
 		.default([]),
 	kind: ZEnum(["packing", "invoice"]).catch("packing").default("packing"),
-});
-
-export const orderBatchSchema = ZObject({
-	ids: ZString()
-		.max(1_000)
-		.transform((value) => {
-			try {
-				return JSON.parse(value) as unknown;
-			} catch {
-				return null;
-			}
-		})
-		.pipe(
-			ZArray(ZUuid())
-				.min(1)
-				.max(25)
-				.transform((ids) => [...new Set(ids)]),
-		),
 });
 
 export const orderFormSchema = ZObject({

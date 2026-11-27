@@ -27,9 +27,13 @@ export type DataTableProps<Row> = {
 
 export type ListSearch = { page: number; q: string; sort?: Sort; perPage?: ListPageSize };
 
+type SearchAction = (apply: (fields: FormData) => boolean) => ReactNode;
+
 export type ListControlsProps<Search extends ListSearch> = {
 	search: Search;
 	placeholder: string;
+	searchClassName?: string;
+	mobileSearchAction?: SearchAction;
 	children?: ReactNode;
 	readSearch: (form: FormData) => Search | null;
 	onSearch: (search: Search) => void;
@@ -39,7 +43,9 @@ export type ListControlsProps<Search extends ListSearch> = {
 export type ListFormProps = {
 	query: string;
 	placeholder: string;
+	searchClassName?: string;
+	mobileSearchAction?: SearchAction;
 	children?: ReactNode;
-	onSearch: (form: FormData) => void;
+	onSearch: (form: FormData, external?: boolean) => boolean;
 	onClear?: () => void;
 };

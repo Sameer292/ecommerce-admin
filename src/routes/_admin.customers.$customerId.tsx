@@ -6,7 +6,7 @@ import { createFileRoute, Link, notFound, stripSearchParams } from "@tanstack/re
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
-import { PageControls } from "@/components/admin/page-controls";
+import { ListPagination } from "@/components/admin/page-controls";
 import { FormSection } from "@/components/admin/form-section";
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/features/auth/permissions";
@@ -19,13 +19,13 @@ import { readCustomer, removeCustomer } from "@/features/customers/customers.fun
 import { OrderTable } from "@/features/orders/order-table";
 import { orderSearchSchema } from "@/features/orders/order-validation";
 
-const orderHistorySearchSchema = orderSearchSchema.pick({ page: true, sort: true });
+const orderHistorySearchSchema = orderSearchSchema.pick({ page: true, perPage: true, sort: true });
 
 const CustomerOrders = () => {
 	const { orders } = Route.useLoaderData();
 	const { store } = Route.useRouteContext();
 	const search = Route.useSearch();
-	const { page, sort } = search;
+	const { sort } = search;
 	const navigate = Route.useNavigate();
 	return (
 		<section aria-labelledby="customer-orders" className="flex min-w-0 flex-col gap-3">
@@ -40,14 +40,17 @@ const CustomerOrders = () => {
 					value: sort ?? "date.desc",
 					onChange: (sort) =>
 						navigate({
-							search: { ...search, ...orderHistorySearchSchema.parse({ page: 1, sort }) },
+							search: {
+								...search,
+								...orderHistorySearchSchema.parse({ ...search, page: 1, sort }),
+							},
 						}),
 				}}
 			/>
-			<PageControls
-				page={page}
+			<ListPagination
+				search={search}
 				total={orders.total}
-				onPage={(page) => navigate({ search: { ...search, page } })}
+				onSearch={(search) => navigate({ search })}
 			/>
 		</section>
 	);

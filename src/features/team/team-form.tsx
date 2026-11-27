@@ -5,20 +5,19 @@ import { useState } from "react";
 import { AdminForm } from "@/components/admin/admin-form";
 import { SelectField, TextField } from "@/components/admin/form-fields";
 import { FormSection } from "@/components/admin/form-section";
-import { NativeSelectOption } from "@/components/ui/native-select";
 import type { Role } from "@/features/auth/auth.types";
 import { roleDescriptions, roleLabels, roles } from "@/features/auth/permissions";
 import { addStaffAccount, transferStaffOwnership, writeStaffAccount } from "./team.functions";
 import type { StaffAccount } from "./team.types";
 
 const RoleField = ({ selected, options }: { selected: Role; options: readonly Role[] }) => (
-	<SelectField name="role" required label="Role" defaultValue={selected}>
-		{options.map((value) => (
-			<NativeSelectOption key={value} value={value}>
-				{roleLabels[value]}
-			</NativeSelectOption>
-		))}
-	</SelectField>
+	<SelectField
+		name="role"
+		required
+		label="Role"
+		defaultValue={selected}
+		items={options.map((value) => ({ value, label: roleLabels[value] }))}
+	/>
 );
 
 const NewStaffFields = () => (
@@ -87,10 +86,11 @@ const EditableAccess = ({ account, version }: { account: StaffAccount; version: 
 			required
 			label="Account access"
 			defaultValue={account.banned ? "disabled" : "active"}
-		>
-			<NativeSelectOption value="active">Active</NativeSelectOption>
-			<NativeSelectOption value="disabled">Disabled</NativeSelectOption>
-		</SelectField>
+			items={[
+				{ value: "active", label: "Active" },
+				{ value: "disabled", label: "Disabled" },
+			]}
+		/>
 	</>
 );
 

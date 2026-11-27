@@ -2,6 +2,8 @@ import { enum as ZEnum, templateLiteral as ZTemplateLiteral } from "zod";
 
 export type Sort = `${string}.${"asc" | "desc"}`;
 
+export const defaultAddedSort = "date.desc";
+
 export const sortSchema = <const Fields extends readonly [string, ...string[]]>(
 	...fields: Fields
 ) =>

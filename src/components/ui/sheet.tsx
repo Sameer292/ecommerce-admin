@@ -16,9 +16,7 @@ const SheetTrigger = ({ ...props }: SheetPrimitive.Trigger.Props) => {
 	return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 };
 
-const SheetClose = ({ ...props }: SheetPrimitive.Close.Props) => {
-	return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
-};
+const SheetClose = SheetPrimitive.Close;
 
 const SheetPortal = ({ ...props }: SheetPrimitive.Portal.Props) => {
 	return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
@@ -38,13 +36,13 @@ const SheetOverlay = ({ className, ...props }: SheetPrimitive.Backdrop.Props) =>
 };
 
 const SheetDismiss = () => (
-	<SheetPrimitive.Close
+	<SheetClose
 		data-slot="sheet-close"
 		render={<Button variant="ghost" className="absolute top-3 right-3" size="icon-sm" />}
 	>
 		<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
 		<span className="sr-only">Close</span>
-	</SheetPrimitive.Close>
+	</SheetClose>
 );
 
 const SheetContent = ({
@@ -86,16 +84,6 @@ const SheetHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
 	);
 };
 
-const SheetFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
-	return (
-		<div
-			data-slot="sheet-footer"
-			className={cn("mt-auto flex flex-col gap-2 p-4", className)}
-			{...props}
-		/>
-	);
-};
-
 const SheetTitle = ({ className, ...props }: SheetPrimitive.Title.Props) => {
 	return (
 		<SheetPrimitive.Title
@@ -116,13 +104,4 @@ const SheetDescription = ({ className, ...props }: SheetPrimitive.Description.Pr
 	);
 };
 
-export {
-	Sheet,
-	SheetTrigger,
-	SheetClose,
-	SheetContent,
-	SheetHeader,
-	SheetFooter,
-	SheetTitle,
-	SheetDescription,
-};
+export { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription };

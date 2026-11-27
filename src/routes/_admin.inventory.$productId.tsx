@@ -1,6 +1,7 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { listReturnSearchSchema } from "@/lib/list-return";
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { idSchema } from "@/lib/validation";
+import { createFileRoute, notFound, stripSearchParams } from "@tanstack/react-router";
 import { DetailHeading } from "@/components/admin/detail-heading";
 import { can } from "@/features/auth/permissions";
 import { readStock } from "@/features/inventory/inventory.functions";
@@ -15,13 +16,19 @@ const StockHistoryTable = () => {
 	return (
 		<StockHistory
 			{...history}
-			page={search.page}
 			zone={store.timeZone}
-			onPage={(page) => navigate({ search: { ...search, page } })}
+			pagination={{
+				page: search.page,
+				size: search.perPage,
+				onPage: (page) => navigate({ search: { ...search, page } }),
+				onSize: (perPage) => navigate({ search: { ...search, page: 1, perPage } }),
+			}}
 			sorting={{
 				value: search.sort ?? "date.desc",
 				onChange: (sort) =>
-					navigate({ search: { ...search, ...stockHistorySearchSchema.parse({ page: 1, sort }) } }),
+					navigate({
+						search: { ...search, ...stockHistorySearchSchema.parse({ ...search, page: 1, sort }) },
+					}),
 			}}
 		/>
 	);
@@ -54,6 +61,7 @@ export const Route = createFileRoute("/_admin/inventory/$productId")({
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => stockHistorySearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
+		if (!idSchema.safeParse({ id: params.productId }).success) throw notFound();
 		const data = await queryClient.fetchQuery({
 			queryKey: ["stock", params.productId, deps],
 			queryFn: ({ signal }) => readStock({ data: { id: params.productId, ...deps }, signal }),

@@ -340,28 +340,18 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		const payments = await listAudit({ page: 1, q: "payment_events" });
 		assert.ok(payments.rows.some(({ recordLabel }) => recordLabel === "WEB-SPLIT"));
 
-		const { findOrderDocuments, startBatchFulfillment } = await import(
-			"../src/features/orders/order-detail.server"
-		);
+		const { findOrderDocuments } = await import("../src/features/orders/order-detail.server");
 		const batch = await Promise.all([
 			importOrder({ ...input, number: "WEB-BATCH-1" }),
 			importOrder({ ...input, number: "WEB-BATCH-2" }),
 		]);
 		const ids = batch.map(({ id }) => id);
-		await assert.rejects(
-			startBatchFulfillment([ids[0], split.id], "stock-operator"),
-			/Choose pending orders/,
-		);
-		assert.equal((await findOrder(ids[0]))?.order.status, "pending");
-		await startBatchFulfillment(ids, "stock-operator");
 		const documents = await findOrderDocuments([...ids].reverse());
 		assert.deepEqual(
 			documents.map(({ order }) => order.number),
 			["WEB-BATCH-2", "WEB-BATCH-1"],
 		);
-		assert.ok(
-			documents.every(({ order, items }) => order.status === "processing" && items.length === 1),
-		);
+		assert.ok(documents.every(({ items }) => items.length === 1));
 		const {
 			claimNotification,
 			acknowledgeNotification,
@@ -566,26 +556,33 @@ test("stock and order writes serialize retries and roll back failed changes", {
 		assert.equal(pendingChair.stock, 2);
 		assert.equal(pendingChair.reserved_stock, 2);
 
-		const { acknowledgeReplenishment, readReplenishmentAlerts } = await import(
+		const { readReplenishmentAlerts } = await import(
 			"../src/features/inventory/replenishment.server"
 		);
-		const beforeAck = (await readReplenishmentAlerts(1, true)).rows.find(
+		const originalAlert = (await readReplenishmentAlerts(1)).rows.find(
 			({ sku }) => sku === "RESERVE-DESK",
 		);
-		assert.ok(beforeAck);
-		await acknowledgeReplenishment(beforeAck.id, "stock-operator");
-		assert.ok(!(await readReplenishmentAlerts(1, true)).rows.some(({ id }) => id === beforeAck.id));
-		assert.ok(
-			(await readReplenishmentAlerts(1)).rows.find(({ id }) => id === beforeAck.id)?.acknowledgedAt,
-		);
+		assert.ok(originalAlert);
+		assert.equal(originalAlert.threshold, 10);
 		await connection`update commerce_admin.products set stock = 10 where sku = 'RESERVE-DESK'`;
+		assert.ok((await readReplenishmentAlerts(1)).rows.some(({ id }) => id === originalAlert.id));
+		const desk = { page: 1, q: "RESERVE-DESK", status: "active" } as const;
+		assert.equal((await listProducts(desk, "low")).total, 1);
+		await connection`update commerce_admin.products set stock = 11 where sku = 'RESERVE-DESK'`;
+		assert.equal((await listProducts(desk, "low")).total, 0);
 		assert.ok(!(await readReplenishmentAlerts(1)).rows.some(({ sku }) => sku === "RESERVE-DESK"));
+		await assert.rejects(
+			connection`update commerce_admin.products set low_stock_threshold = 25 where sku = 'RESERVE-DESK'`,
+			{ code: "23514" },
+		);
 		await connection`update commerce_admin.products set stock = 1 where sku = 'RESERVE-DESK'`;
-		const reopened = (await readReplenishmentAlerts(1, true)).rows.find(
+		const reopened = (await readReplenishmentAlerts(1)).rows.find(
 			({ sku }) => sku === "RESERVE-DESK",
 		);
 		assert.ok(reopened);
-		assert.notEqual(reopened.id, beforeAck.id);
+		assert.notEqual(reopened.id, originalAlert.id);
+		await connection`update commerce_admin.replenishment_alerts set acknowledged_at = now() where id = ${reopened.id}`;
+		assert.ok(!(await readReplenishmentAlerts(1)).rows.some(({ id }) => id === reopened.id));
 
 		await connection`insert into commerce_admin.customers (name, email, phone) values ('Phone search', 'phone-search@example.test', '+977 (984) 123-4567')`;
 		const { listCustomers } = await import("../src/features/customers/customers.server");
@@ -740,25 +737,6 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			await checkIntegrationToken(storefrontRequest(replacement), "catalog:read"),
 			undefined,
 		);
-		const { updateProductsInBulk } = await import("../src/features/catalog/products.server");
-		const selected = await connection<
-			{ id: string; version: number }[]
-		>`select id, version from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR')`;
-		assert.equal(selected.length, 2);
-		await updateProductsInBulk(
-			{ selected, status: "archived", categoryId: "keep" },
-			"stock-operator",
-		);
-		await assert.rejects(
-			updateProductsInBulk({ selected, status: "active", categoryId: "" }, "stock-operator"),
-			/selected product changed/,
-		);
-		assert.equal(
-			(
-				await connection`select id from commerce_admin.products where sku in ('RESERVE-DESK','RESERVE-CHAIR') and status = 'archived'`
-			).length,
-			2,
-		);
 		const [published] =
 			await connection`insert into commerce_admin.products (name, slug, sku, price_minor, status) values ('Slug fixture', 'original-slug', 'PUBLISHED-SKU', 1000, 'active') returning id`;
 		await connection`update commerce_admin.products set slug = 'canonical-slug' where id = ${published.id}`;
@@ -795,7 +773,6 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			categoryId: null,
 			status: "active",
 			price: "25.00",
-			lowStockThreshold: 2,
 			variantOf: published.id,
 			variantOptions: [
 				{ name: "Size", value: "Small" },
@@ -873,7 +850,6 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			"",
 			'Contains a comma, a quote " and a\nsecond line.',
 			"",
-			"5",
 			"",
 			"",
 		];
@@ -891,7 +867,8 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			(await prepareCatalogImport(text, "create", "USD")).rows[0].errors.join(" "),
 			/SKU exists/,
 		);
-		const updatedCsv = rowCsv(["CSV-TEST", "=Escaped sample", ...fixture.slice(2)]);
+		const updatedRow = ["CSV-TEST", "=Escaped sample", ...fixture.slice(2), "25"];
+		const updatedCsv = `${header},low_stock_threshold\r\n${updatedRow.map(catalogCsvCell).join(",")}\r\n`;
 		const approved = await prepareCatalogImport(updatedCsv, "upsert", "USD");
 		await applyCatalogImport(updatedCsv, "upsert", approved.digest, "stock-operator");
 		await assert.rejects(
@@ -899,6 +876,7 @@ test("stock and order writes serialize retries and roll back failed changes", {
 			/catalog changed/,
 		);
 		const exportedCsv = await new Response(await exportCatalogCsv()).text();
+		assert.equal(exportedCsv.split("\r\n")[0], header);
 		assert.match(exportedCsv, /"CSV-TEST","'=Escaped sample"/);
 	} finally {
 		await connection.end({ timeout: 1 });

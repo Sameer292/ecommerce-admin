@@ -6,10 +6,9 @@ import { ClearFilters, DataTable } from "@/components/admin/data-table";
 import { ListControls } from "@/components/admin/list-controls";
 import type { Column, ListPage } from "@/components/admin/list.types";
 import { ListPagination } from "@/components/admin/page-controls";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { FilterSelect } from "@/components/admin/form-fields";
 import {
-	productStatusLabels,
-	productStatuses,
+	productStatusOptions,
 	stockFilterLabels,
 	stockFilters,
 } from "@/features/catalog/catalog-options";
@@ -41,25 +40,18 @@ const inventoryColumns: Column<ProductListRow>[] = [
 	{ label: "Publication", cell: (row) => <ProductStatus status={row.status} /> },
 	{
 		label: "Stock status",
-		cell: (row) => (
-			<StockStatus stock={row.availableStock} lowStockThreshold={row.lowStockThreshold} />
-		),
-	},
-	{
-		label: "Threshold",
-		sort: "threshold.asc",
-		className: "text-right tabular-nums",
-		cell: (row) => formatCount(row.lowStockThreshold),
+		className: "text-center",
+		cell: (row) => <StockStatus stock={row.availableStock} />,
 	},
 	{
 		label: "On hand",
-		className: "text-right font-medium tabular-nums",
+		className: "text-center font-medium tabular-nums",
 		cell: (row) => formatCount(row.stock),
 	},
 	{
 		label: "Available",
 		sort: "stock.desc",
-		className: "text-right font-medium tabular-nums",
+		className: "text-center font-medium tabular-nums",
 		cell: (row) => formatCount(row.availableStock),
 	},
 ];
@@ -69,6 +61,16 @@ type InventoryListProps = ListPage<ProductListRow> & {
 	onSearch: (search: InventorySearch) => void;
 };
 
+const stockOptions = [
+	{ value: "", label: "All stock levels" },
+	...stockFilters.map((value) => ({ value, label: stockFilterLabels[value] })),
+];
+
+const publicationOptions = [
+	{ value: "", label: "All publication states" },
+	...productStatusOptions,
+];
+
 const InventoryFilters = ({
 	search,
 	onSearch,
@@ -76,6 +78,7 @@ const InventoryFilters = ({
 	<ListControls
 		search={search}
 		placeholder="Search inventory"
+		searchClassName="max-md:basis-full md:max-w-xs"
 		readSearch={(form) => inventorySearchSchema.parse(Object.fromEntries(form))}
 		onSearch={onSearch}
 		onClear={
@@ -84,29 +87,28 @@ const InventoryFilters = ({
 				: undefined
 		}
 	>
-		<NativeSelect name="stock" aria-label="Stock filter" defaultValue={search.stock ?? ""}>
-			<NativeSelectOption value="">All stock levels</NativeSelectOption>
-			{stockFilters.map((stock) => (
-				<NativeSelectOption key={stock} value={stock}>
-					{stockFilterLabels[stock]}
-				</NativeSelectOption>
-			))}
-		</NativeSelect>
-		<NativeSelect name="status" aria-label="Publication" defaultValue={search.status ?? ""}>
-			<NativeSelectOption value="">All publication states</NativeSelectOption>
-			{productStatuses.map((status) => (
-				<NativeSelectOption key={status} value={status}>
-					{productStatusLabels[status]}
-				</NativeSelectOption>
-			))}
-		</NativeSelect>
+		<div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto">
+			<FilterSelect
+				name="stock"
+				label="Stock filter"
+				value={search.stock}
+				items={stockOptions}
+				className="min-w-0 max-md:w-full"
+			/>
+			<FilterSelect
+				name="status"
+				label="Publication"
+				value={search.status}
+				items={publicationOptions}
+				className="min-w-0 max-md:w-full"
+			/>
+		</div>
 	</ListControls>
 );
 
 export const InventoryList = ({ rows, total, search, onSearch }: InventoryListProps) => (
 	<div className="flex flex-col gap-4">
 		<InventoryFilters search={search} onSearch={onSearch} />
-		<ListPagination total={total} search={search} onSearch={onSearch} />
 		<DataTable
 			sorting={listSorting(search, "name.asc", inventorySearchSchema, onSearch)}
 			rows={rows}
@@ -128,6 +130,6 @@ export const InventoryList = ({ rows, total, search, onSearch }: InventoryListPr
 			}
 			emptyDescription="Check your filters or add products to your catalog."
 		/>
-		<ListPagination total={total} search={search} onSearch={onSearch} bottom />
+		<ListPagination total={total} search={search} onSearch={onSearch} />
 	</div>
 );

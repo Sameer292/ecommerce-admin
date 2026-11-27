@@ -58,14 +58,36 @@ test("read-only fields show values and selected labels as text", () => {
 	const markup = renderToStaticMarkup(
 		<ReadOnlyFields value={true}>
 			<TextField name="name" label="Name" defaultValue="Trail Mug" />
-			<SelectField name="status" label="Status" defaultValue="draft">
-				<option value="draft">Draft label</option>
-			</SelectField>
+			<SelectField
+				name="status"
+				label="Status"
+				defaultValue="draft"
+				items={[{ value: "draft", label: "Draft label" }]}
+			/>
 		</ReadOnlyFields>,
 	);
 	assert.match(markup, /Trail Mug/);
 	assert.match(markup, /Draft label/);
-	assert.doesNotMatch(markup, /<(input|select)/);
+	assert.doesNotMatch(markup, /<(input|button)\b/);
+});
+
+test("select fields show the display label and submit the stored value", () => {
+	const markup = renderToStaticMarkup(
+		<FieldValidation value={{ status: "Choose a valid status." }}>
+			<SelectField
+				name="status"
+				label="Status"
+				defaultValue="draft"
+				items={[{ value: "draft", label: "Draft label" }]}
+				required
+			/>
+		</FieldValidation>,
+	);
+	assert.match(markup, /<label[^>]*for="([^"]+)"[^>]*>.*<button[^>]*id="\1"/);
+	assert.match(markup, /<button[^>]*aria-invalid="true"/);
+	assert.match(markup, /role="combobox"/);
+	assert.match(markup, />Draft label<\/span>/);
+	assert.match(markup, /<input[^>]*name="status"[^>]*value="draft"/);
 });
 
 test("shared fields visually identify required inputs and retain native validation", () => {

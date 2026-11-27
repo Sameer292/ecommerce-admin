@@ -60,7 +60,6 @@ const AuditPage = () => {
 				onSearch={onSearch}
 				onClear={search.q ? clear : undefined}
 			/>
-			<ListPagination total={data.total} search={search} onSearch={onSearch} />
 			<DataTable
 				rows={data.rows}
 				columns={auditColumns(store.timeZone)}
@@ -68,7 +67,7 @@ const AuditPage = () => {
 				empty={search.q ? "No matching changes" : "No changes recorded"}
 				emptyAction={search.q ? <ClearFilters onClear={clear} /> : undefined}
 			/>
-			<ListPagination total={data.total} search={search} onSearch={onSearch} bottom />
+			<ListPagination total={data.total} search={search} onSearch={onSearch} />
 		</>
 	);
 };

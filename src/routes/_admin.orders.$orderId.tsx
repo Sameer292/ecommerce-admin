@@ -24,8 +24,12 @@ const OrderItemsTable = () => {
 		<OrderLines
 			{...items}
 			currency={store.currency}
-			page={search.page}
-			onPage={(page) => navigate({ search: { ...search, page } })}
+			pagination={{
+				page: search.page,
+				size: search.perPage,
+				onPage: (page) => navigate({ search: { ...search, page } }),
+				onSize: (perPage) => navigate({ search: { ...search, page: 1, perPage } }),
+			}}
 			sorting={{
 				value: search.sort ?? "id.asc",
 				onChange: (sort) =>
@@ -46,8 +50,13 @@ const OrderActivityTable = () => {
 		<OrderHistory
 			{...activity}
 			zone={store.timeZone}
-			page={search.activity}
-			onPage={(activity) => navigate({ search: { ...search, activity } })}
+			pagination={{
+				page: search.activity,
+				size: search.activityPerPage,
+				onPage: (activity) => navigate({ search: { ...search, activity } }),
+				onSize: (activityPerPage) =>
+					navigate({ search: { ...search, activity: 1, activityPerPage } }),
+			}}
 			sorting={{
 				value: search.activitySort ?? "date.desc",
 				onChange: (activitySort) =>
@@ -78,7 +87,7 @@ const OrderPage = () => {
 				backLabel="Orders"
 			>
 				<OrderStatusBadge status={order.status} />
-				<OrderPrintActions ids={[order.id]} />
+				<OrderPrintActions orderId={order.id} />
 			</DetailHeading>
 			<div className="grid items-start gap-4 lg:grid-cols-2">
 				<FulfillmentForm
@@ -118,8 +127,13 @@ const OrderPage = () => {
 			<OrderNotifications notifications={notifications} editable={editable} zone={store.timeZone} />
 			<PaymentHistory
 				{...payments}
-				page={search.payments}
-				onPage={(payments) => navigate({ search: { ...search, payments } })}
+				pagination={{
+					page: search.payments,
+					size: search.paymentsPerPage,
+					onPage: (payments) => navigate({ search: { ...search, payments } }),
+					onSize: (paymentsPerPage) =>
+						navigate({ search: { ...search, payments: 1, paymentsPerPage } }),
+				}}
 				currency={store.currency}
 				zone={store.timeZone}
 			/>

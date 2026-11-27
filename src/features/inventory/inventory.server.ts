@@ -4,7 +4,7 @@ import { alphabetical, orderBySort } from "@/db/sort.server";
 import { user } from "@/db/schema/auth";
 import { products } from "@/db/schema/catalog";
 import { stockAdjustments, type StockLevels } from "@/db/schema/inventory";
-import { pageOffset, pageSize } from "@/lib/pagination";
+import { pageOffset, pageSize, type ListPageSize } from "@/lib/pagination";
 import type { Sort } from "@/lib/sort";
 import { ActionError } from "@/server/mutation.server";
 import type { AdjustmentInput } from "./inventory.types";
@@ -20,6 +20,7 @@ export const findStockHistory = async (
 	productId: string,
 	page: number,
 	sort: Sort = "date.desc",
+	size: ListPageSize = pageSize,
 ) => {
 	const where = eq(stockAdjustments.productId, productId);
 	const [rows, total] = await Promise.all([
@@ -40,8 +41,8 @@ export const findStockHistory = async (
 			.leftJoin(user, eq(stockAdjustments.staffId, user.id))
 			.where(where)
 			.orderBy(...orderBySort(stockHistorySortColumns, sort, stockAdjustments.id))
-			.limit(pageSize)
-			.offset(pageOffset(page)),
+			.limit(size)
+			.offset(pageOffset(page, size)),
 		db.$count(stockAdjustments, where),
 	]);
 	return { rows, total };

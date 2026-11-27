@@ -37,7 +37,7 @@ const OverviewPage = () => {
 			<RecentOrders rows={orders} currency={store.currency} zone={store.timeZone} />
 			<WorkQueue counts={work} />
 			<div className="grid min-w-0 items-start gap-4 @4xl/main:grid-cols-2">
-				<StockWatch stock={stock.rows} total={stock.total} alerts={stock.alerts} />
+				<StockWatch stock={stock.rows} total={stock.total} />
 				<SummaryCards metrics={metrics} currency={store.currency} />
 			</div>
 		</>

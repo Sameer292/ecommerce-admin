@@ -15,7 +15,7 @@ export const readInventory = createServerFn()
 	.validator(inventorySearchSchema)
 	.handler(async ({ data }) => {
 		await requireStaff();
-		return listProducts(data, data.stock);
+		return listProducts({ ...data, sort: data.sort ?? "name.asc" }, data.stock);
 	});
 
 export const readStock = createServerFn()
@@ -24,7 +24,7 @@ export const readStock = createServerFn()
 		await requireStaff();
 		const [product, history] = await Promise.all([
 			findProduct(data.id),
-			findStockHistory(data.id, data.page, data.sort),
+			findStockHistory(data.id, data.page, data.sort, data.perPage),
 		]);
 		if (!product) throw notFound();
 		return { product, history, adjustmentId: crypto.randomUUID() };

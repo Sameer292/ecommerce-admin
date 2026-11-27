@@ -125,7 +125,7 @@ const PrintPage = () => {
 			<div className="print:hidden">
 				<PageHeading
 					title={kind === "invoice" ? "Print invoices" : "Print packing slips"}
-					description="Each selected order starts on its own printed page."
+					description="Each order starts on its own printed page."
 				>
 					<Button onClick={() => window.print()} disabled={documents.length === 0}>
 						Print
@@ -135,7 +135,7 @@ const PrintPage = () => {
 			{documents.length < ids.length && (
 				<p className="print:hidden">Some selected orders are unavailable.</p>
 			)}
-			{documents.length === 0 && <p>Choose orders to print from the orders list.</p>}
+			{documents.length === 0 && <p>Open an order to print its packing slip or invoice.</p>}
 			{documents.map((document) => (
 				<OrderDocument
 					key={document.order.id}

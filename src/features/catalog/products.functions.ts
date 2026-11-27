@@ -9,7 +9,6 @@ import { mutate } from "@/server/mutation.server";
 import { logRequestFailure } from "@/server/request-diagnostics.server";
 import { categoryOptions } from "./categories.server";
 import {
-	bulkProductSchema,
 	newProductSearchSchema,
 	productFormSchema,
 	productSearchSchema,
@@ -23,7 +22,6 @@ import {
 	listProducts,
 	productHasHistory,
 	saveProduct,
-	updateProductsInBulk,
 } from "./products.server";
 
 export const readProducts = createServerFn()
@@ -54,7 +52,6 @@ export const readNewProduct = createServerFn()
 					managedImage: productImageUrl(source.imageKey),
 					imageSourceId: source.imageKey ? source.id : undefined,
 					priceMinor: source.priceMinor,
-					lowStockThreshold: source.lowStockThreshold,
 					status: "draft" as const,
 					variantOf: data.variantOf,
 				}
@@ -125,16 +122,6 @@ export const removeProduct = createServerFn({ method: "POST" })
 		withStaffMutation("manageCommerce", (staff) =>
 			mutate(idSchema, data, ({ id }) => deleteProduct(id, staff.id), {
 				23503: "This product has order or inventory history. Archive it to retain its records.",
-			}),
-		),
-	);
-
-export const writeProductBatch = createServerFn({ method: "POST" })
-	.validator(formDataSchema)
-	.handler(({ data }) =>
-		withStaffMutation("manageCommerce", (staff) =>
-			mutate(bulkProductSchema, data, (input) => updateProductsInBulk(input, staff.id), {
-				23503: "The selected category no longer exists.",
 			}),
 		),
 	);
