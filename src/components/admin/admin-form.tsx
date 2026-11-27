@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useHydrated, useLocation } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type SubmitEvent } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FieldError, FieldSet } from "@/components/ui/field";
@@ -47,7 +47,7 @@ const useSubmitForm = ({
 			field?.focus();
 		}
 	}, [failure, pending]);
-	const submit = async (event: FormEvent<HTMLFormElement>) => {
+	const submit = async (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (!onSave || pending) return;
 		const form = event.currentTarget;

@@ -1,6 +1,6 @@
 import { useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type SubmitEvent } from "react";
 import { FieldValidation, TextField } from "@/components/admin/form-fields";
 import type { MutationFailure } from "@/server/mutation.types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -38,7 +38,7 @@ const useSignIn = (returnTo?: string) => {
 		if (failure?.fieldErrors)
 			form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
 	}, [failure]);
-	const submit = async (event: FormEvent<HTMLFormElement>) => {
+	const submit = async (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setPending(true);
 		setFailure(undefined);
