@@ -15,10 +15,18 @@ test("initial HTML includes styles, font preloads, and staff metadata", async ({
 		);
 	}
 	expect(html).toMatch(/<meta name="description" content="[^"]+"/);
-	expect(html).toContain('<meta name="robots" content="noindex, nofollow"');
+	expect(html).toContain('<meta name="robots" content="index, follow"');
+	expect(html).not.toContain('content="noindex, nofollow"');
+	const robots = await request.get("/robots.txt");
+	expect(robots.ok()).toBe(true);
+	expect(await robots.text()).toContain("Allow: /");
+	for (const path of ["/password/reset", "/?returnTo=%2Forders", "/orders"]) {
+		const privatePage = await request.get(path);
+		expect(await privatePage.text()).toContain('<meta name="robots" content="noindex, nofollow"');
+	}
 });
 
-test("sign-in loads without dropdown JavaScript and retains navigation and theme controls", async ({
+test("sign-in defers optional JavaScript and retains requests, navigation, and theme controls", async ({
 	page,
 }) => {
 	const scripts: string[] = [];
@@ -33,7 +41,19 @@ test("sign-in loads without dropdown JavaScript and retains navigation and theme
 	await page.goto("/");
 	await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeEnabled();
 	await expect(page.locator("html")).toHaveCSS("font-family", /Inter Variable/);
-	expect(scripts.filter((url) => /\/(select|select-field)-[^/]+\.js/.test(url))).toEqual([]);
+	expect(scripts.filter((url) => /\/(select|select-field|axios)-[^/]+\.js/.test(url))).toEqual([]);
+	await page.locator("form").evaluate((form: HTMLFormElement) => {
+		form.noValidate = true;
+		form.requestSubmit();
+	});
+	await expect(
+		page.getByRole("alert").filter({ hasText: "Check the highlighted fields." }),
+	).toBeVisible();
+	await expect(page.getByRole("textbox", { name: "Email" })).toHaveAttribute(
+		"aria-invalid",
+		"true",
+	);
+	expect(scripts.some((url) => /\/axios-[^/]+\.js/.test(url))).toBe(true);
 	const theme = page.getByRole("button", { name: "Toggle color theme" });
 	const before = await page.locator("html").getAttribute("class");
 	await theme.click();
@@ -41,5 +61,6 @@ test("sign-in loads without dropdown JavaScript and retains navigation and theme
 	await page.getByRole("link", { name: "Forgot password?" }).click();
 	await expect(page).toHaveURL(/\/password\/reset$/);
 	await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+	await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
 	expect(errors).toEqual([]);
 });

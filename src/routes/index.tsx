@@ -28,5 +28,13 @@ export const Route = createFileRoute("/")({
 		if (step === "ready") throw redirect({ href: search.returnTo ?? "/dashboard", replace: true });
 		if (step === "password") throw redirect({ to: "/password/set" });
 	},
+	head: ({ match }) => ({
+		meta: [
+			{
+				name: "robots",
+				content: match.search.returnTo ? "noindex, nofollow" : "index, follow",
+			},
+		],
+	}),
 	component: LoginPage,
 });

@@ -1,8 +1,9 @@
 import type { CustomFetch } from "@tanstack/react-start";
-import axios, { type AxiosHeaders } from "axios";
+import type { AxiosHeaders } from "axios";
 
 // Keep Start's streaming serializer and error responses intact.
 export const axiosFetch: CustomFetch = async (input, init) => {
+	const { default: axios } = await import("axios");
 	const request = new Request(
 		input instanceof Request ? input : new URL(input, globalThis.location?.origin),
 		init,
