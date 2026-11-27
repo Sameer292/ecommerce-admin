@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_admin/products/new")({
 	},
 	loaderDeps: ({ search }) => newProductSearchSchema.parse(search),
 	loader: ({ context: { queryClient }, deps }) =>
-		queryClient.fetchQuery({
+		queryClient.query({
 			queryKey: ["new-product", deps.duplicate, deps.variantOf],
 			queryFn: ({ signal }) => readNewProduct({ data: deps, signal }),
 		}),

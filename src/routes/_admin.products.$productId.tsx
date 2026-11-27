@@ -116,7 +116,7 @@ const ProductPage = () => {
 export const Route = createFileRoute("/_admin/products/$productId")({
 	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
-		queryClient.fetchQuery({
+		queryClient.query({
 			queryKey: ["product", params.productId],
 			queryFn: ({ signal }) => readProduct({ data: { id: params.productId }, signal }),
 		}),

@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_admin/orders/")({
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, deps, location }) => {
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["orders", deps],
 			queryFn: ({ signal }) => readOrders({ data: deps, signal }),
 		});

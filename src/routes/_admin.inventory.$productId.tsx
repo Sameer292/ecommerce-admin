@@ -62,7 +62,7 @@ export const Route = createFileRoute("/_admin/inventory/$productId")({
 	loaderDeps: ({ search }) => stockHistorySearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
 		if (!idSchema.safeParse({ id: params.productId }).success) throw notFound();
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["stock", params.productId, deps],
 			queryFn: ({ signal }) => readStock({ data: { id: params.productId, ...deps }, signal }),
 		});

@@ -26,7 +26,7 @@ const StaffPage = () => {
 export const Route = createFileRoute("/_admin/team/$staffId")({
 	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
-		queryClient.fetchQuery({
+		queryClient.query({
 			queryKey: ["staff-account", params.staffId],
 			queryFn: ({ signal }) => readStaffAccount({ data: { id: params.staffId }, signal }),
 		}),

@@ -142,7 +142,7 @@ export const Route = createFileRoute("/_admin/customers/$customerId")({
 	loaderDeps: ({ search }) => orderHistorySearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
 		if (!idSchema.safeParse({ id: params.customerId }).success) throw notFound();
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["customer", params.customerId, deps],
 			queryFn: ({ signal }) => readCustomer({ data: { id: params.customerId, ...deps }, signal }),
 		});

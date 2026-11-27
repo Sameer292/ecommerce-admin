@@ -68,7 +68,7 @@ export const Route = createFileRoute("/_admin/categories/")({
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, deps, location }) => {
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["categories", deps],
 			queryFn: ({ signal }) => readCategories({ data: deps, signal }),
 		});

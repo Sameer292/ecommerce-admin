@@ -146,7 +146,7 @@ export const Route = createFileRoute("/_admin/orders/$orderId")({
 	search: { middlewares: [stripSearchParams({ page: 1, activity: 1, payments: 1 })] },
 	loaderDeps: ({ search }) => orderDetailSearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["order", params.orderId, deps],
 			queryFn: ({ signal }) => readOrder({ data: { ...deps, id: params.orderId }, signal }),
 		});

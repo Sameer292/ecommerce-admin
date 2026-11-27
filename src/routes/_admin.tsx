@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_admin")({
 	beforeLoad: async ({ context: { queryClient }, matches, location }): Promise<Workspace> => {
 		const match = matches.find((match) => match.routeId === "/_admin");
 		if (match?.invalid) await queryClient.invalidateQueries({ refetchType: "none" });
-		const workspace = await queryClient.fetchQuery({
+		const workspace = await queryClient.query({
 			queryKey: ["workspace"],
 			queryFn: ({ signal }) => readWorkspace({ signal }),
 			staleTime: Infinity,

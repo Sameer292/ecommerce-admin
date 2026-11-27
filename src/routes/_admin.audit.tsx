@@ -80,7 +80,7 @@ export const Route = createFileRoute("/_admin/audit")({
 	search: { middlewares: [stripSearchParams(pageSearchDefaults)] },
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, deps, location }) => {
-		const data = await queryClient.fetchQuery({
+		const data = await queryClient.query({
 			queryKey: ["audit", deps],
 			queryFn: ({ signal }) => readAudit({ data: deps, signal }),
 		});

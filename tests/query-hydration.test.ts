@@ -13,7 +13,7 @@ test("SSR hydrates the browser cache without a second request and isolates other
 	assert.ok(dehydrated);
 	await browser.options.hydrate?.(dehydrated);
 	let calls = 0;
-	const loaded = await browser.options.context.queryClient.fetchQuery({
+	const loaded = await browser.options.context.queryClient.query({
 		queryKey,
 		queryFn: async () => {
 			calls++;

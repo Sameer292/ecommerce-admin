@@ -47,7 +47,7 @@ const CategoryPage = () => {
 export const Route = createFileRoute("/_admin/categories/$categoryId")({
 	validateSearch: listReturnSearchSchema,
 	loader: ({ context: { queryClient }, params }) =>
-		queryClient.fetchQuery({
+		queryClient.query({
 			queryKey: ["category", params.categoryId],
 			queryFn: ({ signal }) => readCategory({ data: { id: params.categoryId }, signal }),
 		}),

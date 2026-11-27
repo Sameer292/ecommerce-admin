@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_admin/dashboard")({
 	search: { middlewares: [stripSearchParams({ range: defaultRange })] },
 	loaderDeps: ({ search }) => search,
 	loader: ({ context: { queryClient }, deps }) =>
-		queryClient.fetchQuery({
+		queryClient.query({
 			queryKey: ["overview", deps],
 			queryFn: ({ signal }) => readOverview({ data: deps, signal }),
 		}),
