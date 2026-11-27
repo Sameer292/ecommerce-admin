@@ -10,7 +10,7 @@ const config = defineConfig({
 	plugins: [
 		devtools(),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({ server: { build: { inlineCss: true } } }),
 		nitro({ compressPublicAssets: { gzip: true, brotli: true } }),
 		viteReact(),
 	],
