@@ -1,16 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./staff";
 
-test("exports the applied custom sales range to signed-in staff", async ({ page }) => {
+test("uses presets on the dashboard and exports custom dates through the API", async ({ page }) => {
 	const url = "/api/reports/sales?from=2025-02-01&through=2025-02-02";
 	expect((await page.request.get(url)).status()).toBe(401);
 	await signIn(page, "/", "VIEWER");
-	await page.getByRole("combobox", { name: "Reporting period" }).selectOption("custom");
-	await page.getByLabel("Start date").fill("2025-02-01");
-	await page.getByLabel("End date").fill("2025-02-02");
-	await page.getByRole("button", { name: "Apply", exact: true }).click();
-	await expect(page.getByRole("link", { name: "Download CSV" })).toHaveAttribute("href", url);
-	await expect(page.getByText("Feb 1, 2025–Feb 2, 2025", { exact: false })).toBeVisible();
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.getByRole("combobox", { name: "Reporting period" }).click();
+	await expect(page.getByRole("option", { name: "Custom dates" })).toHaveCount(0);
+	await page.getByRole("option", { name: "Last 7 days" }).click();
+	await expect(page.getByRole("link", { name: "Download CSV" })).toHaveAttribute(
+		"href",
+		"/api/reports/sales?range=7",
+	);
 	const response = await page.request.get(url);
 	expect(response.ok()).toBe(true);
 	expect(response.headers()["content-type"]).toContain("text/csv");

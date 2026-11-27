@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ToastProvider } from "@/components/ui/toast";
 import type { readWorkspace } from "@/features/auth/session.functions";
-import { navigationSection } from "./navigation";
+import { navigationTitle } from "./navigation";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { UnsavedChangesProvider } from "./unsaved-changes";
@@ -33,14 +33,14 @@ const MobileNav = (workspace: Workspace) => {
 };
 
 const TopBar = (workspace: Workspace) => {
-	const section = useLocation({ select: ({ pathname }) => navigationSection(pathname) });
+	const title = useLocation({ select: ({ pathname }) => navigationTitle(pathname) });
 	return (
-		<header className="sticky top-0 z-30 flex min-h-15 items-center justify-between gap-3 border-b bg-card px-4 sm:px-7 print:hidden">
+		<header className="sticky top-0 z-30 flex min-h-12 shrink-0 items-center justify-between gap-3 border-b bg-background px-4 lg:px-6 print:hidden">
 			<div className="flex min-w-0 items-center gap-2">
 				<div className="-ml-2 lg:hidden">
 					<MobileNav {...workspace} />
 				</div>
-				<span className="truncate text-sm font-medium">{section}</span>
+				<span className="truncate text-base font-medium">{title}</span>
 			</div>
 			<ThemeToggle />
 		</header>
@@ -48,25 +48,30 @@ const TopBar = (workspace: Workspace) => {
 };
 
 const AdminLayout = (workspace: Workspace) => (
-	<div className="min-h-svh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] print:block">
+	<div className="min-h-svh bg-sidebar lg:grid lg:h-dvh lg:grid-cols-[15rem_minmax(0,1fr)] print:block print:h-auto print:min-h-0 print:bg-background">
 		<a
 			href="#main-content"
 			className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:m-2 focus:rounded-md focus:bg-card focus:p-3"
 		>
 			Skip to content
 		</a>
-		<aside className="sticky top-0 hidden h-svh overflow-y-auto border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex lg:flex-col print:hidden">
+		<aside className="hidden min-h-0 overflow-y-auto bg-sidebar text-sidebar-foreground lg:flex lg:flex-col print:hidden">
 			<Sidebar {...workspace} />
 		</aside>
-		<div className="min-w-0">
+		<div className="min-h-svh min-w-0 border-2 bg-background lg:my-2 lg:mr-2 lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden lg:rounded-xl lg:shadow-xs lg:ring-1 lg:ring-foreground/10 print:m-0 print:block print:min-h-0 print:overflow-visible print:border-0 print:shadow-none print:ring-0">
 			<TopBar {...workspace} />
-			<main
-				id="main-content"
-				tabIndex={-1}
-				className="mx-auto flex w-full max-w-350 flex-col gap-6 p-4 outline-none sm:p-7 lg:gap-8 lg:p-9 print:max-w-none print:p-0"
+			<div
+				data-scroll-restoration-id="workspace"
+				className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto print:overflow-visible"
 			>
-				<Outlet />
-			</main>
+				<main
+					id="main-content"
+					tabIndex={-1}
+					className="@container/main mx-auto flex w-full max-w-350 flex-col gap-4 px-4 py-5 outline-none lg:gap-6 lg:px-6 lg:py-6 print:max-w-none print:p-0"
+				>
+					<Outlet />
+				</main>
+			</div>
 		</div>
 	</div>
 );

@@ -10,7 +10,7 @@ const AccessDenied = () => (
 		/>
 		<div>
 			<Link to="/" className={buttonVariants({ variant: "outline" })}>
-				Back to overview
+				Back to dashboard
 			</Link>
 		</div>
 	</>

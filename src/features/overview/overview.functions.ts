@@ -9,7 +9,7 @@ import { orderWorkCounts, recentOrders } from "@/features/orders/orders.server";
 import { getStoreSettings } from "@/features/settings/settings.server";
 import { countOrderSyncFailures } from "@/features/store-integration/order-sync.server";
 import { getAnalytics } from "./analytics.server";
-import { overviewSearchSchema, resolveReportRange } from "./overview-validation";
+import { overviewSearchSchema } from "./overview-validation";
 import { buildTrend } from "./report-dates";
 
 const watchStock = async () => {
@@ -39,7 +39,7 @@ export const readOverview = createServerFn()
 		await requireStaff();
 		const { timeZone } = await getStoreSettings();
 		const [analytics, orders, stock, work, syncFailures] = await Promise.all([
-			getAnalytics(resolveReportRange(data), timeZone),
+			getAnalytics(data.range, timeZone),
 			recentOrders(),
 			watchStock(),
 			orderWorkCounts(),
@@ -48,7 +48,6 @@ export const readOverview = createServerFn()
 		return {
 			metrics: analytics.metrics,
 			trend: buildTrend(analytics.rows, analytics.window),
-			window: analytics.window,
 			orders,
 			stock,
 			work: { ...work, syncFailures },

@@ -112,7 +112,7 @@ The storefront owns sending customer messages. Its background worker should poll
 
 The dashboard retains paid sales in their original payment period. Refunds are reported on their own event dates and deducted from net in those periods. Older refunds with no known date remain in payment history and are excluded from dated reports. Order placements are counted by creation date in the configured store time zone. Staff can select up to 366 calendar days and export daily totals for the selected and preceding periods in minor units.
 
-The Overview work queue links to order filters and unresolved synchronization failures. Synchronization tracks the latest validated storefront order import and payment update per order number. It shows the HTTP status without the request body. Retrying successfully clears the failure. Requests rejected before validation and outages that stop PostgreSQL writes are visible through their HTTP responses and operational logs.
+The Dashboard work queue links to order filters and unresolved synchronization failures. Synchronization tracks the latest validated storefront order import and payment update per order number. It shows the HTTP status without the request body. Retrying successfully clears the failure. Requests rejected before validation and outages that stop PostgreSQL writes are visible through their HTTP responses and operational logs.
 
 ## Checks
 

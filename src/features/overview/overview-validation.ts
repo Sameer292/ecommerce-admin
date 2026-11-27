@@ -1,5 +1,4 @@
 import { coerce as ZCoerce, iso as ZIso, literal as ZLiteral, object as ZObject } from "zod";
-import type { output as ZOutput } from "zod";
 import { daysBetween } from "./report-dates";
 
 export const defaultRange = 30;
@@ -15,13 +14,4 @@ export const overviewSearchSchema = ZObject({
 		.pipe(ZLiteral([7, 30, 90]))
 		.catch(defaultRange)
 		.default(defaultRange),
-	from: date.optional().catch(undefined),
-	through: date.optional().catch(undefined),
 });
-
-export type ReportSearch = ZOutput<typeof overviewSearchSchema>;
-
-export const resolveReportRange = (search: ReportSearch) => {
-	const custom = customReportRangeSchema.safeParse(search);
-	return custom.success ? custom.data : search.range;
-};

@@ -23,6 +23,7 @@ export const getRouter = () => {
 		dehydrate: () => ({ queryState: dehydrate(queryClient) }),
 		hydrate: ({ queryState }) => hydrate(queryClient, queryState),
 		scrollRestoration: true,
+		scrollToTopSelectors: ['[data-scroll-restoration-id="workspace"]'],
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
 		defaultStaleReloadMode: "blocking",

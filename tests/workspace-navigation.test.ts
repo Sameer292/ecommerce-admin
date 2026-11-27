@@ -109,9 +109,11 @@ test("workspace data is reused across navigation and preload, refreshed on inval
 	}
 });
 
-test("the workspace header keeps section context on record routes", async () => {
-	const { navigationSection } = await import("../src/components/admin/navigation");
-	assert.equal(navigationSection("/products/id"), "Catalog / Products");
-	assert.equal(navigationSection("/settings"), "Administration / Settings");
-	assert.equal(navigationSection("/"), "Workspace / Overview");
+test("the top bar displays page titles without section names", async () => {
+	const { navigationTitle } = await import("../src/components/admin/navigation");
+	assert.equal(navigationTitle("/"), "Dashboard");
+	assert.equal(navigationTitle("/products/id"), "Products");
+	assert.equal(navigationTitle("/categories/"), "Categories");
+	assert.equal(navigationTitle("/settings"), "Settings");
+	assert.equal(navigationTitle("/product-import"), "Catalog CSV");
 });

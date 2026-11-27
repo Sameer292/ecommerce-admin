@@ -25,7 +25,7 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 	{
 		name: "Workspace",
 		items: [
-			{ to: "/", label: "Overview", icon: DashboardSquare01Icon },
+			{ to: "/", label: "Dashboard", icon: DashboardSquare01Icon },
 			{ to: "/orders", label: "Orders", icon: ShoppingBasket01Icon },
 			{ to: "/customers", label: "Customers", icon: UserMultipleIcon },
 		],
@@ -48,14 +48,21 @@ const groups: { name: string; items: NavigationItem[] }[] = [
 	},
 ];
 
-export const navigationSection = (pathname: string) => {
+const standaloneTitles: Record<string, string> = {
+	"/access-denied": "Access denied",
+	"/integrations": "Integration credentials",
+	"/product-import": "Catalog CSV",
+};
+
+export const navigationTitle = (pathname: string) => {
+	const path = pathname.replace(/\/$/, "") || "/";
 	for (const group of groups) {
 		const item = group.items.find(
-			({ to }) => pathname === to || (to !== "/" && pathname.startsWith(`${to}/`)),
+			({ to }) => path === to || (to !== "/" && path.startsWith(`${to}/`)),
 		);
-		if (item) return `${group.name} / ${item.label}`;
+		if (item) return item.label;
 	}
-	return "Workspace";
+	return standaloneTitles[path] ?? "Page not found";
 };
 
 const NavigationLink = ({

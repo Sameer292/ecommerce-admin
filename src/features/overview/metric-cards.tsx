@@ -1,13 +1,17 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import {
-	ChartLineData01Icon,
-	DollarCircleIcon,
-	ShoppingBag01Icon,
-	UserMultipleIcon,
-} from "@hugeicons/core-free-icons";
+import { ChartDownIcon, ChartUpIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useId } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+	Card,
+	CardAction,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { formatCount, formatMoney } from "@/lib/format";
 import type { Comparison, DashboardMetrics, TrendMetric } from "./overview.types";
 
@@ -17,96 +21,79 @@ export const trendLabels = {
 	customers: "New customers",
 } satisfies Record<TrendMetric, string>;
 
-const trendIcons = {
-	orders: ShoppingBag01Icon,
-	sales: DollarCircleIcon,
-	customers: UserMultipleIcon,
-};
-
 const changes = new Intl.NumberFormat("en-US", {
 	style: "percent",
 	maximumFractionDigits: 1,
 	signDisplay: "exceptZero",
 });
 
-const MetricChange = ({
-	current,
-	previous,
-	lowerIsBetter = false,
-}: Comparison & { lowerIsBetter?: boolean }) => {
-	if (previous === 0)
-		return <span className="text-xs text-muted-foreground">Previous period was zero</span>;
-	const change = (current - previous) / Math.abs(previous);
-	return (
-		<span className="flex flex-wrap gap-x-1.5 text-xs text-muted-foreground">
-			<strong
-				className={
-					(lowerIsBetter ? change <= 0 : change >= 0) ? "text-success" : "text-destructive"
-				}
-			>
-				{changes.format(change)}
-			</strong>
-			<span>vs. previous period</span>
-		</span>
-	);
-};
-
-type MetricCardProps = {
-	label: string;
-	value: string;
-	change: Comparison;
-	icon: typeof DollarCircleIcon;
-	lowerIsBetter?: boolean;
-	description?: string;
-};
-
 const MetricCard = ({
 	label,
 	value,
 	change,
-	icon,
-	lowerIsBetter,
-	description,
-}: MetricCardProps) => (
-	<Card size="sm" className="min-w-0 gap-1.5 p-3 sm:gap-4 sm:p-5">
-		<CardHeader className="flex flex-row items-center justify-between gap-2 px-0">
-			<h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
-			<div className="hidden size-8 shrink-0 place-items-center rounded-lg border bg-muted/35 text-muted-foreground sm:grid">
-				<HugeiconsIcon icon={icon} className="size-4" aria-hidden />
-			</div>
-		</CardHeader>
-		<CardContent className="flex flex-col gap-1 px-0 sm:gap-2">
-			<p className="font-heading text-xl font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
-				{value}
-			</p>
-			<MetricChange {...change} lowerIsBetter={lowerIsBetter} />
-			{description && <p className="text-xs text-muted-foreground">{description}</p>}
-		</CardContent>
-	</Card>
-);
-
-const summaryCards = (metrics: DashboardMetrics, currency: string): MetricCardProps[] => [
-	{
-		label: "Refunds",
-		value: formatMoney(metrics.refunds.current, currency),
-		change: metrics.refunds,
-		icon: DollarCircleIcon,
-		lowerIsBetter: true,
-	},
-	{
-		label: "Net after refunds",
-		value: formatMoney(metrics.net.current, currency),
-		change: metrics.net,
-		icon: DollarCircleIcon,
-	},
-	{
-		label: "Average order value",
-		value: formatMoney(metrics.average.current, currency),
-		change: metrics.average,
-		icon: ChartLineData01Icon,
-		description: `${formatCount(metrics.paidOrders.current)} paid orders · ${formatCount(metrics.paidOrders.previous)} in the previous period`,
-	},
-];
+	metric,
+	detail,
+	lowerIsBetter = false,
+}: {
+	label: string;
+	value: string;
+	change: Comparison;
+	metric?: TrendMetric;
+	detail?: string;
+	lowerIsBetter?: boolean;
+}) => {
+	const id = useId();
+	const difference = change.previous
+		? (change.current - change.previous) / Math.abs(change.previous)
+		: null;
+	return (
+		<Card className="@container/card relative min-w-0 gap-2 bg-linear-to-t from-primary/5 to-card shadow-xs has-data-pressed:ring-primary has-focus-visible:ring-2 has-focus-visible:ring-ring sm:gap-3">
+			<CardHeader className="has-data-[slot=card-action]:grid-cols-[minmax(0,1fr)_auto]">
+				<CardDescription id={id} className="text-xs leading-snug sm:text-sm">
+					{label}
+				</CardDescription>
+				<CardTitle
+					id={`${id}-value`}
+					className="col-span-full text-lg font-semibold wrap-anywhere tabular-nums @[180px]/card:text-2xl @[250px]/card:text-3xl"
+				>
+					{value}
+				</CardTitle>
+				{difference !== null && (
+					<CardAction className="row-span-1">
+						<Badge
+							variant="outline"
+							className={
+								(lowerIsBetter ? difference <= 0 : difference >= 0)
+									? "text-success"
+									: "text-destructive"
+							}
+						>
+							{difference !== 0 && (
+								<HugeiconsIcon
+									icon={difference > 0 ? ChartUpIcon : ChartDownIcon}
+									aria-hidden
+									className="hidden @[185px]/card:block"
+								/>
+							)}
+							{changes.format(difference)}
+						</Badge>
+					</CardAction>
+				)}
+			</CardHeader>
+			<CardFooter className="border-0 bg-transparent pt-0 text-xs text-muted-foreground">
+				{detail ?? (difference === null ? "Previous period was zero" : "vs. previous period")}
+			</CardFooter>
+			{metric && (
+				<Toggle
+					value={metric}
+					aria-labelledby={`${id} ${id}-value`}
+					aria-controls="overview-trend"
+					className="absolute inset-0 cursor-pointer rounded-xl outline-none"
+				/>
+			)}
+		</Card>
+	);
+};
 
 export const MetricCards = ({
 	metrics,
@@ -125,31 +112,27 @@ export const MetricCards = ({
 		onValueChange={([metric]) => {
 			if (metric) onSelect(metric);
 		}}
-		className="grid grid-cols-3 gap-2 sm:gap-3"
+		className="grid grid-cols-2 gap-3 @5xl/main:grid-cols-4 sm:gap-4"
 	>
 		{(["orders", "sales", "customers"] as const).map((metric) => (
-			<Toggle
+			<MetricCard
 				key={metric}
-				value={metric}
-				aria-controls="overview-trend"
-				className="flex min-w-0 cursor-pointer flex-col gap-1.5 rounded-xl border bg-card p-2.5 text-start text-card-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-pressed:border-primary data-pressed:bg-primary/5 sm:gap-2 sm:p-4"
-			>
-				<span className="flex min-h-8 w-full items-start justify-between gap-2 sm:min-h-0 sm:items-center">
-					<span className="text-xs font-medium sm:text-sm">{trendLabels[metric]}</span>
-					<HugeiconsIcon
-						icon={trendIcons[metric]}
-						className="hidden size-4 shrink-0 text-muted-foreground sm:block"
-						aria-hidden
-					/>
-				</span>
-				<span className="font-heading w-full wrap-anywhere text-sm font-semibold tracking-tight tabular-nums sm:text-2xl">
-					{metric === "sales"
+				metric={metric}
+				label={trendLabels[metric]}
+				value={
+					metric === "sales"
 						? formatMoney(metrics.sales.current, currency)
-						: formatCount(metrics[metric].current)}
-				</span>
-				<MetricChange {...metrics[metric]} />
-			</Toggle>
+						: formatCount(metrics[metric].current)
+				}
+				change={metrics[metric]}
+			/>
 		))}
+		<MetricCard
+			label="Average order value"
+			value={formatMoney(metrics.average.current, currency)}
+			change={metrics.average}
+			detail={`${formatCount(metrics.paidOrders.current)} paid orders`}
+		/>
 	</ToggleGroup>
 );
 
@@ -160,9 +143,17 @@ export const SummaryCards = ({
 	metrics: DashboardMetrics;
 	currency: string;
 }) => (
-	<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-		{summaryCards(metrics, currency).map((metric) => (
-			<MetricCard key={metric.label} {...metric} />
-		))}
+	<div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4">
+		<MetricCard
+			label="Refunds"
+			value={formatMoney(metrics.refunds.current, currency)}
+			change={metrics.refunds}
+			lowerIsBetter
+		/>
+		<MetricCard
+			label="Net after refunds"
+			value={formatMoney(metrics.net.current, currency)}
+			change={metrics.net}
+		/>
 	</div>
 );

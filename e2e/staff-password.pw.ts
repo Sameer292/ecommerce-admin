@@ -65,14 +65,14 @@ test("owners can reset their password without a second factor and revoke another
 		await page.locator('input[name="email"]').fill(email);
 		await page.locator('input[name="password"]').fill(password);
 		await page.getByRole("button", { name: "Sign in", exact: true }).click();
-		await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 		const other = await browser.newPage({ baseURL });
 		try {
 			await other.goto("/login");
 			await other.locator('input[name="email"]').fill(email);
 			await other.locator('input[name="password"]').fill(password);
 			await other.getByRole("button", { name: "Sign in", exact: true }).click();
-			await expect(other.getByRole("heading", { name: "Overview" })).toBeVisible();
+			await expect(other.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 			await page.goto("/settings", { waitUntil: "domcontentloaded" });
 			await expect(page.getByText("Other session", { exact: true })).toBeVisible();
 			await page.getByRole("button", { name: "Sign out other devices" }).click();
