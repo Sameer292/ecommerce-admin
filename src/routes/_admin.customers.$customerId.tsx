@@ -1,7 +1,8 @@
 import { redirectInvalidPages } from "@/lib/pagination-redirect";
 import { useListReturn } from "@/components/admin/record-link";
 import { listReturnSearchSchema } from "@/lib/list-return";
-import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
+import { idSchema } from "@/lib/validation";
+import { createFileRoute, Link, notFound, stripSearchParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { DeleteRecord } from "@/components/admin/delete-record";
 import { DetailHeading } from "@/components/admin/detail-heading";
@@ -137,6 +138,7 @@ export const Route = createFileRoute("/_admin/customers/$customerId")({
 	search: { middlewares: [stripSearchParams({ page: 1 })] },
 	loaderDeps: ({ search }) => orderHistorySearchSchema.parse(search),
 	loader: async ({ context: { queryClient }, deps, params, location }) => {
+		if (!idSchema.safeParse({ id: params.customerId }).success) throw notFound();
 		const data = await queryClient.fetchQuery({
 			queryKey: ["customer", params.customerId, deps],
 			queryFn: ({ signal }) => readCustomer({ data: { id: params.customerId, ...deps }, signal }),

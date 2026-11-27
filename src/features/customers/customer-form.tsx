@@ -8,41 +8,29 @@ import { FormSection } from "@/components/admin/form-section";
 import type { Customer } from "./customer.types";
 import { writeCustomer } from "./customers.functions";
 
-const CustomerFields = ({ customer }: { customer?: Customer }) => (
+const CustomerFields = ({ customer }: { customer: Customer }) => (
 	<FormSection title="Customer details">
-		<TextField name="name" label="Name" defaultValue={customer?.name} maxLength={120} required />
+		<TextField name="name" label="Name" defaultValue={customer.name} maxLength={120} required />
 		<TextField
 			name="email"
 			label="Email"
 			type="email"
 			maxLength={254}
-			defaultValue={customer?.email}
+			defaultValue={customer.email}
 			required
 		/>
-		<TextField
-			name="phone"
-			label="Phone"
-			type="tel"
-			maxLength={40}
-			defaultValue={customer?.phone}
-		/>
+		<TextField name="phone" label="Phone" type="tel" maxLength={40} defaultValue={customer.phone} />
 		<NotesField
 			name="notes"
 			label="Internal notes"
-			defaultValue={customer?.notes}
+			defaultValue={customer.notes}
 			maxLength={2000}
 		/>
 	</FormSection>
 );
 
-export const CustomerForm = ({
-	customer,
-	editable,
-}: {
-	customer?: Customer;
-	editable: boolean;
-}) => {
-	const [version] = useState(customer?.version);
+export const CustomerForm = ({ customer, editable }: { customer: Customer; editable: boolean }) => {
+	const [version] = useState(customer.version);
 	const save = useServerFn(writeCustomer);
 	const navigate = useNavigate();
 	const returnHref = useListReturn("/customers");
@@ -52,12 +40,12 @@ export const CustomerForm = ({
 				onSave={editable ? (data) => save({ data }) : undefined}
 				onSuccess={() => navigate({ href: returnHref })}
 				cancelHref={returnHref}
-				requireChanges={Boolean(customer)}
-				submitLabel={customer ? "Save customer" : "Create customer"}
-				successMessage={customer ? "Customer saved." : "Customer created."}
+				requireChanges
+				submitLabel="Save customer"
+				successMessage="Customer saved."
 			>
-				<input type="hidden" name="id" value={customer?.id ?? ""} />
-				{customer && <input type="hidden" name="version" value={version} />}
+				<input type="hidden" name="id" value={customer.id} />
+				<input type="hidden" name="version" value={version} />
 				<CustomerFields customer={customer} />
 			</AdminForm>
 		</div>

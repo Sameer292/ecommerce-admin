@@ -103,14 +103,13 @@ export const customerOrderSummary = async (id: string) => {
 };
 
 export const saveCustomer = async ({ id, version, ...values }: CustomerValues) => {
-	if (!id) return db.insert(customers).values(values);
 	const [updated] = await db
 		.update(customers)
 		.set({ ...values, updatedAt: new Date(), version: sql`${customers.version} + 1` })
 		.where(
 			and(
 				eq(customers.id, id),
-				eq(customers.version, version ?? -1),
+				eq(customers.version, version),
 				isNull(customers.mergedInto),
 				isNull(customers.anonymizedAt),
 			),

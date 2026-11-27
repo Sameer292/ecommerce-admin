@@ -8,7 +8,16 @@ import {
 	SelectField,
 	TextField,
 } from "../src/components/admin/form-fields";
+import { customerFormSchema } from "../src/features/customers/customer-validation";
 import { ActionError, mutate } from "../src/server/mutation.server";
+
+test("saving a customer requires an existing record ID and edit version", () => {
+	const fields = { name: "Customer", email: "customer@example.test", phone: "", notes: "" };
+	const id = "935b1194-bb73-4b09-8d83-29a83274d5ae";
+	assert.equal(customerFormSchema.safeParse({ ...fields, id: "", version: "0" }).success, false);
+	assert.equal(customerFormSchema.safeParse({ ...fields, id }).success, false);
+	assert.equal(customerFormSchema.parse({ ...fields, id, version: "0" }).version, 0);
+});
 
 test("validation returns errors by field and the form renders an accessible link", async () => {
 	const values = new FormData();

@@ -27,7 +27,6 @@ import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/_admin.c
 import { Route as AdminCategoriesNewRouteImport } from './routes/_admin.categories.new'
 import { Route as AdminCustomersIndexRouteImport } from './routes/_admin.customers.index'
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/_admin.customers.$customerId'
-import { Route as AdminCustomersNewRouteImport } from './routes/_admin.customers.new'
 import { Route as AdminInventoryIndexRouteImport } from './routes/_admin.inventory.index'
 import { Route as AdminInventoryProductIdRouteImport } from './routes/_admin.inventory.$productId'
 import { Route as AdminInventoryReplenishmentRouteImport } from './routes/_admin.inventory.replenishment'
@@ -141,11 +140,6 @@ const AdminCustomersCustomerIdRoute =
     path: '/customers/$customerId',
     getParentRoute: () => AdminRoute,
   } as any)
-const AdminCustomersNewRoute = AdminCustomersNewRouteImport.update({
-  id: '/customers/new',
-  path: '/customers/new',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminInventoryIndexRoute = AdminInventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
@@ -271,7 +265,6 @@ export interface FileRoutesByFullPath {
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
-  '/customers/new': typeof AdminCustomersNewRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
@@ -311,7 +304,6 @@ export interface FileRoutesByTo {
   '/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/categories/new': typeof AdminCategoriesNewRoute
   '/customers/$customerId': typeof AdminCustomersCustomerIdRoute
-  '/customers/new': typeof AdminCustomersNewRoute
   '/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/orders/$orderId': typeof AdminOrdersOrderIdRoute
@@ -354,7 +346,6 @@ export interface FileRoutesById {
   '/_admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/_admin/categories/new': typeof AdminCategoriesNewRoute
   '/_admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
-  '/_admin/customers/new': typeof AdminCustomersNewRoute
   '/_admin/inventory/$productId': typeof AdminInventoryProductIdRoute
   '/_admin/inventory/replenishment': typeof AdminInventoryReplenishmentRoute
   '/_admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
@@ -397,7 +388,6 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/categories/new'
     | '/customers/$customerId'
-    | '/customers/new'
     | '/inventory/$productId'
     | '/inventory/replenishment'
     | '/orders/$orderId'
@@ -437,7 +427,6 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/categories/new'
     | '/customers/$customerId'
-    | '/customers/new'
     | '/inventory/$productId'
     | '/inventory/replenishment'
     | '/orders/$orderId'
@@ -479,7 +468,6 @@ export interface FileRouteTypes {
     | '/_admin/categories/$categoryId'
     | '/_admin/categories/new'
     | '/_admin/customers/$customerId'
-    | '/_admin/customers/new'
     | '/_admin/inventory/$productId'
     | '/_admin/inventory/replenishment'
     | '/_admin/orders/$orderId'
@@ -647,13 +635,6 @@ declare module '@tanstack/react-router' {
       path: '/customers/$customerId'
       fullPath: '/customers/$customerId'
       preLoaderRoute: typeof AdminCustomersCustomerIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/customers/new': {
-      id: '/_admin/customers/new'
-      path: '/customers/new'
-      fullPath: '/customers/new'
-      preLoaderRoute: typeof AdminCustomersNewRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/inventory/': {
@@ -833,7 +814,6 @@ interface AdminRouteChildren {
   AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
   AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
-  AdminCustomersNewRoute: typeof AdminCustomersNewRoute
   AdminInventoryProductIdRoute: typeof AdminInventoryProductIdRoute
   AdminInventoryReplenishmentRoute: typeof AdminInventoryReplenishmentRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
@@ -859,7 +839,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
   AdminCategoriesNewRoute: AdminCategoriesNewRoute,
   AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
-  AdminCustomersNewRoute: AdminCustomersNewRoute,
   AdminInventoryProductIdRoute: AdminInventoryProductIdRoute,
   AdminInventoryReplenishmentRoute: AdminInventoryReplenishmentRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
